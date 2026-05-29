@@ -85,12 +85,12 @@ export default function handler(req, res) {
     <section id="compartir"><h2>4. Compartir información</h2><p>No compartimos tu información con terceros, excepto proveedores de infraestructura (Supabase, Vercel) bajo acuerdos de confidencialidad, o cuando sea requerido por ley.</p></section>
     <section id="retencion"><h2>5. Retención de datos</h2><p>Conservamos tus datos mientras exista una relación comercial activa. Si solicitas eliminación, la procesamos en 30 días hábiles.</p></section>
     <section id="derechos"><h2>6. Tus derechos</h2><ul><li>Acceder a tus datos personales</li><li>Solicitar corrección de datos incorrectos</li><li>Solicitar eliminación de tus datos</li><li>Oponerte al procesamiento</li><li>Portar tus datos a otro servicio</li></ul></section>
-    <section id="eliminacion"><h2>7. Eliminación de datos</h2><p>Puedes solicitar la eliminación de todos tus datos en cualquier momento:</p><ul><li>Correo: <strong>privacidad@grupopingus.com</strong></li><li>Formulario: <a href="/api/delete-data" style="color:var(--accent)">konversa-crm.vercel.app/api/delete-data</a></li></ul></section>
+    <section id="eliminacion"><h2>7. Eliminación de datos</h2><p>Puedes solicitar la eliminación de todos tus datos en cualquier momento:</p><ul><li>Correo: <strong>admin@grupopingus.com</strong></li><li>Formulario: <a href="/api/delete-data" style="color:var(--accent)">konversa-crm.vercel.app/api/delete-data</a></li></ul></section>
     <section id="seguridad"><h2>8. Seguridad</h2><p>Implementamos cifrado HTTPS/TLS, acceso restringido por roles y autenticación segura para proteger tu información.</p></section>
     <section id="contacto"><h2>9. Contacto</h2>
       <div class="contact-card">
         <h3>Grupo Pingus</h3>
-        <p>Correo: <a href="mailto:privacidad@grupopingus.com">privacidad@grupopingus.com</a></p>
+        <p>Correo: <a href="mailto:admin@grupopingus.com">admin@grupopingus.com</a></p>
         <p>Plataforma: <a href="https://konversa-crm.vercel.app">konversa-crm.vercel.app</a></p>
       </div>
     </section>
