@@ -552,25 +552,27 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <h2>Automatizaciones</h2>
     <button class="aubtn" id="newAutoBtn"><i class="ti ti-plus" style="font-size:13px"></i> Nueva</button>
   </div>
-  <div style="padding:14px;display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px" id="autoGrid"></div>
+  <div style="padding:14px;display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px" id="autoGrid">
+  <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:14px"><div style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><div style="width:36px;height:36px;border-radius:10px;background:#d1fae5;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ti-brand-whatsapp" style="font-size:18px;color:#059669"></i></div><div style="flex:1"><div style="font-size:12px;font-weight:600;color:#111827">Bienvenida automática WA</div><div style="font-size:10px;color:#9ca3af">Respuesta instantánea a nuevos contactos</div></div><div style="width:36px;height:20px;border-radius:10px;background:#059669;cursor:pointer;display:flex;align-items:center;justify-content:flex-end;padding-right:2px"><div style="width:16px;height:16px;border-radius:50%;background:#fff"></div></div></div><div style="font-size:10px;color:#374151;background:#f9fafb;padding:6px 9px;border-radius:6px;margin-bottom:6px"><i class="ti ti-bolt" style="font-size:10px;margin-right:3px;color:#7c3aed"></i>Nuevo mensaje → sin respuesta 30s</div><div style="font-size:10px;color:#6b7280">→ Enviar: "¡Hola! Soy del equipo Pingus 👋 ¿En qué te ayudo?"</div></div>
+  <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:14px"><div style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><div style="width:36px;height:36px;border-radius:10px;background:#dbeafe;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ti-brand-facebook" style="font-size:18px;color:#1877f2"></i></div><div style="flex:1"><div style="font-size:12px;font-weight:600;color:#111827">Seguimiento sin respuesta</div><div style="font-size:10px;color:#9ca3af">Recordatorio a leads sin actividad</div></div><div style="width:36px;height:20px;border-radius:10px;background:#059669;cursor:pointer;display:flex;align-items:center;justify-content:flex-end;padding-right:2px"><div style="width:16px;height:16px;border-radius:50%;background:#fff"></div></div></div><div style="font-size:10px;color:#374151;background:#f9fafb;padding:6px 9px;border-radius:6px;margin-bottom:6px"><i class="ti ti-bolt" style="font-size:10px;margin-right:3px;color:#7c3aed"></i>Lead en "Interés" → sin actividad 2 días</div><div style="font-size:10px;color:#6b7280">→ Notificar al agente · → Enviar seguimiento al cliente</div></div>
+  <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:14px"><div style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><div style="width:36px;height:36px;border-radius:10px;background:#fef3c7;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ti-star" style="font-size:18px;color:#d97706"></i></div><div style="flex:1"><div style="font-size:12px;font-weight:600;color:#111827">Encuesta post-venta</div><div style="font-size:10px;color:#9ca3af">NPS automático después de cerrar</div></div><div style="width:36px;height:20px;border-radius:10px;background:#9ca3af;cursor:pointer;display:flex;align-items:center;padding-left:2px"><div style="width:16px;height:16px;border-radius:50%;background:#fff"></div></div></div><div style="font-size:10px;color:#374151;background:#f9fafb;padding:6px 9px;border-radius:6px;margin-bottom:6px"><i class="ti ti-bolt" style="font-size:10px;margin-right:3px;color:#7c3aed"></i>Lead movido a "Finalizado"</div><div style="font-size:10px;color:#6b7280">→ Esperar 1 día · → Enviar encuesta de satisfacción</div></div>
+  <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:14px"><div style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><div style="width:36px;height:36px;border-radius:10px;background:#ede9fe;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ti-tag" style="font-size:18px;color:#7c3aed"></i></div><div style="flex:1"><div style="font-size:12px;font-weight:600;color:#111827">Asignación por palabra clave</div><div style="font-size:10px;color:#9ca3af">Detecta interés en producto específico</div></div><div style="width:36px;height:20px;border-radius:10px;background:#059669;cursor:pointer;display:flex;align-items:center;justify-content:flex-end;padding-right:2px"><div style="width:16px;height:16px;border-radius:50%;background:#fff"></div></div></div><div style="font-size:10px;color:#374151;background:#f9fafb;padding:6px 9px;border-radius:6px;margin-bottom:6px"><i class="ti ti-bolt" style="font-size:10px;margin-right:3px;color:#7c3aed"></i>Mensaje contiene: "purificador", "ozono", "precio"</div><div style="font-size:10px;color:#6b7280">→ Etiquetar lead · → Asignar a agente disponible</div></div>
+  <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:14px"><div style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><div style="width:36px;height:36px;border-radius:10px;background:#fae8ff;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ti-clock" style="font-size:18px;color:#c026d3"></i></div><div style="flex:1"><div style="font-size:12px;font-weight:600;color:#111827">Recordatorio de cotización</div><div style="font-size:10px;color:#9ca3af">Alerta cuando una cita está próxima</div></div><div style="width:36px;height:20px;border-radius:10px;background:#059669;cursor:pointer;display:flex;align-items:center;justify-content:flex-end;padding-right:2px"><div style="width:16px;height:16px;border-radius:50%;background:#fff"></div></div></div><div style="font-size:10px;color:#374151;background:#f9fafb;padding:6px 9px;border-radius:6px;margin-bottom:6px"><i class="ti ti-bolt" style="font-size:10px;margin-right:3px;color:#7c3aed"></i>Lead en "Cotización" → 24hrs sin mover</div><div style="font-size:10px;color:#6b7280">→ Notificar agente · → Enviar propuesta al cliente</div></div>
+  <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:14px"><div style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><div style="width:36px;height:36px;border-radius:10px;background:#d1fae5;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ti-user-plus" style="font-size:18px;color:#059669"></i></div><div style="flex:1"><div style="font-size:12px;font-weight:600;color:#111827">Nuevo lead desde Instagram</div><div style="font-size:10px;color:#9ca3af">Captura automática de DMs</div></div><div style="width:36px;height:20px;border-radius:10px;background:#9ca3af;cursor:pointer;display:flex;align-items:center;padding-left:2px"><div style="width:16px;height:16px;border-radius:50%;background:#fff"></div></div></div><div style="font-size:10px;color:#374151;background:#f9fafb;padding:6px 9px;border-radius:6px;margin-bottom:6px"><i class="ti ti-bolt" style="font-size:10px;margin-right:3px;color:#7c3aed"></i>Mensaje nuevo en Instagram DM</div><div style="font-size:10px;color:#6b7280">→ Crear lead automático · → Asignar canal IG · → Bienvenida</div></div>
+</div>
 </div>
 
-</div><!-- end main-content -->
-</div><!-- end appShell -->
-
-<!-- ── CONFIRM DIALOG ── -->
 <!-- ══ PRODUCTS VIEW ══ -->
-<div class="view au-v" id="view-products">
+<div class="view" id="view-products" style="display:none;flex-direction:column;overflow-y:auto;background:var(--bg3)">
   <div class="au-top">
     <i class="ti ti-package" style="font-size:15px;color:var(--accent)"></i>
     <h2>Catálogo Grupo Pingus</h2>
     <div style="font-size:11px;color:var(--txt3)">grupopingus.com · Purificadores de aire y agua con tecnología Ozono</div>
   </div>
   <div style="padding:14px;display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px" id="productsGrid"></div>
-</div>
-
-</div>
-</div>
+</div><!-- end view-products -->
+</div><!-- end main-content -->
+</div><!-- end appShell -->
 
 
 <div class="toast" id="toast"></div>
@@ -967,8 +969,6 @@ function bootApp(){
   // Init views
   if(aC)renderChatAll();else{renderContactList();renderTools();}
   renderPipeline();
-  renderAnalytics();
-  renderAutomations();
   switchView('pipeline');
   // Notifications
   setTimeout(showNotif,3000);setInterval(showNotif,10000);
@@ -1024,12 +1024,17 @@ document.getElementById('notifClose')?.addEventListener('click',()=>document.get
    VIEW SWITCHING
 ══════════════════════════════════════ */
 function switchView(v){
-  document.querySelectorAll('.view,.pv').forEach(el=>el.classList.remove('active'));
-  var el=document.getElementById('view-'+v);if(el)el.classList.add('active');
+  // Use inline styles to guarantee display (bypasses CSS specificity issues)
+  document.querySelectorAll('.view,.pv').forEach(function(el){el.style.display='none';el.classList.remove('active');});
+  var el=document.getElementById('view-'+v);
+  if(el){
+    el.classList.add('active');
+    if(v==='analytics'||v==='automation'){el.style.display='flex';el.style.flexDirection='column';el.style.overflow='hidden';el.style.overflowY='auto';}
+    else if(v==='products'){el.style.display='flex';el.style.flexDirection='column';el.style.overflowY='auto';}
+    else{el.style.display='flex';}
+  }
   document.querySelectorAll('.tn-btn[data-view]').forEach(b=>b.classList.toggle('on',b.dataset.view===v));
   if(v==='pipeline')renderPipeline();
-  if(v==='analytics')renderAnalytics();
-  if(v==='automation')renderAutomations();
   if(v==='products')renderProducts();
 }
 document.querySelectorAll('.tn-btn[data-view]').forEach(el=>el.addEventListener('click',()=>switchView(el.dataset.view)));
