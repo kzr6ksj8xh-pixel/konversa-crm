@@ -1,3 +1,50 @@
+var PINGUS_PRODUCTS = [
+  {id:'cir', name:'Generador de OZONO CIR', category:'150 mg/h · Inteligente',
+   precio:'$1,995 MXN', tag:'Nuevo', tagColor:'#d1fae5', tagTc:'#065f46',
+   desc:'Generador de ozono inteligente con ciclos automáticos. Ideal para habitaciones, oficinas y consultorios.',
+   img:'https://www.grupopingus.com/cdn/shop/files/CIR.png?v=1772811104&width=300',
+   url:'https://www.grupopingus.com/products/generador-de-ozono-inteligente-cir-150-mgh'},
+  {id:'ultra150', name:'Generador ULTRA 150', category:'150 mg/h · Portátil',
+   precio:'$1,795 MXN', tag:'Popular', tagColor:'#ede9fe', tagTc:'#4c1d95',
+   desc:'Generador de ozono portátil de alta eficiencia. Elimina virus, bacterias y malos olores rápidamente.',
+   img:'https://www.grupopingus.com/cdn/shop/files/ULTRA150F2.png?v=1772811044&width=300',
+   url:'https://www.grupopingus.com/products/generador-de-ozono-ultra-150-mg-h'},
+  {id:'ck30', name:'Módulo Air CK30 UVC', category:'Desinfección UV-C',
+   precio:'$3,495 MXN', tag:'Profesional', tagColor:'#fae8ff', tagTc:'#7c3aed',
+   desc:'Módulo de desinfección con luz UV-C. Para clínicas, laboratorios y espacios que requieren máxima higiene.',
+   img:'https://www.grupopingus.com/cdn/shop/files/imgi_2_product-1-309.152.3-2.jpg?v=1771959535&width=300',
+   url:'https://www.grupopingus.com/products/modulo-de-desinfeccion-air-ck30-uvc'},
+  {id:'aqua1000', name:'AQUA 1000', category:'Purificador Agua/Aire',
+   precio:'$1,650 MXN', tag:'Dual', tagColor:'#d1fae5', tagTc:'#065f46',
+   desc:'Purifica agua y aire en un solo equipo. Mayor capacidad para cocinas, restaurantes y negocios.',
+   img:'https://www.grupopingus.com/cdn/shop/files/AQUA1000.png?v=1771962150&width=300',
+   url:'https://www.grupopingus.com/products/purificador-de-agua-aire-aqua-1000'},
+  {id:'aqua500', name:'AQUA 500', category:'Purificador Agua/Aire',
+   precio:'$1,450 MXN', tag:'Más vendido', tagColor:'#fef3c7', tagTc:'#92400e',
+   desc:'Ozonizador de agua y aire compacto. Perfecto para hogar, consultorio o negocio pequeño.',
+   img:'https://www.grupopingus.com/cdn/shop/files/ChatGPT_Image_4_mar_2026_03_51_31_p.m..png?v=1772735492&width=300',
+   url:'https://www.grupopingus.com/products/purificador-de-agua-aire-aqua-500'},
+  {id:'p4', name:'Purificador P4', category:'Generador de Ozono',
+   precio:'$1,490 MXN', tag:'Recomendado', tagColor:'#dbeafe', tagTc:'#1e3a8a',
+   desc:'Generador de ozono con 4 modos de operación inteligentes. Desodoriza y esteriliza con 99% de efectividad.',
+   img:'https://www.grupopingus.com/cdn/shop/files/P4.png?v=1771962640&width=300',
+   url:'https://www.grupopingus.com/products/purificador-de-aire-p4'},
+  {id:'smart', name:'Purificador SMART', category:'Portátil · Compacto',
+   precio:'$995 MXN', tag:'Económico', tagColor:'#d1fae5', tagTc:'#065f46',
+   desc:'Purificador compacto y asequible. Ideal para autos, closets y espacios pequeños.',
+   img:'https://www.grupopingus.com/cdn/shop/files/SMART.png?v=1771962770&width=300',
+   url:'https://www.grupopingus.com/products/purificador-de-aire-smart'},
+  {id:'smartplus', name:'Purificador SMART PLUS', category:'Portátil · Premium',
+   precio:'$995 MXN', tag:'Oferta', tagColor:'#fee2e2', tagTc:'#991b1b',
+   desc:'Versión mejorada del SMART. Mayor cobertura y duración de batería para uso prolongado.',
+   img:'https://www.grupopingus.com/cdn/shop/files/6063a3a9d1163_smart-plus-1jpg.jpg?v=1771961393&width=300',
+   url:'https://www.grupopingus.com/products/purificador-de-aire-smart-plus'},
+  {id:'utility-o3', name:'UTILITY O3', category:'Purificador de Aire',
+   precio:'$1,495 MXN', tag:'Versátil', tagColor:'#f3e8ff', tagTc:'#7c3aed',
+   desc:'Purificador de aire portátil con ozono. Elimina virus, bacterias y malos olores donde lo necesites.',
+   img:'https://www.grupopingus.com/cdn/shop/files/6063a1727bd2a_utility-portadajpg.jpg?v=1771961761&width=300',
+   url:'https://www.grupopingus.com/products/purificador-utility-o3'},
+];
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -507,7 +554,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </div>
 
 <!-- ══ ANALYTICS VIEW ══ -->
-<div class="view an-v" id="view-analytics">
+<div class="view an-v" id="view-analytics" style="overflow-y:auto;">
   <div class="an-top">
     <i class="ti ti-chart-bar" style="font-size:15px;color:var(--accent)"></i>
     <h2>Analíticas</h2>
@@ -517,8 +564,34 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <div class="af" data-range="90">90 días</div>
     </div>
   </div>
-  <div style="padding:14px;display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;flex-shrink:0" id="aKpis"></div>
-  <div style="padding:0 14px 14px;display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px" id="aCharts"></div>
+  <div style="padding:14px;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;" id="aKpis">
+    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:14px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><div style="width:32px;height:32px;border-radius:8px;background:#ede9fe;display:flex;align-items:center;justify-content:center"><i class="ti ti-users" style="font-size:16px;color:#4f46e5"></i></div><div style="font-size:11px;color:#6b7280">Leads totales</div></div><div style="font-size:24px;font-weight:600;color:#111827">47</div><div style="font-size:11px;color:#059669">+12% vs período anterior</div></div>
+    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:14px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><div style="width:32px;height:32px;border-radius:8px;background:#d1fae5;display:flex;align-items:center;justify-content:center"><i class="ti ti-trophy" style="font-size:16px;color:#059669"></i></div><div style="font-size:11px;color:#6b7280">Tasa de cierre</div></div><div style="font-size:24px;font-weight:600;color:#111827">38%</div><div style="font-size:11px;color:#059669">+5% vs período anterior</div></div>
+    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:14px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><div style="width:32px;height:32px;border-radius:8px;background:#fef3c7;display:flex;align-items:center;justify-content:center"><i class="ti ti-currency-dollar" style="font-size:16px;color:#d97706"></i></div><div style="font-size:11px;color:#6b7280">Valor pipeline</div></div><div style="font-size:24px;font-weight:600;color:#111827">$320K</div><div style="font-size:11px;color:#059669">+18% vs período anterior</div></div>
+    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:14px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><div style="width:32px;height:32px;border-radius:8px;background:#f3e8ff;display:flex;align-items:center;justify-content:center"><i class="ti ti-clock" style="font-size:16px;color:#7c3aed"></i></div><div style="font-size:11px;color:#6b7280">Tiempo resp.</div></div><div style="font-size:24px;font-weight:600;color:#111827">3.8m</div><div style="font-size:11px;color:#dc2626">-0.8m vs período anterior</div></div>
+  </div>
+  <div style="padding:0 14px 14px;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px" id="aCharts">
+    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:14px">
+      <div style="font-size:12px;font-weight:500;margin-bottom:14px;color:#111827">Embudo de conversión</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><div style="font-size:10px;color:#6b7280;width:80px;text-align:right;flex-shrink:0">Leads</div><div style="flex:1;height:22px;background:#f3f4f6;border-radius:4px;overflow:hidden"><div style="width:100%;height:100%;background:#818cf8;border-radius:4px;display:flex;align-items:center;padding-left:8px"><span style="font-size:10px;color:#fff;font-weight:500">100%</span></div></div><div style="font-size:10px;font-weight:500;width:28px;text-align:right;flex-shrink:0;color:#111827">47</div></div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><div style="font-size:10px;color:#6b7280;width:80px;text-align:right;flex-shrink:0">Contactados</div><div style="flex:1;height:22px;background:#f3f4f6;border-radius:4px;overflow:hidden"><div style="width:83%;height:100%;background:#60a5fa;border-radius:4px;display:flex;align-items:center;padding-left:8px"><span style="font-size:10px;color:#fff;font-weight:500">83%</span></div></div><div style="font-size:10px;font-weight:500;width:28px;text-align:right;flex-shrink:0;color:#111827">39</div></div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><div style="font-size:10px;color:#6b7280;width:80px;text-align:right;flex-shrink:0">Cotización</div><div style="flex:1;height:22px;background:#f3f4f6;border-radius:4px;overflow:hidden"><div style="width:51%;height:100%;background:#fbbf24;border-radius:4px;display:flex;align-items:center;padding-left:8px"><span style="font-size:10px;color:#fff;font-weight:500">51%</span></div></div><div style="font-size:10px;font-weight:500;width:28px;text-align:right;flex-shrink:0;color:#111827">24</div></div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><div style="font-size:10px;color:#6b7280;width:80px;text-align:right;flex-shrink:0">Negociación</div><div style="flex:1;height:22px;background:#f3f4f6;border-radius:4px;overflow:hidden"><div style="width:30%;height:100%;background:#34d399;border-radius:4px;display:flex;align-items:center;padding-left:8px"><span style="font-size:10px;color:#fff;font-weight:500">30%</span></div></div><div style="font-size:10px;font-weight:500;width:28px;text-align:right;flex-shrink:0;color:#111827">14</div></div>
+      <div style="display:flex;align-items:center;gap:8px"><div style="font-size:10px;color:#6b7280;width:80px;text-align:right;flex-shrink:0">Cerrados</div><div style="flex:1;height:22px;background:#f3f4f6;border-radius:4px;overflow:hidden"><div style="width:38%;height:100%;background:#4ade80;border-radius:4px;display:flex;align-items:center;padding-left:8px"><span style="font-size:10px;color:#fff;font-weight:500">38%</span></div></div><div style="font-size:10px;font-weight:500;width:28px;text-align:right;flex-shrink:0;color:#111827">18</div></div>
+    </div>
+    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:14px">
+      <div style="font-size:12px;font-weight:500;margin-bottom:14px;color:#111827">Canales de origen</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><div style="font-size:11px;color:#6b7280;width:80px;flex-shrink:0">WhatsApp</div><div style="flex:1;height:14px;background:#f3f4f6;border-radius:4px;overflow:hidden"><div style="width:45%;height:100%;background:#25d366;border-radius:4px"></div></div><div style="font-size:11px;font-weight:500;width:32px;text-align:right;color:#111827">45%</div></div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><div style="font-size:11px;color:#6b7280;width:80px;flex-shrink:0">Facebook</div><div style="flex:1;height:14px;background:#f3f4f6;border-radius:4px;overflow:hidden"><div style="width:24%;height:100%;background:#1877f2;border-radius:4px"></div></div><div style="font-size:11px;font-weight:500;width:32px;text-align:right;color:#111827">24%</div></div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><div style="font-size:11px;color:#6b7280;width:80px;flex-shrink:0">Instagram</div><div style="flex:1;height:14px;background:#f3f4f6;border-radius:4px;overflow:hidden"><div style="width:19%;height:100%;background:#c026d3;border-radius:4px"></div></div><div style="font-size:11px;font-weight:500;width:32px;text-align:right;color:#111827">19%</div></div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px"><div style="font-size:11px;color:#6b7280;width:80px;flex-shrink:0">Email</div><div style="flex:1;height:14px;background:#f3f4f6;border-radius:4px;overflow:hidden"><div style="width:12%;height:100%;background:#d97706;border-radius:4px"></div></div><div style="font-size:11px;font-weight:500;width:32px;text-align:right;color:#111827">12%</div></div>
+      <div style="border-top:1px solid #f3f4f6;padding-top:12px"><div style="font-size:12px;font-weight:500;margin-bottom:10px;color:#111827">Rendimiento por agente</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><div style="width:26px;height:26px;border-radius:50%;background:#ede9fe;color:#4c1d95;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:500;flex-shrink:0">JM</div><div style="flex:1"><div style="font-size:11px;font-weight:500;color:#111827">Juan M.</div><div style="font-size:10px;color:#9ca3af">18 negocios</div></div><div style="font-size:11px;font-weight:500;color:#4f46e5">$210K</div></div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><div style="width:26px;height:26px;border-radius:50%;background:#dbeafe;color:#1e3a8a;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:500;flex-shrink:0">AP</div><div style="flex:1"><div style="font-size:11px;font-weight:500;color:#111827">Ana P.</div><div style="font-size:10px;color:#9ca3af">15 negocios</div></div><div style="font-size:11px;font-weight:500;color:#4f46e5">$145K</div></div>
+      <div style="display:flex;align-items:center;gap:8px"><div style="width:26px;height:26px;border-radius:50%;background:#d1fae5;color:#065f46;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:500;flex-shrink:0">LR</div><div style="flex:1"><div style="font-size:11px;font-weight:500;color:#111827">Luis R.</div><div style="font-size:10px;color:#9ca3af">14 negocios</div></div><div style="font-size:11px;font-weight:500;color:#4f46e5">$165K</div></div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- ══ AUTOMATION VIEW ══ -->
@@ -1364,24 +1437,28 @@ var PINGUS_PRODUCTS = [
 
 
 function renderProducts(){
-  document.getElementById('productsGrid').innerHTML = PINGUS_PRODUCTS.map(p=>`
-  <div style="background:var(--bg);border:.5px solid var(--border);border-radius:10px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 1px 4px rgba(0,0,0,.06)">
-    <div style="height:100px;display:flex;align-items:center;justify-content:center;position:relative;padding:10px">
-      ${p.svg}
-      <span style="position:absolute;top:7px;right:7px;font-size:9px;padding:2px 7px;border-radius:10px;background:${p.tagColor};color:${p.tagTc};font-weight:600">${p.tag}</span>
-    </div>
-    <div style="padding:10px;display:flex;flex-direction:column;gap:4px;flex:1">
-      <div style="font-size:12px;font-weight:600;color:var(--txt)">${p.name}</div>
-      <div style="font-size:9px;color:var(--txt3);text-transform:uppercase;letter-spacing:.4px">${p.category}</div>
-      <div style="font-size:10px;color:var(--txt2);line-height:1.4;flex:1">${p.desc}</div>
-      <div style="font-size:9px;color:var(--txt3);background:var(--bg2);padding:3px 7px;border-radius:5px;margin-top:2px">${p.spec}</div>
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px;padding-top:6px;border-top:.5px solid var(--border)">
-        <div style="font-size:13px;font-weight:700;color:var(--accent)">${p.precio}</div>
-        <button style="font-size:9px;padding:4px 9px;border-radius:6px;border:none;background:var(--accent);color:#fff;cursor:pointer;font-weight:500" data-prod="${p.id}">+ Lead</button>
-      </div>
-    </div>
-  </div>`).join('');
-
+  var grid = document.getElementById('productsGrid');
+  if(!grid) return;
+  var h = '';
+  for(var i=0;i<PINGUS_PRODUCTS.length;i++){
+    var p = PINGUS_PRODUCTS[i];
+    h += '<div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 1px 4px rgba(0,0,0,.06)">';
+    h += '<div style="height:130px;overflow:hidden;position:relative;background:#f9fafb">';
+    h += '<img src="'+p.img+'" alt="'+p.name+'" style="width:100%;height:100%;object-fit:contain;padding:8px" loading="lazy" onerror="this.style.display='none'">';
+    h += '<span style="position:absolute;top:7px;right:7px;font-size:9px;padding:2px 7px;border-radius:10px;background:'+p.tagColor+';color:'+p.tagTc+';font-weight:600">'+p.tag+'</span>';
+    h += '</div>';
+    h += '<div style="padding:10px;display:flex;flex-direction:column;gap:4px;flex:1">';
+    h += '<div style="font-size:12px;font-weight:600;color:#111827">'+p.name+'</div>';
+    h += '<div style="font-size:9px;color:#9ca3af;text-transform:uppercase;letter-spacing:.4px">'+p.category+'</div>';
+    h += '<div style="font-size:10px;color:#6b7280;line-height:1.4;flex:1">'+p.desc+'</div>';
+    h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px;padding-top:6px;border-top:1px solid #f3f4f6">';
+    h += '<div style="font-size:13px;font-weight:700;color:#4f46e5">'+p.precio+'</div>';
+    h += '<div style="display:flex;gap:4px">';
+    h += '<a href="'+p.url+'" target="_blank" style="font-size:9px;padding:4px 7px;border-radius:5px;border:1px solid #e5e7eb;background:#fff;color:#374151;cursor:pointer;text-decoration:none;font-weight:500">Ver</a>';
+    h += '<button style="font-size:9px;padding:4px 8px;border-radius:5px;border:none;background:#4f46e5;color:#fff;cursor:pointer;font-weight:500" data-prod="'+p.id+'">+Lead</button>';
+    h += '</div></div></div></div>';
+  }
+  grid.innerHTML = h;
   document.querySelectorAll('[data-prod]').forEach(btn=>{
     btn.addEventListener('click',()=>{
       const prod=PINGUS_PRODUCTS.find(p=>p.id===btn.dataset.prod);
@@ -2081,50 +2158,76 @@ var analyticsData={
 };
 
 function renderAnalytics(){
-  var d=analyticsData[aRange];
-  var fK=n=>n>=1000000?`$${(n/1000000).toFixed(1)}M`:n>=1000?`$${(n/1000).toFixed(0)}K`:`$${n}`;
-  var kpisEl=document.getElementById('aKpis');if(!kpisEl)return;
-  kpisEl.innerHTML=[
-    {label:'Leads totales',val:d.leads,delta:d.ld,icon:'ti-users',color:'#4f46e5',bg:'#ede9fe'},
-    {label:'Tasa de cierre',val:d.cierre+'%',delta:d.cd,icon:'ti-trophy',color:'#059669',bg:'#d1fae5'},
-    {label:'Valor pipeline',val:fK(d.pipeline),delta:d.pd,icon:'ti-currency-dollar',color:'#d97706',bg:'#fef3c7'},
-    {label:'Tiempo resp.',val:d.respTime,delta:d.rd,icon:'ti-clock',color:'#7c3aed',bg:'#f3e8ff'},
-  ].map(k=>`<div style="background:var(--bg);border:.5px solid var(--border);border-radius:12px;padding:14px">
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-      <div style="width:32px;height:32px;border-radius:8px;background:${k.bg};display:flex;align-items:center;justify-content:center"><i class="ti ${k.icon}" style="font-size:16px;color:${k.color}"></i></div>
-      <div style="font-size:11px;color:var(--txt2)">${k.label}</div>
-    </div>
-    <div style="font-size:24px;font-weight:500;margin-bottom:3px">${k.val}</div>
-    <div style="font-size:11px;color:${k.delta.startsWith('+')?'#059669':'#dc2626'}">${k.delta} vs período anterior</div>
-  </div>`).join('');
-  var chartsEl=document.getElementById('aCharts');if(chartsEl)chartsEl.innerHTML=`
-  <div style="background:var(--bg);border:.5px solid var(--border);border-radius:12px;padding:14px">
-    <div style="font-size:12px;font-weight:500;margin-bottom:14px">Embudo de conversión</div>
-    ${d.funnel.map(f=>`<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-      <div style="font-size:10px;color:var(--txt2);width:80px;text-align:right;flex-shrink:0">${f.label}</div>
-      <div style="flex:1;height:22px;background:var(--bg2);border-radius:4px;overflow:hidden">
-        <div style="width:${f.pct}%;height:100%;background:${f.color};border-radius:4px;display:flex;align-items:center;padding-left:8px"><span style="font-size:10px;color:#fff;font-weight:500">${f.pct}%</span></div>
-      </div>
-      <div style="font-size:10px;font-weight:500;width:28px;text-align:right;flex-shrink:0">${f.n}</div>
-    </div>`).join('')}
-  </div>
-  <div style="background:var(--bg);border:.5px solid var(--border);border-radius:12px;padding:14px">
-    <div style="font-size:12px;font-weight:500;margin-bottom:14px">Canales de origen</div>
-    ${d.channels.map(c=>`<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
-      <div style="font-size:11px;color:var(--txt2);width:80px;flex-shrink:0">${c.name}</div>
-      <div style="flex:1;height:14px;background:var(--bg2);border-radius:4px;overflow:hidden"><div style="width:${c.pct}%;height:100%;background:${c.color};border-radius:4px"></div></div>
-      <div style="font-size:11px;font-weight:500;width:32px;text-align:right;flex-shrink:0">${c.pct}%</div>
-    </div>`).join('')}
-    <div style="margin-top:16px;border-top:.5px solid var(--border);padding-top:12px">
-      <div style="font-size:12px;font-weight:500;margin-bottom:10px">Rendimiento por agente</div>
-      ${d.agents.map(a=>`<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-        <div style="width:26px;height:26px;border-radius:50%;background:${a.bg};color:${a.tc};display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:500;flex-shrink:0">${ini(a.name)}</div>
-        <div style="flex:1"><div style="font-size:11px;font-weight:500">${a.name}</div><div style="font-size:10px;color:var(--txt3)">${a.deals} negocios</div></div>
-        <div style="font-size:11px;font-weight:500;color:var(--accent)">${fK(a.val)}</div>
-      </div>`).join('')}
-    </div>
-  </div>`;
-  document.querySelectorAll('[data-range]').forEach(el=>el.classList.toggle('on',parseInt(el.dataset.range)===aRange));
+  try {
+    var d = analyticsData[aRange];
+    if(!d) return;
+    var kpisEl = document.getElementById('aKpis');
+    var chartsEl = document.getElementById('aCharts');
+    if(!kpisEl) return;
+
+    var fK = function(n){ return n>=1000000 ? '$'+(n/1000000).toFixed(1)+'M' : n>=1000 ? '$'+(n/1000).toFixed(0)+'K' : '$'+n; };
+    var kpis = [
+      {label:'Leads totales', val:d.leads, delta:d.ld, icon:'ti-users', color:'#4f46e5', bg:'#ede9fe'},
+      {label:'Tasa de cierre', val:d.cierre+'%', delta:d.cd, icon:'ti-trophy', color:'#059669', bg:'#d1fae5'},
+      {label:'Valor pipeline', val:fK(d.pipeline), delta:d.pd, icon:'ti-currency-dollar', color:'#d97706', bg:'#fef3c7'},
+      {label:'Tiempo resp.', val:d.respTime, delta:d.rd, icon:'ti-clock', color:'#7c3aed', bg:'#f3e8ff'},
+    ];
+    var kHtml = '';
+    for(var i=0;i<kpis.length;i++){
+      var k = kpis[i];
+      var dColor = k.delta.charAt(0)==='+' ? '#059669' : '#dc2626';
+      kHtml += '<div style="background:#fff;border:.5px solid #e5e7eb;border-radius:12px;padding:14px">';
+      kHtml += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">';
+      kHtml += '<div style="width:32px;height:32px;border-radius:8px;background:'+k.bg+';display:flex;align-items:center;justify-content:center">';
+      kHtml += '<i class="ti '+k.icon+'" style="font-size:16px;color:'+k.color+'"></i></div>';
+      kHtml += '<div style="font-size:11px;color:#6b7280">'+k.label+'</div></div>';
+      kHtml += '<div style="font-size:24px;font-weight:600;color:#111827;margin-bottom:3px">'+k.val+'</div>';
+      kHtml += '<div style="font-size:11px;color:'+dColor+'">'+k.delta+' vs período anterior</div>';
+      kHtml += '</div>';
+    }
+    kpisEl.innerHTML = kHtml;
+
+    if(chartsEl){
+      var ch = '<div style="background:#fff;border:.5px solid #e5e7eb;border-radius:12px;padding:14px">';
+      ch += '<div style="font-size:12px;font-weight:500;margin-bottom:14px;color:#111827">Embudo de conversión</div>';
+      for(var j=0;j<d.funnel.length;j++){
+        var f = d.funnel[j];
+        ch += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">';
+        ch += '<div style="font-size:10px;color:#6b7280;width:80px;text-align:right;flex-shrink:0">'+f.label+'</div>';
+        ch += '<div style="flex:1;height:22px;background:#f3f4f6;border-radius:4px;overflow:hidden">';
+        ch += '<div style="width:'+f.pct+'%;height:100%;background:'+f.color+';border-radius:4px;display:flex;align-items:center;padding-left:8px">';
+        ch += '<span style="font-size:10px;color:#fff;font-weight:500">'+f.pct+'%</span></div></div>';
+        ch += '<div style="font-size:10px;font-weight:500;width:28px;text-align:right;flex-shrink:0;color:#111827">'+f.n+'</div></div>';
+      }
+      ch += '</div>';
+
+      ch += '<div style="background:#fff;border:.5px solid #e5e7eb;border-radius:12px;padding:14px">';
+      ch += '<div style="font-size:12px;font-weight:500;margin-bottom:14px;color:#111827">Canales de origen</div>';
+      for(var c=0;c<d.channels.length;c++){
+        var cn = d.channels[c];
+        ch += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">';
+        ch += '<div style="font-size:11px;color:#6b7280;width:80px;flex-shrink:0">'+cn.name+'</div>';
+        ch += '<div style="flex:1;height:14px;background:#f3f4f6;border-radius:4px;overflow:hidden">';
+        ch += '<div style="width:'+cn.pct+'%;height:100%;background:'+cn.color+';border-radius:4px"></div></div>';
+        ch += '<div style="font-size:11px;font-weight:500;width:32px;text-align:right;flex-shrink:0;color:#111827">'+cn.pct+'%</div></div>';
+      }
+      ch += '<div style="margin-top:16px;border-top:.5px solid #e5e7eb;padding-top:12px">';
+      ch += '<div style="font-size:12px;font-weight:500;margin-bottom:10px;color:#111827">Rendimiento por agente</div>';
+      for(var ag=0;ag<d.agents.length;ag++){
+        var a = d.agents[ag];
+        var parts = a.name.trim().split(' ');
+        var ini2 = parts.length>=2 ? parts[0][0].toUpperCase()+parts[1][0].toUpperCase() : a.name.substring(0,2).toUpperCase();
+        ch += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">';
+        ch += '<div style="width:26px;height:26px;border-radius:50%;background:'+a.bg+';color:'+a.tc+';display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:500;flex-shrink:0">'+ini2+'</div>';
+        ch += '<div style="flex:1"><div style="font-size:11px;font-weight:500;color:#111827">'+a.name+'</div>';
+        ch += '<div style="font-size:10px;color:#9ca3af">'+a.deals+' negocios</div></div>';
+        ch += '<div style="font-size:11px;font-weight:500;color:#4f46e5">'+fK(a.val)+'</div></div>';
+      }
+      ch += '</div></div>';
+      chartsEl.innerHTML = ch;
+    }
+    document.querySelectorAll('[data-range]').forEach(function(el){ el.classList.toggle('on', parseInt(el.dataset.range)===aRange); });
+  } catch(e){ console.error('Analytics error:',e); }
 }
 document.querySelectorAll('[data-range]').forEach(el=>el.addEventListener('click',()=>{aRange=parseInt(el.dataset.range);renderAnalytics();}));
 
@@ -2133,32 +2236,51 @@ document.querySelectorAll('[data-range]').forEach(el=>el.addEventListener('click
 ══════════════════════════════════════ */
 var automations=[...demoAutoList];
 function renderAutomations(){
-  var autoEl=document.getElementById('autoGrid');if(!autoEl)return;
-  autoEl.innerHTML=automations.map(a=>`
-  <div style="background:var(--bg);border:.5px solid var(--border);border-radius:12px;padding:14px">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-      <div style="width:38px;height:38px;border-radius:10px;background:${a.iconBg};display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ${a.icon}" style="font-size:18px;color:${a.iconColor}"></i></div>
-      <div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:500">${a.title}</div><div style="font-size:10px;color:var(--txt3)">${a.subtitle}</div></div>
-      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
-        <div class="tog ${a.on?'on2':'off'}" data-autoid="${a.id}" ${currentRole==='operator'?'style="opacity:.5;pointer-events:none" title="Solo admins pueden activar/pausar"':''}><div class="knob"></div></div>
-        <div style="font-size:9px;color:var(--txt3)">${a.executions} ejec.</div>
-      </div>
-    </div>
-    <div style="display:flex;gap:4px;margin-bottom:8px;flex-wrap:wrap">
-      ${a.channels.map(ch=>`<span style="font-size:9px;padding:2px 6px;border-radius:8px;background:${CH[ch].bg};color:${CH[ch].tc};display:inline-flex;align-items:center;gap:2px"><i class="ti ${CH[ch].icon}" style="font-size:9px"></i>${ch==='wa'?'WA':ch==='fb'?'FB':ch==='ig'?'IG':'Email'}</span>`).join('')}
-    </div>
-    <div style="font-size:10px;color:var(--txt2);background:var(--bg2);padding:6px 9px;border-radius:var(--r);margin-bottom:8px"><i class="ti ti-bolt" style="font-size:11px;margin-right:3px;color:#7c3aed"></i>${a.trigger}</div>
-    <div style="display:flex;flex-direction:column;gap:4px">
-      ${a.actions.map(ac=>`<div style="font-size:10px;color:var(--txt2);display:flex;align-items:center;gap:5px"><i class="ti ti-arrow-right" style="font-size:11px;color:var(--txt3)"></i>${ac}</div>`).join('')}
-    </div>
-  </div>`).join('');
-  document.querySelectorAll('[data-autoid]').forEach(tog=>{
-    if(currentRole!=='admin')return;
-    tog.addEventListener('click',()=>{
-      const id=parseInt(tog.dataset.autoid);const auto=automations.find(a=>a.id===id);
-      if(auto){auto.on=!auto.on;renderAutomations();toast(`"${auto.title}" ${auto.on?'activada':'pausada'}`);}
+  try {
+    var autoEl = document.getElementById('autoGrid');
+    if(!autoEl) return;
+    var html2 = '';
+    for(var i=0;i<automations.length;i++){
+      var a = automations[i];
+      var togClass = a.on ? 'tog on2' : 'tog off';
+      var disabled = currentRole==='operator' ? 'style="opacity:.5;pointer-events:none"' : '';
+      html2 += '<div style="background:#fff;border:.5px solid #e5e7eb;border-radius:12px;padding:14px">';
+      html2 += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">';
+      html2 += '<div style="width:38px;height:38px;border-radius:10px;background:'+a.iconBg+';display:flex;align-items:center;justify-content:center;flex-shrink:0">';
+      html2 += '<i class="ti '+a.icon+'" style="font-size:18px;color:'+a.iconColor+'"></i></div>';
+      html2 += '<div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:500;color:#111827">'+a.title+'</div>';
+      html2 += '<div style="font-size:10px;color:#9ca3af">'+a.subtitle+'</div></div>';
+      html2 += '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">';
+      html2 += '<div class="'+togClass+'" data-autoid="'+a.id+'" '+disabled+'><div class="knob"></div></div>';
+      html2 += '<div style="font-size:9px;color:#9ca3af">'+a.executions+' ejec.</div></div></div>';
+      // Channels
+      html2 += '<div style="display:flex;gap:4px;margin-bottom:8px;flex-wrap:wrap">';
+      for(var c=0;c<a.channels.length;c++){
+        var ch = a.channels[c];
+        var chObj = CH[ch]||{bg:'#e5e7eb',tc:'#374151',icon:'ti-message'};
+        var chLabel = ch==='wa'?'WA':ch==='fb'?'FB':ch==='ig'?'IG':'Email';
+        html2 += '<span style="font-size:9px;padding:2px 6px;border-radius:8px;background:'+chObj.bg+';color:'+chObj.tc+';display:inline-flex;align-items:center;gap:2px">';
+        html2 += '<i class="ti '+chObj.icon+'" style="font-size:9px"></i>'+chLabel+'</span>';
+      }
+      html2 += '</div>';
+      html2 += '<div style="font-size:10px;color:#374151;background:#f9fafb;padding:6px 9px;border-radius:6px;margin-bottom:8px">';
+      html2 += '<i class="ti ti-bolt" style="font-size:11px;margin-right:3px;color:#7c3aed"></i>'+a.trigger+'</div>';
+      for(var ac=0;ac<a.actions.length;ac++){
+        html2 += '<div style="font-size:10px;color:#6b7280;display:flex;align-items:center;gap:5px;margin-bottom:2px">';
+        html2 += '<i class="ti ti-arrow-right" style="font-size:11px;color:#d1d5db"></i>'+a.actions[ac]+'</div>';
+      }
+      html2 += '</div>';
+    }
+    autoEl.innerHTML = html2;
+    document.querySelectorAll('[data-autoid]').forEach(function(tog){
+      if(currentRole!=='admin') return;
+      tog.addEventListener('click', function(){
+        var id = parseInt(this.dataset.autoid);
+        var auto = automations.find(function(x){return x.id===id;});
+        if(auto){ auto.on=!auto.on; renderAutomations(); toast('"'+auto.title+'" '+(auto.on?'activada':'pausada')); }
+      });
     });
-  });
+  } catch(e){ console.error('Automations error:',e); }
 }
 document.getElementById('newAutoBtn')?.addEventListener('click',()=>{
   if(currentRole==='operator'){toast('⛔ Solo el administrador puede crear automatizaciones');return;}
