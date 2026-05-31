@@ -67,6 +67,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .view.active{display:flex;}
 #view-analytics.active,#view-automation.active{display:flex;flex-direction:column;overflow-y:auto;background:var(--bg3);}
 #view-products.active{display:grid;overflow-y:auto;background:var(--bg3);align-content:start;}
+#view-aiagent.active{display:flex;flex-direction:column;overflow-y:hidden;background:var(--bg3);}
+.aia-tab{padding:10px 16px;font-size:12px;color:var(--txt2);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;font-weight:400;}
+.aia-tab:hover{color:var(--txt);}
+.aia-tab.on{color:var(--accent);border-bottom-color:var(--accent);font-weight:600;}
+.aia-panel{display:none;}
+.aia-panel.active{display:block;}
+.aia-pauta{font-size:11px;padding:8px 12px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--txt);}
+.aia-accion{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px;font-size:11px;line-height:1.6;}
+.aia-accion b{color:var(--txt2);margin-right:6px;}
 
 /* ─── CHAT VIEW ─── */
 .inbox-p{width:200px;background:var(--bg);border-right:.5px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;}
@@ -374,6 +383,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div class="tn-btn" data-view="products" title="Productos Grupo Pingus"><i class="ti ti-package"></i></div>
     <div class="tn-btn" data-view="analytics" title="Analíticas"><i class="ti ti-chart-bar"></i></div>
     <div class="tn-btn" data-view="automation" title="Automatizaciones"><i class="ti ti-bolt"></i></div>
+    <div class="tn-btn" data-view="aiagent" title="Agente IA"><i class="ti ti-robot"></i></div>
     <div class="tn-btn" id="integrationsBtn" title="Integraciones API / META"><i class="ti ti-plug-connected"></i></div>
   </div>
   <div class="user-chip" id="userChip">
@@ -571,6 +581,170 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   </div>
   <div style="padding:14px;display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px" id="productsGrid"></div>
 </div><!-- end view-products -->
+
+<!-- ══ AI AGENT VIEW ══ -->
+<div class="view" id="view-aiagent" style="background:var(--bg3);overflow-y:auto">
+  <div style="display:flex;flex-direction:column;height:100%">
+    <!-- Header -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border)">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:14px;font-weight:600">🤖 IA Agente PINGUS</span>
+        <span id="aiAgentStatus" style="font-size:10px;padding:3px 10px;border-radius:20px;background:#d1fae5;color:#065f46;font-weight:600;cursor:pointer" onclick="toggleAgentStatus()">Activado</span>
+      </div>
+      <button id="aiAgentToggleBtn" onclick="toggleAgentStatus()" style="font-size:11px;padding:6px 14px;border-radius:6px;border:1px solid #dc2626;background:transparent;color:#dc2626;cursor:pointer;font-weight:500">⊘ Desactivar agente</button>
+    </div>
+    <!-- Tabs -->
+    <div style="display:flex;gap:0;border-bottom:1px solid var(--border);padding:0 18px;background:var(--bg)">
+      <div class="aia-tab on" data-aiatab="panel" onclick="switchAITab('panel')">Panel</div>
+      <div class="aia-tab" data-aiatab="personalidad" onclick="switchAITab('personalidad')">Personalidad</div>
+      <div class="aia-tab" data-aiatab="fuentes" onclick="switchAITab('fuentes')">Fuentes</div>
+      <div class="aia-tab" data-aiatab="acciones" onclick="switchAITab('acciones')">Acciones</div>
+      <div class="aia-tab" data-aiatab="integraciones" onclick="switchAITab('integraciones')">Integraciones</div>
+      <div class="aia-tab" data-aiatab="ajustes" onclick="switchAITab('ajustes')">Ajustes</div>
+    </div>
+    <!-- Body -->
+    <div style="display:flex;flex:1;overflow:hidden">
+      <!-- Left content -->
+      <div style="flex:1;overflow-y:auto;padding:18px" id="aiaContent">
+        <!-- PANEL TAB -->
+        <div class="aia-panel active" id="aia-panel">
+          <p style="font-size:12px;color:var(--txt2);margin-bottom:14px">Ve el uso y rendimiento del agente de IA para comprender el impacto de su agente y dónde realizar ajustes.</p>
+          <div style="font-size:12px;font-weight:600;margin-bottom:10px;text-decoration:underline">ACTIVIDAD DEL AGENTE DE IA PARA ÚLTIMOS 7 DÍAS</div>
+          <div style="font-size:12px;font-weight:600;margin-bottom:8px">Estadísticas</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px">
+            <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px"><div style="font-size:10px;color:var(--txt2)">Leads únicos</div><div style="font-size:18px;font-weight:700">11 <span style="font-size:10px;color:#059669">↑ 11 (100%)</span></div></div>
+            <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px"><div style="font-size:10px;color:var(--txt2)">Conversaciones respondidas</div><div style="font-size:18px;font-weight:700">4 <span style="font-size:10px;color:#059669">↑ 4 (100%)</span></div></div>
+            <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px"><div style="font-size:10px;color:var(--txt2)">Leads del fin de semana</div><div style="font-size:18px;font-weight:700">0 <span style="font-size:10px;color:var(--txt3)">—</span></div></div>
+            <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px"><div style="font-size:10px;color:var(--txt2)">Conversaciones del fin de semana</div><div style="font-size:18px;font-weight:700">0 <span style="font-size:10px;color:var(--txt3)">—</span></div></div>
+            <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px"><div style="font-size:10px;color:var(--txt2)">Tasa de derivación ⓘ</div><div style="font-size:18px;font-weight:700">91% <span style="font-size:10px;color:#059669">↑ (91%)</span></div></div>
+            <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px"><div style="font-size:10px;color:var(--txt2)">Tiempo promedio de respuesta</div><div style="font-size:18px;font-weight:700">15s <span style="font-size:10px;color:#059669">↑ 15s (100%)</span></div></div>
+            <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px"><div style="font-size:10px;color:var(--txt2)">Preguntas sin responder</div><div style="font-size:18px;font-weight:700">0 <span style="font-size:10px;color:var(--txt3)">—</span></div></div>
+          </div>
+          <div style="font-size:12px;font-weight:600;margin-bottom:8px">Conversaciones por canal</div>
+          <div style="display:flex;gap:16px;margin-bottom:8px">
+            <span style="font-size:10px"><span style="color:#25d366">●</span> NewPingus <b>9</b></span>
+            <span style="font-size:10px"><span style="color:#1877f2">●</span> PINGUS HG <b>1</b></span>
+            <span style="font-size:10px"><span style="color:#25d366">●</span> Chats (PINGUS HG S…) <b>1</b></span>
+          </div>
+          <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:14px;height:120px;display:flex;align-items:center;justify-content:center;color:var(--txt3);font-size:11px">📊 Gráfica de actividad por canal</div>
+          <div style="font-size:12px;font-weight:600;margin:16px 0 8px">Uso de créditos por tipo de mensaje</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px"><div style="font-size:10px;color:var(--txt2)">● Procesamiento de mensajes de texto</div><div style="font-size:18px;font-weight:700">418</div></div>
+            <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px"><div style="font-size:10px;color:var(--txt2)">● Procesamiento de mensajes de voz</div><div style="font-size:18px;font-weight:700">0</div></div>
+          </div>
+        </div>
+        <!-- PERSONALIDAD TAB -->
+        <div class="aia-panel" id="aia-personalidad">
+          <p style="font-size:12px;color:var(--txt2);margin-bottom:14px">Configura tu agente de IA para conversar con clientes como tú quieras.</p>
+          <div style="font-size:12px;font-weight:600;margin-bottom:6px">Rol y personalidad</div>
+          <textarea id="aiaPrompt" style="width:100%;min-height:160px;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:11px;font-family:inherit;resize:vertical;margin-bottom:14px">Eres el asistente de ventas de Grupo PINGUS, empresa mexicana de purificadores de aire y agua con tecnología de ozono. Tu función es:
+
+Da un saludo amable y comprensivo, dando a entender que eres la IA de Grupo Pingus.
+Solo vendemos purificadores de aire a base de ozono.
+
+1. Entender qué espacio quiere purificar el cliente
+2. Recomendar el equipo correcto según m² y uso
+3. Resolver dudas con información de las Fuentes
+4. Capturar datos del lead y pasarlo a un asesor humano cuando hay intención de compra</textarea>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+            <div><div style="font-size:11px;font-weight:500;margin-bottom:4px">Tono de voz</div><select style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;font-size:11px"><option>Formal</option><option>Amigable</option><option>Casual</option><option>Profesional</option></select></div>
+            <div><div style="font-size:11px;font-weight:500;margin-bottom:4px">Longitud de las respuestas</div><select style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;font-size:11px"><option>Corta</option><option>Media</option><option>Larga</option></select></div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+            <div><div style="font-size:11px;font-weight:500;margin-bottom:4px">Idioma de la respuesta</div><select style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;font-size:11px"><option>Español</option><option>Inglés</option><option>Portugués</option></select></div>
+            <div><div style="font-size:11px;font-weight:500;margin-bottom:4px">Demora antes de responder (seg)</div><input type="number" value="3" min="0" max="30" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;font-size:11px"></div>
+          </div>
+          <div style="font-size:12px;font-weight:600;margin-bottom:6px">Pautas</div>
+          <p style="font-size:10px;color:var(--txt2);margin-bottom:8px">Configura las instrucciones que deben cumplirse en cada mensaje.</p>
+          <div id="aiaPautas" style="display:flex;flex-direction:column;gap:4px">
+            <div class="aia-pauta">Respuestas máximo de 3 líneas. Nada de bloques largos.</div>
+            <div class="aia-pauta">NUNCA repitas el saludo si ya saludaste antes en la conversación.</div>
+            <div class="aia-pauta">NUNCA repitas el nombre del cliente más de 1 vez cada 5 mensajes.</div>
+            <div class="aia-pauta">Habla de 'tú' siempre. Nunca de 'usted'.</div>
+            <div class="aia-pauta">Cuando recomiendes un producto, di SIEMPRE: nombre + precio + link.</div>
+            <div class="aia-pauta">Si el cliente pregunta por un espacio, pide los m² ANTES de recomendar.</div>
+            <div class="aia-pauta">Si no tienes la información en las Fuentes, di: "Te conecto con un asesor para darte el dato exacto" y transfiere el chat.</div>
+            <div class="aia-pauta" style="background:#fef2f2;border-color:#fca5a5">Nunca uses estas palabras: sinergia, paradigma, apalancamiento, 'es menester', 'cabe señalar', 'en el panorama actual'.</div>
+            <div class="aia-pauta">No uses emojis en más de 1 de cada 3 mensajes.</div>
+            <div class="aia-pauta">Cierra firmando solo cuando entregues info clave: "Equipo PINGUS – The Health Guardian".</div>
+          </div>
+          <button style="margin-top:12px;padding:8px 20px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:12px;cursor:pointer;font-weight:500" onclick="toast('Personalidad guardada ✓')">💾 Guardar cambios</button>
+        </div>
+        <!-- FUENTES TAB -->
+        <div class="aia-panel" id="aia-fuentes">
+          <p style="font-size:12px;color:var(--txt2);margin-bottom:14px">Configura tu agente de IA y elige dónde va a funcionar.</p>
+          <table style="width:100%;border-collapse:collapse;font-size:11px;margin-bottom:14px">
+            <thead><tr style="border-bottom:2px solid var(--accent)"><th style="padding:8px;text-align:left">☐</th><th style="padding:8px;text-align:left">NOMBRE DE LA FUENTE</th><th style="padding:8px;text-align:left">TIPO</th><th style="padding:8px;text-align:left">VECES USADAS</th></tr></thead>
+            <tbody>
+              <tr style="background:#ede9fe;border-bottom:1px solid var(--border)"><td style="padding:8px">☐</td><td style="padding:8px;font-weight:600;color:var(--accent)">+ Añadir una nueva fuente</td><td></td><td></td></tr>
+              <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px">☐</td><td style="padding:8px"><a href="#" style="color:#2563eb">https://www.grupopingus.com</a></td><td style="padding:8px">URL</td><td style="padding:8px">🟢 Ver fuente &nbsp; 0</td></tr>
+              <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px">☐</td><td style="padding:8px"><a href="#" style="color:#2563eb">Grupo Pingus</a></td><td style="padding:8px">Texto</td><td style="padding:8px">0</td></tr>
+              <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px">☐</td><td style="padding:8px"><a href="#" style="color:#2563eb">Base de Conocimiento PINGUS</a></td><td style="padding:8px">Archivo</td><td style="padding:8px">12</td></tr>
+              <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px">☐</td><td style="padding:8px"><a href="#" style="color:#2563eb">Conocimiento general</a></td><td style="padding:8px;display:flex;gap:4px;align-items:center">Texto <span style="font-size:9px;padding:2px 6px;background:#f59e0b;color:#fff;border-radius:4px">Fuente recomendada</span></td><td style="padding:8px">0</td></tr>
+            </tbody>
+          </table>
+          <div style="display:flex;align-items:center;gap:8px;padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px">
+            <span style="font-size:12px;font-weight:600">Productos</span>
+            <div style="width:32px;height:18px;border-radius:9px;background:#059669;cursor:pointer;display:flex;align-items:center;justify-content:flex-end;padding-right:2px"><div style="width:14px;height:14px;border-radius:50%;background:#fff"></div></div>
+          </div>
+          <p style="font-size:10px;color:var(--txt2);margin-top:4px">Tu agente de IA ahora puede utilizar tu lista de productos para ayudarte con las preguntas entrantes.</p>
+        </div>
+        <!-- ACCIONES TAB -->
+        <div class="aia-panel" id="aia-acciones">
+          <p style="font-size:12px;color:var(--txt2);margin-bottom:10px">Las acciones indican qué hacer al agente de IA cuando se cumplen ciertas condiciones.</p>
+          <button style="padding:6px 14px;background:var(--bg);border:1px solid var(--border);border-radius:6px;font-size:11px;cursor:pointer;margin-bottom:14px" onclick="toast('Próximamente: Crear acción')">+ Añadir acción</button>
+          <div style="display:flex;flex-direction:column;gap:8px" id="aiaAcciones">
+            <div class="aia-accion"><div><b>Cuando</b> El mensaje entrante contiene Catálogo</div><div><b>Hacer</b> Iniciar Salesbot</div></div>
+            <div class="aia-accion"><div><b>Cuando</b> El cliente pregunta por primera vez sobre Cómo se instala el CK30<br>&nbsp;&nbsp;&nbsp;o El mensaje entrante contiene Instalación del CK30<br>&nbsp;&nbsp;&nbsp;o El mensaje entrante contiene Manual de instalación del CK30</div><div><b>Hacer</b> Iniciar Salesbot MANUAL CK30</div></div>
+            <div class="aia-accion"><div><b>Cuando</b> El cliente no responde desde hace 23h 59m</div><div><b>Hacer</b> Utilizar siempre este mismo mensaje ¿Sigues buscando un purificador? Si quieres, te ayudo a elegir el modelo ideal en 1 minuto.</div><div><b>Más</b> Si no responde tras este mensaje, NO insistir más. Marcar lead como FRÍO.</div></div>
+            <div class="aia-accion"><div><b>Cuando</b> Cada vez que el cliente pregunta sobre factura</div><div><b>Hacer</b> Transferir al usuario con permiso del cliente con resumen de conversaciones<br>Utilizar siempre este mismo mensaje Para facturación te conecto con un asesor que te apoya con tus datos fiscales</div><div><b>Más</b> Marcar el lead como CALIFICADO</div></div>
+            <div class="aia-accion"><div><b>Cuando</b> El mensaje entrante contiene "lo quiero", "cómo pago", "lo voy a llevar", "cómo lo compro"</div><div><b>Hacer</b> Hablar siempre sobre este tema Perfecto. Te conecto con un asesor en un momento.</div><div><b>Más</b> Si está fuera de horario (Lunes-Sábado 10:00-19:00), avisar: "Te responde un asesor mañana a partir de las 10:00."</div></div>
+            <div class="aia-accion"><div><b>Cuando</b> El mensaje entrante contiene logística, garantía, formas de pago</div><div><b>Hacer</b> Hablar siempre sobre este tema Responder con info exacta de Fuentes (envío 2 días gratis / garantía 6 meses / tarjeta-PayPal-transferencia)</div><div><b>Más</b> Después de responder, retomar la venta: "¿Te recomiendo un modelo?"</div></div>
+            <div class="aia-accion"><div><b>Cuando</b> El mensaje entrante contiene Cliente dice "está caro", "vi uno más barato", "en Amazon hay de X"</div><div><b>Hacer</b> Hablar siempre sobre este tema Diferenciar por garantía y soporte "Nuestros equipos tienen garantía oficial de 6 meses y soporte directo en México. Envío gratis en 2 días."</div><div><b>Más</b> Si pide descuento, transferir a asesor</div></div>
+            <div class="aia-accion"><div><b>Cuando</b> El cliente proporciona su Cliente da m² + uso (aire/agua/ambos)</div><div><b>Hacer</b> Responder siempre con esta información específica Recomendar modelo con precio + link, según la tabla de Fuentes. Nombre del equipo · Tipo de espacio m² · Uso principal (aire / agua / ambos)</div><div><b>Más</b> Recomendar solo 1 producto principal. Si hay duda, ofrecer 2 opciones máximo.</div></div>
+          </div>
+        </div>
+        <!-- INTEGRACIONES TAB -->
+        <div class="aia-panel" id="aia-integraciones">
+          <p style="font-size:12px;color:var(--txt2);margin-bottom:14px">Entrena a tu agente de IA sincronizando los datos de tus integraciones favoritas.</p>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px">
+            <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><div style="width:30px;height:30px;border-radius:8px;background:#95bf47;display:flex;align-items:center;justify-content:center;font-size:14px">🛒</div><b style="font-size:12px">Shopify</b></div><p style="font-size:10px;color:var(--txt2);margin-bottom:10px">Conecta tu tienda de Shopify para que el agente de IA tenga información sobre tus políticas y pedidos.</p><button style="font-size:10px;padding:5px 12px;border:none;background:var(--accent);color:#fff;border-radius:4px;cursor:pointer">Volver a sincronizar</button><br><a href="#" style="font-size:10px;color:#dc2626;text-decoration:none">Desvincular</a></div>
+            <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><div style="width:30px;height:30px;border-radius:8px;background:#ef4444;display:flex;align-items:center;justify-content:center;font-size:14px">🔴</div><b style="font-size:12px">Lazada</b></div><p style="font-size:10px;color:var(--txt2);margin-bottom:10px">Conecta tu cuenta de Lazada para que el agente de IA tenga acceso a los datos en tiempo real de tu tienda.</p><button style="font-size:10px;padding:5px 12px;border:none;background:var(--accent);color:#fff;border-radius:4px;cursor:pointer">Instalar</button></div>
+            <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><div style="width:30px;height:30px;border-radius:8px;background:#7c3aed;display:flex;align-items:center;justify-content:center;font-size:14px">☁️</div><b style="font-size:12px">Nuvemshop / Tiendanube</b></div><p style="font-size:10px;color:var(--txt2);margin-bottom:10px">Conecta Konversa al mayor ecommerce de América Latina y deja que el agente de IA potencie tu soporte.</p><button style="font-size:10px;padding:5px 12px;border:none;background:var(--accent);color:#fff;border-radius:4px;cursor:pointer">Instalar</button></div>
+            <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><div style="width:30px;height:30px;border-radius:8px;background:#7c3aed;display:flex;align-items:center;justify-content:center;font-size:14px">🔌</div><b style="font-size:12px">WooCommerce</b></div><p style="font-size:10px;color:var(--txt2);margin-bottom:10px">Conecta Konversa a la plataforma de compras de WordPress para flujos de trabajo más inteligentes y rápidos con IA.</p><button style="font-size:10px;padding:5px 12px;border:none;background:var(--accent);color:#fff;border-radius:4px;cursor:pointer">Instalar</button></div>
+          </div>
+        </div>
+        <!-- AJUSTES TAB -->
+        <div class="aia-panel" id="aia-ajustes">
+          <p style="font-size:12px;color:var(--txt2);margin-bottom:14px">Configuración general del agente.</p>
+          <div style="display:flex;flex-direction:column;gap:12px;max-width:500px">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px"><div><div style="font-size:12px;font-weight:600">Estado del agente</div><div style="font-size:10px;color:var(--txt2)">Activar o desactivar el agente IA</div></div><div style="width:36px;height:20px;border-radius:10px;background:#059669;cursor:pointer;display:flex;align-items:center;justify-content:flex-end;padding-right:2px" onclick="toggleAgentStatus()"><div style="width:16px;height:16px;border-radius:50%;background:#fff"></div></div></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px"><div><div style="font-size:12px;font-weight:600">Canales activos</div><div style="font-size:10px;color:var(--txt2)">WhatsApp, Facebook Messenger, Instagram DM</div></div><button style="font-size:10px;padding:4px 10px;border:1px solid var(--border);background:var(--bg);border-radius:4px;cursor:pointer">Editar</button></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px"><div><div style="font-size:12px;font-weight:600">Modelo de IA</div><div style="font-size:10px;color:var(--txt2)">GPT-4 (recomendado)</div></div><select style="font-size:10px;padding:4px 8px;border:1px solid var(--border);border-radius:4px"><option>GPT-4</option><option>GPT-3.5 Turbo</option><option>Claude 3.5</option></select></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px"><div><div style="font-size:12px;font-weight:600">Horario del agente</div><div style="font-size:10px;color:var(--txt2)">Lunes a Sábado, 10:00 - 19:00 (hora México)</div></div><button style="font-size:10px;padding:4px 10px;border:1px solid var(--border);background:var(--bg);border-radius:4px;cursor:pointer">Editar</button></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px"><div><div style="font-size:12px;font-weight:600">Transferencia a humano</div><div style="font-size:10px;color:var(--txt2)">Cuando el lead quiere comprar o pide factura</div></div><div style="width:36px;height:20px;border-radius:10px;background:#059669;cursor:pointer;display:flex;align-items:center;justify-content:flex-end;padding-right:2px"><div style="width:16px;height:16px;border-radius:50%;background:#fff"></div></div></div>
+            <button style="margin-top:8px;padding:8px 20px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:12px;cursor:pointer;font-weight:500" onclick="toast('Ajustes guardados ✓')">💾 Guardar ajustes</button>
+          </div>
+        </div>
+      </div>
+      <!-- Right: Phone simulator -->
+      <div style="width:240px;flex-shrink:0;padding:14px;display:flex;flex-direction:column;align-items:center;gap:8px;border-left:1px solid var(--border)">
+        <div style="width:200px;border-radius:20px;border:3px solid #333;overflow:hidden;background:#1a1a2e;box-shadow:0 8px 30px rgba(0,0,0,0.3)">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 10px;font-size:9px;color:#fff;background:#111"><span>16:46</span><span>●●● ▶ 📶</span></div>
+          <div style="display:flex;align-items:center;gap:6px;padding:6px 10px;background:#222;border-bottom:1px solid #333"><span style="font-size:12px">‹</span><span style="font-size:10px;color:#fff;font-weight:600">🤖 Agente de IA <span style="color:#25d366">●</span></span></div>
+          <div id="aiaChatMsgs" style="height:200px;overflow-y:auto;padding:8px;display:flex;flex-direction:column;gap:6px">
+            <div style="align-self:flex-start;background:#2a2a4a;color:#fff;padding:6px 10px;border-radius:10px 10px 10px 2px;font-size:9px;max-width:85%;line-height:1.4">¡Soy tu agente de IA! Puedes probarme haciéndome preguntas para ver lo que sé. 🤖</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:4px;padding:6px 8px;background:#222;border-top:1px solid #333">
+            <input id="aiaChatInput" placeholder="Mensaje..." style="flex:1;padding:5px 8px;border-radius:14px;border:1px solid #444;background:#333;color:#fff;font-size:9px;outline:none" onkeydown="if(event.key==='Enter')sendAIAChat()">
+            <span style="cursor:pointer;font-size:12px" onclick="sendAIAChat()">⬆️</span>
+          </div>
+        </div>
+        <button onclick="resetAIAChat()" style="font-size:10px;padding:5px 14px;border:1px solid var(--border);background:var(--bg);border-radius:6px;cursor:pointer">↻ Reiniciar</button>
+      </div>
+    </div>
+  </div>
+</div><!-- end view-aiagent -->
 </div><!-- end main-content -->
 </div><!-- end appShell -->
 
@@ -1032,8 +1206,7 @@ function switchView(v){
   var el=document.getElementById('view-'+v);
   if(el){
     el.classList.add('active');
-    if(v==='pipeline'){el.style.display='flex';}
-    else if(v==='chat'){el.style.display='flex';}
+    if(v==='pipeline'||v==='chat'||v==='aiagent'){el.style.display='flex';}
     else{el.style.display='block';}
   }
   document.querySelectorAll('.tn-btn[data-view]').forEach(b=>b.classList.toggle('on',b.dataset.view===v));
@@ -1041,6 +1214,60 @@ function switchView(v){
   if(v==='products')renderProducts();
 }
 document.querySelectorAll('.tn-btn[data-view]').forEach(el=>el.addEventListener('click',()=>switchView(el.dataset.view)));
+
+/* ══════════════════════════════════════
+   AI AGENT FUNCTIONS
+══════════════════════════════════════ */
+var aiAgentActive=true;
+function switchAITab(tab){
+  document.querySelectorAll('.aia-tab').forEach(t=>t.classList.toggle('on',t.dataset.aiatab===tab));
+  document.querySelectorAll('.aia-panel').forEach(p=>{p.classList.remove('active');});
+  var p=document.getElementById('aia-'+tab);
+  if(p)p.classList.add('active');
+}
+function toggleAgentStatus(){
+  aiAgentActive=!aiAgentActive;
+  var s=document.getElementById('aiAgentStatus');
+  var b=document.getElementById('aiAgentToggleBtn');
+  if(aiAgentActive){
+    s.textContent='Activado';s.style.background='#d1fae5';s.style.color='#065f46';
+    b.textContent='⊘ Desactivar agente';b.style.borderColor='#dc2626';b.style.color='#dc2626';
+    toast('Agente IA activado ✓');
+  }else{
+    s.textContent='Desactivado';s.style.background='#fee2e2';s.style.color='#dc2626';
+    b.textContent='✓ Activar agente';b.style.borderColor='#059669';b.style.color='#059669';
+    toast('Agente IA desactivado');
+  }
+}
+var aiaResponses={
+  'hola':['¡Hola! 👋 Soy el asistente de Grupo PINGUS. ¿Buscas un purificador de aire o agua?','¡Hola! Soy la IA de Grupo PINGUS – The Health Guardian. ¿En qué te puedo ayudar?'],
+  'precio':['Nuestros purificadores van desde $1,795 MXN. ¿Me dices qué espacio quieres purificar y los m² para recomendarte el ideal?'],
+  'envío':['El envío es GRATIS a toda la República Mexicana. Llega en 2 días hábiles. ¿Te interesa algún modelo en particular?'],
+  'garantía':['Todos nuestros equipos tienen 6 meses de garantía contra defectos de fábrica y soporte directo en México 🇲🇽'],
+  'metros':['¡Perfecto! Con esos datos te recomiendo el **Generador ULTRA 150** ($1,795 MXN). Ideal para ese espacio. ¿Te lo muestro?'],
+  'oficina':['Para oficinas el modelo ideal depende de los m². ¿Cuántos metros cuadrados tiene tu oficina?'],
+  'seguro':['El ozono es 100% seguro cuando se usa correctamente. Nuestros equipos tienen certificaciones y regulan la concentración automáticamente.'],
+  'caro':['Entiendo tu preocupación. Nuestros equipos incluyen garantía de 6 meses, soporte directo en México y envío gratis. ¿Comparamos con lo que hay en el mercado?'],
+  'comprar':['¡Excelente! Te conecto con un asesor para finalizar tu compra. Un momento... 🔄'],
+};
+function sendAIAChat(){
+  var input=document.getElementById('aiaChatInput');
+  var msg=input.value.trim();if(!msg)return;
+  var box=document.getElementById('aiaChatMsgs');
+  box.innerHTML+='<div style="align-self:flex-end;background:#4f46e5;color:#fff;padding:6px 10px;border-radius:10px 10px 2px 10px;font-size:9px;max-width:85%">'+msg+'</div>';
+  input.value='';
+  var reply='Gracias por tu mensaje. Déjame buscar esa información en mis fuentes... ¿Podrías darme más detalles?';
+  var low=msg.toLowerCase();
+  for(var key in aiaResponses){if(low.includes(key)){var arr=aiaResponses[key];reply=arr[Math.floor(Math.random()*arr.length)];break;}}
+  setTimeout(function(){
+    box.innerHTML+='<div style="align-self:flex-start;background:#2a2a4a;color:#fff;padding:6px 10px;border-radius:10px 10px 10px 2px;font-size:9px;max-width:85%;line-height:1.4">'+reply+'</div>';
+    box.scrollTop=box.scrollHeight;
+  },800);
+}
+function resetAIAChat(){
+  document.getElementById('aiaChatMsgs').innerHTML='<div style="align-self:flex-start;background:#2a2a4a;color:#fff;padding:6px 10px;border-radius:10px 10px 10px 2px;font-size:9px;max-width:85%;line-height:1.4">¡Soy tu agente de IA! Puedes probarme haciéndome preguntas para ver lo que sé. 🤖</div>';
+  toast('Chat reiniciado');
+}
 
 /* ══════════════════════════════════════
    CONTACT LIST
