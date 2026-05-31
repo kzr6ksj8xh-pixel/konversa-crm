@@ -1,0 +1,9 @@
+{
+  "rewrites": [
+    { "source": "/webhook", "destination": "/api/webhook" }
+  ],
+  "env": {
+    "WHATSAPP_VERIFY_TOKEN": "konversa_verify_2024",
+    "CLAUDE_MODEL": "claude-haiku-4-5-20251001"
+  }
+}
