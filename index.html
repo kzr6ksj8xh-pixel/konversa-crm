@@ -692,17 +692,8 @@ Solo vendemos purificadores de aire a base de ozono.
         <!-- ACCIONES TAB -->
         <div class="aia-panel" id="aia-acciones">
           <p style="font-size:12px;color:var(--txt2);margin-bottom:10px">Las acciones indican qué hacer al agente de IA cuando se cumplen ciertas condiciones.</p>
-          <button style="padding:6px 14px;background:var(--bg);border:1px solid var(--border);border-radius:6px;font-size:11px;cursor:pointer;margin-bottom:14px" onclick="toast('Próximamente: Crear acción')">+ Añadir acción</button>
-          <div style="display:flex;flex-direction:column;gap:8px" id="aiaAcciones">
-            <div class="aia-accion"><div><b>Cuando</b> El mensaje entrante contiene Catálogo</div><div><b>Hacer</b> Iniciar Salesbot</div></div>
-            <div class="aia-accion"><div><b>Cuando</b> El cliente pregunta por primera vez sobre Cómo se instala el CK30<br>&nbsp;&nbsp;&nbsp;o El mensaje entrante contiene Instalación del CK30<br>&nbsp;&nbsp;&nbsp;o El mensaje entrante contiene Manual de instalación del CK30</div><div><b>Hacer</b> Iniciar Salesbot MANUAL CK30</div></div>
-            <div class="aia-accion"><div><b>Cuando</b> El cliente no responde desde hace 23h 59m</div><div><b>Hacer</b> Utilizar siempre este mismo mensaje ¿Sigues buscando un purificador? Si quieres, te ayudo a elegir el modelo ideal en 1 minuto.</div><div><b>Más</b> Si no responde tras este mensaje, NO insistir más. Marcar lead como FRÍO.</div></div>
-            <div class="aia-accion"><div><b>Cuando</b> Cada vez que el cliente pregunta sobre factura</div><div><b>Hacer</b> Transferir al usuario con permiso del cliente con resumen de conversaciones<br>Utilizar siempre este mismo mensaje Para facturación te conecto con un asesor que te apoya con tus datos fiscales</div><div><b>Más</b> Marcar el lead como CALIFICADO</div></div>
-            <div class="aia-accion"><div><b>Cuando</b> El mensaje entrante contiene "lo quiero", "cómo pago", "lo voy a llevar", "cómo lo compro"</div><div><b>Hacer</b> Hablar siempre sobre este tema Perfecto. Te conecto con un asesor en un momento.</div><div><b>Más</b> Si está fuera de horario (Lunes-Sábado 10:00-19:00), avisar: "Te responde un asesor mañana a partir de las 10:00."</div></div>
-            <div class="aia-accion"><div><b>Cuando</b> El mensaje entrante contiene logística, garantía, formas de pago</div><div><b>Hacer</b> Hablar siempre sobre este tema Responder con info exacta de Fuentes (envío 2 días gratis / garantía 6 meses / tarjeta-PayPal-transferencia)</div><div><b>Más</b> Después de responder, retomar la venta: "¿Te recomiendo un modelo?"</div></div>
-            <div class="aia-accion"><div><b>Cuando</b> El mensaje entrante contiene Cliente dice "está caro", "vi uno más barato", "en Amazon hay de X"</div><div><b>Hacer</b> Hablar siempre sobre este tema Diferenciar por garantía y soporte "Nuestros equipos tienen garantía oficial de 6 meses y soporte directo en México. Envío gratis en 2 días."</div><div><b>Más</b> Si pide descuento, transferir a asesor</div></div>
-            <div class="aia-accion"><div><b>Cuando</b> El cliente proporciona su Cliente da m² + uso (aire/agua/ambos)</div><div><b>Hacer</b> Responder siempre con esta información específica Recomendar modelo con precio + link, según la tabla de Fuentes. Nombre del equipo · Tipo de espacio m² · Uso principal (aire / agua / ambos)</div><div><b>Más</b> Recomendar solo 1 producto principal. Si hay duda, ofrecer 2 opciones máximo.</div></div>
-          </div>
+          <button style="padding:6px 14px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:11px;cursor:pointer;margin-bottom:14px" onclick="addNewAction()">+ Añadir acción</button>
+          <div style="display:flex;flex-direction:column;gap:10px" id="aiaAccionesList"></div>
         </div>
         <!-- INTEGRACIONES TAB -->
         <div class="aia-panel" id="aia-integraciones">
@@ -1268,6 +1259,84 @@ function resetAIAChat(){
   document.getElementById('aiaChatMsgs').innerHTML='<div style="align-self:flex-start;background:#2a2a4a;color:#fff;padding:6px 10px;border-radius:10px 10px 10px 2px;font-size:9px;max-width:85%;line-height:1.4">¡Soy tu agente de IA! Puedes probarme haciéndome preguntas para ver lo que sé. 🤖</div>';
   toast('Chat reiniciado');
 }
+
+/* ══ ACCIONES EDITABLES ══ */
+var aiaActions=[
+  {id:1,cuando:'El mensaje entrante contiene Catálogo',hacer:'Iniciar Salesbot',mas:''},
+  {id:2,cuando:'El cliente pregunta por primera vez sobre Cómo se instala el CK30\no El mensaje entrante contiene Instalación del CK30\no El mensaje entrante contiene Manual de instalación del CK30',hacer:'Iniciar Salesbot MANUAL CK30',mas:'',disjunctive:true},
+  {id:3,cuando:'El cliente no responde desde hace 23h 59m',hacer:'Utilizar siempre este mismo mensaje ¿Sigues buscando un purificador? Si quieres, te ayudo a elegir el modelo ideal en 1 minuto.',mas:'Si no responde tras este mensaje, NO insistir más. Marcar lead como FRÍO.'},
+  {id:4,cuando:'Cada vez que el cliente pregunta sobre factura',hacer:'Transferir al usuario con permiso del cliente con resumen de conversaciones. Utilizar siempre este mismo mensaje: Para facturación te conecto con un asesor que te apoya con tus datos fiscales.',mas:'Marcar el lead como CALIFICADO'},
+  {id:5,cuando:'El mensaje entrante contiene "lo quiero", "cómo pago", "lo voy a llevar", "cómo lo compro"',hacer:'Hablar siempre sobre este tema: Perfecto. Te conecto con un asesor en un momento.',mas:'Si está fuera de horario (Lunes-Sábado 10:00-19:00), avisar: "Te responde un asesor mañana a partir de las 10:00."'},
+  {id:6,cuando:'El mensaje entrante contiene logística, garantía, formas de pago',hacer:'Responder con info exacta de Fuentes (envío 2 días gratis / garantía 6 meses / tarjeta-PayPal-transferencia)',mas:'Después de responder, retomar la venta: "¿Te recomiendo un modelo?"'},
+  {id:7,cuando:'Cliente dice "está caro", "vi uno más barato", "en Amazon hay de X"',hacer:'Diferenciar por garantía y soporte: "Nuestros equipos tienen garantía oficial de 6 meses y soporte directo en México. Envío gratis en 2 días."',mas:'Si pide descuento, transferir a asesor'},
+  {id:8,cuando:'El cliente proporciona m² + uso (aire/agua/ambos)',hacer:'Recomendar modelo con precio + link, según la tabla de Fuentes. Nombre del equipo · Tipo de espacio m² · Uso principal (aire / agua / ambos)',mas:'Recomendar solo 1 producto principal. Si hay duda, ofrecer 2 opciones máximo.'}
+];
+var aiaNextId=9;
+var aiaEditingId=null;
+
+function renderActions(){
+  var c=document.getElementById('aiaAccionesList');if(!c)return;
+  c.innerHTML='';
+  aiaActions.forEach(function(a){
+    var isEditing=aiaEditingId===a.id;
+    var div=document.createElement('div');
+    div.className='aia-accion';
+    div.style.position='relative';
+    if(isEditing){
+      div.innerHTML='<div style="display:flex;flex-direction:column;gap:8px">'+
+        '<div><label style="font-size:10px;font-weight:600;color:var(--accent)">Cuando</label><textarea style="width:100%;min-height:60px;padding:8px;border:1px solid var(--accent);border-radius:6px;font-size:11px;font-family:inherit;resize:vertical;margin-top:4px" id="editCuando">'+escHtml(a.cuando)+'</textarea></div>'+
+        '<div style="padding:6px 10px;background:var(--bg3);border-radius:6px;font-size:10px;display:flex;align-items:center;gap:12px"><span>Disparar acción cuando:</span><label style="display:flex;align-items:center;gap:4px;cursor:pointer"><input type="radio" name="disparo" value="any" '+(a.disjunctive!==false?'checked':'')+' style="accent-color:var(--accent)"> Se cumple alguna condición</label><label style="display:flex;align-items:center;gap:4px;cursor:pointer"><input type="radio" name="disparo" value="all" '+(a.disjunctive===false?'checked':'')+' style="accent-color:var(--accent)"> Se cumplen todas</label></div>'+
+        '<div><label style="font-size:10px;font-weight:600;color:var(--accent)">Hacer</label><textarea style="width:100%;min-height:50px;padding:8px;border:1px solid var(--accent);border-radius:6px;font-size:11px;font-family:inherit;resize:vertical;margin-top:4px" id="editHacer">'+escHtml(a.hacer)+'</textarea></div>'+
+        '<div><label style="font-size:10px;font-weight:600;color:var(--accent)">Más <span style="font-weight:400;color:var(--txt3)">(detalles adicionales, contexto o metas)</span></label><textarea style="width:100%;min-height:40px;padding:8px;border:1px solid var(--border);border-radius:6px;font-size:11px;font-family:inherit;resize:vertical;margin-top:4px" id="editMas" placeholder="Añade detalles adicionales, contexto o metas de seguimiento.">'+escHtml(a.mas)+'</textarea></div>'+
+        '<div style="display:flex;gap:6px"><button onclick="saveAction('+a.id+')" style="padding:6px 16px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:11px;cursor:pointer;font-weight:500">Guardar acción</button><button onclick="cancelEditAction()" style="padding:6px 16px;background:var(--bg);border:1px solid var(--border);border-radius:6px;font-size:11px;cursor:pointer">Cancelar</button></div>'+
+      '</div>';
+    }else{
+      var dots='<span onclick="toggleActionMenu('+a.id+')" style="position:absolute;top:8px;right:8px;cursor:pointer;font-size:14px;color:var(--txt3);padding:4px">⋯</span>';
+      var menu='<div id="actMenu'+a.id+'" style="display:none;position:absolute;top:28px;right:8px;background:var(--bg);border:1px solid var(--border);border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,.15);z-index:10;font-size:11px;overflow:hidden"><div onclick="editAction('+a.id+')" style="padding:8px 16px;cursor:pointer;border-bottom:1px solid var(--border)" onmouseover="this.style.background=\'var(--bg3)\'" onmouseout="this.style.background=\'\'">✏️ Editar</div><div onclick="deleteAction('+a.id+')" style="padding:8px 16px;cursor:pointer;color:#dc2626" onmouseover="this.style.background=\'#fef2f2\'" onmouseout="this.style.background=\'\'">🗑 Eliminar</div></div>';
+      var html='<div><b>Cuando</b> '+escHtml(a.cuando).replace(/\n/g,'<br>&nbsp;&nbsp;&nbsp;')+'</div><div><b>Hacer</b> '+escHtml(a.hacer)+'</div>';
+      if(a.mas)html+='<div><b>Más</b> '+escHtml(a.mas)+'</div>';
+      div.innerHTML=html+dots+menu;
+    }
+    c.appendChild(div);
+  });
+}
+function escHtml(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function toggleActionMenu(id){
+  var m=document.getElementById('actMenu'+id);
+  if(m)m.style.display=m.style.display==='none'?'block':'none';
+}
+function editAction(id){
+  aiaEditingId=id;renderActions();
+}
+function cancelEditAction(){
+  aiaEditingId=null;renderActions();
+}
+function saveAction(id){
+  var a=aiaActions.find(function(x){return x.id===id;});
+  if(!a)return;
+  a.cuando=document.getElementById('editCuando').value;
+  a.hacer=document.getElementById('editHacer').value;
+  a.mas=document.getElementById('editMas').value;
+  var radios=document.getElementsByName('disparo');
+  for(var i=0;i<radios.length;i++){if(radios[i].checked){a.disjunctive=radios[i].value==='any';}}
+  aiaEditingId=null;
+  renderActions();
+  toast('Acción guardada ✓');
+}
+function deleteAction(id){
+  if(!confirm('¿Eliminar esta acción?'))return;
+  aiaActions=aiaActions.filter(function(x){return x.id!==id;});
+  renderActions();
+  toast('Acción eliminada');
+}
+function addNewAction(){
+  var newA={id:aiaNextId++,cuando:'',hacer:'',mas:'',disjunctive:true};
+  aiaActions.unshift(newA);
+  aiaEditingId=newA.id;
+  renderActions();
+  document.getElementById('aiaContent').scrollTop=0;
+}
+setTimeout(renderActions,500);
 
 /* ══════════════════════════════════════
    CONTACT LIST
