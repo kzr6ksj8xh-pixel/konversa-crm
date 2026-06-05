@@ -1170,6 +1170,148 @@ async function syncShopifyNow(){
   }catch(e){toast('Error sincronizando: '+e.message);}
 }
 
+/* ── SUPABASE REALTIME ── */
+var realtimeChannel = null;
+
+function startRealtime(){
+  if(!sb||demoMode)return;
+
+  // Suscribir a nuevos mensajes
+  realtimeChannel = sb.channel('crm-realtime')
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'messages'},function(payload){
+      var m = payload.new;
+      if(!m) return;
+      handleRealtimeMessage(m);
+    })
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'contacts'},function(payload){
+      handleRealtimeContact(payload.new);
+    })
+    .on('postgres_changes',{event:'UPDATE',schema:'public',table:'leads'},function(payload){
+      handleRealtimeLead(payload.new);
+    })
+    .subscribe(function(status){
+      if(status==='SUBSCRIBED') console.log('Realtime conectado');
+    });
+}
+
+async function handleRealtimeMessage(m){
+  // Buscar contact_id via conversation
+  var convId = m.conversation_id;
+  if(!convId) return;
+
+  var contactId = null;
+  var channel = m.channel || 'wa';
+
+  // Buscar en cache local primero
+  try{
+    var{data}=await sb.from('conversations').select('contact_id,channel').eq('id',convId).single();
+    if(data){contactId=data.contact_id;channel=data.channel||channel;}
+  }catch(e){return;}
+
+  if(!contactId)return;
+
+  // Agregar mensaje al cache local
+  if(!msgs[contactId])msgs[contactId]=[];
+  var newMsg={
+    t: m.sender==='customer'?'in':m.sender==='ai'?'ai':'out',
+    txt: m.content,
+    time: timeOnly(m.sent_at),
+    ch: channel
+  };
+
+  // Evitar duplicados (si el mensaje ya fue agregado localmente)
+  var lastMsg = msgs[contactId][msgs[contactId].length-1];
+  if(lastMsg && lastMsg.txt===newMsg.txt && lastMsg.time===newMsg.time) return;
+
+  msgs[contactId].push(newMsg);
+
+  // Si es el contacto actualmente abierto, renderizar
+  if(aC && (aC.id===contactId || aC.dbId===contactId)){
+    renderMsgs();
+    // Scroll al fondo
+    var area=document.getElementById('msgsArea');
+    if(area)area.scrollTop=area.scrollHeight;
+  }
+
+  // Actualizar preview en lista de contactos
+  var contact=contacts.find(function(c){return c.id===contactId||c.dbId===contactId;});
+  if(contact){
+    contact.pre=m.content.substring(0,40);
+    contact.time=timeOnly(m.sent_at);
+    if(m.sender==='customer' && (!aC||aC.id!==contactId)){
+      contact.unread=(contact.unread||0)+1;
+    }
+    renderContactList();
+  }
+
+  // Notificación visual si es mensaje entrante
+  if(m.sender==='customer'){
+    var name=contact?contact.name:'Nuevo mensaje';
+    showRealtimeNotif(name, m.content, channel);
+  }
+}
+
+function handleRealtimeContact(c){
+  var col=contactColor(c.name);
+  var chs=c.channels||[];
+  var existing=contacts.find(function(x){return x.dbId===c.id;});
+  if(existing)return; // ya existe
+
+  contacts.unshift({
+    id:c.id,ini:ini(c.name),name:c.name,comp:c.company||'',
+    pre:'Nuevo contacto',time:'Ahora',unread:0,bg:col.bg,tc:col.tc,
+    ch:chs[0]?.ch||'wa',deal:c.deal_name,
+    amt:c.deal_amount?fmt(c.deal_amount):'',
+    stage:c.stage||'entrada',channels:chs,
+    phone:c.phone,email:c.email,city:c.city,
+    office:c.company,agent_id:c.agent_id,dbId:c.id
+  });
+  renderContactList();
+}
+
+function handleRealtimeLead(l){
+  var existing=leads.find(function(x){return x.dbId===l.id;});
+  if(existing){
+    existing.stage=l.stage;
+    existing.amount=parseFloat(l.amount)||0;
+    existing.hot=l.hot||false;
+    existing.name=l.name;
+    existing.company=l.company||existing.company;
+    renderPipeline();
+  }
+}
+
+function showRealtimeNotif(name, text, channel){
+  var chInfo=CH[channel]||CH.wa;
+  var s=document.getElementById('notifStrip');
+  if(!s)return;
+  var icon=chInfo.icon;
+  var color=chInfo.color;
+  var preview=text.length>50?text.substring(0,50)+'...':text;
+  document.getElementById('notifMsg').innerHTML=
+    '<i class="ti '+icon+'" style="font-size:12px;color:'+color+';margin-right:3px"></i>'+
+    '<b>'+escHtml(name)+'</b>: '+escHtml(preview);
+  document.getElementById('notifTime').textContent=now();
+  s.classList.add('show');
+  setTimeout(function(){s.classList.remove('show');},5000);
+
+  // Sonido sutil (si el browser lo permite)
+  try{
+    var ctx=new(window.AudioContext||window.webkitAudioContext)();
+    var osc=ctx.createOscillator();var gain=ctx.createGain();
+    osc.connect(gain);gain.connect(ctx.destination);
+    osc.frequency.value=800;gain.gain.value=0.08;
+    osc.start();osc.stop(ctx.currentTime+0.15);
+  }catch(e){}
+}
+
+function stopRealtime(){
+  if(realtimeChannel){
+    sb.removeChannel(realtimeChannel);
+    realtimeChannel=null;
+  }
+}
+
 function timeSince(dateStr){
   if(!dateStr)return'';
   var d=new Date(dateStr),now=new Date(),diff=now-d,min=Math.floor(diff/60000);
@@ -1327,6 +1469,7 @@ async function loadUserProfile(user){
 }
 
 async function doLogout(){
+  stopRealtime();
   if(sb)await sb.auth.signOut();
   currentUser=null;currentRole='operator';
   document.getElementById('authScreen').style.display='flex';
@@ -1358,6 +1501,9 @@ async function bootApp(){
   renderProducts();
   switchView('pipeline');
   setTimeout(showNotif,3000);setInterval(showNotif,10000);
+
+  // Iniciar realtime
+  if(!demoMode && sb) startRealtime();
 
   // Actualizar UI de Shopify si hay productos
   if(shopifyProducts.length){
