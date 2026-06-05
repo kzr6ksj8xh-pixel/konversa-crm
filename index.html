@@ -699,7 +699,7 @@ Solo vendemos purificadores de aire a base de ozono.
         <div class="aia-panel" id="aia-integraciones">
           <p style="font-size:12px;color:var(--txt2);margin-bottom:14px">Entrena a tu agente de IA sincronizando los datos de tus integraciones favoritas.</p>
           <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px">
-            <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><div style="width:30px;height:30px;border-radius:8px;background:#95bf47;display:flex;align-items:center;justify-content:center;font-size:14px">🛒</div><b style="font-size:12px">Shopify</b></div><p style="font-size:10px;color:var(--txt2);margin-bottom:10px">Conecta tu tienda de Shopify para que el agente de IA tenga información sobre tus políticas y pedidos.</p><button style="font-size:10px;padding:5px 12px;border:none;background:var(--accent);color:#fff;border-radius:4px;cursor:pointer">Volver a sincronizar</button><br><a href="#" style="font-size:10px;color:#dc2626;text-decoration:none">Desvincular</a></div>
+            <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><div style="width:30px;height:30px;border-radius:8px;background:#95bf47;display:flex;align-items:center;justify-content:center;font-size:14px">🛒</div><b style="font-size:12px">Shopify</b><span id="shopifyStatus" style="font-size:9px;padding:2px 6px;border-radius:8px;background:#f3f4f6;color:#6b7280">No conectado</span></div><p style="font-size:10px;color:var(--txt2);margin-bottom:10px">Conecta tu tienda de Shopify para que el agente de IA tenga información sobre tus productos y pedidos.</p><div style="display:flex;gap:6px;flex-wrap:wrap"><div class="mf" style="flex:1;min-width:150px"><label style="font-size:10px">Dominio de tienda</label><input id="shopifyDomain" style="font-size:11px;padding:6px 9px;border-radius:6px;border:.5px solid var(--border);background:var(--bg);color:var(--txt);outline:none;width:100%" placeholder="mi-tienda.myshopify.com"></div></div><div style="display:flex;gap:6px;margin-top:8px"><button onclick="var d=document.getElementById('shopifyDomain').value.trim();if(!d){toast('Escribe el dominio');return;}window.open('/api/shopify?action=install&shop='+encodeURIComponent(d),'_blank')" style="font-size:10px;padding:5px 12px;border:none;background:#95bf47;color:#fff;border-radius:4px;cursor:pointer;font-weight:500"><i class='ti ti-plug-connected' style='font-size:11px'></i> Conectar tienda</button><button onclick="syncShopifyNow()" style="font-size:10px;padding:5px 12px;border:1px solid var(--border);background:var(--bg);color:var(--txt2);border-radius:4px;cursor:pointer"><i class='ti ti-refresh' style='font-size:11px'></i> Sincronizar productos</button></div><div style="margin-top:6px;font-size:9px;color:var(--txt3)" id="shopifyProductCount"></div></div>
             <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><div style="width:30px;height:30px;border-radius:8px;background:#ef4444;display:flex;align-items:center;justify-content:center;font-size:14px">🔴</div><b style="font-size:12px">Lazada</b></div><p style="font-size:10px;color:var(--txt2);margin-bottom:10px">Conecta tu cuenta de Lazada para que el agente de IA tenga acceso a los datos en tiempo real de tu tienda.</p><button style="font-size:10px;padding:5px 12px;border:none;background:var(--accent);color:#fff;border-radius:4px;cursor:pointer">Instalar</button></div>
             <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><div style="width:30px;height:30px;border-radius:8px;background:#7c3aed;display:flex;align-items:center;justify-content:center;font-size:14px">☁️</div><b style="font-size:12px">Nuvemshop / Tiendanube</b></div><p style="font-size:10px;color:var(--txt2);margin-bottom:10px">Conecta Konversa al mayor ecommerce de América Latina y deja que el agente de IA potencie tu soporte.</p><button style="font-size:10px;padding:5px 12px;border:none;background:var(--accent);color:#fff;border-radius:4px;cursor:pointer">Instalar</button></div>
             <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><div style="width:30px;height:30px;border-radius:8px;background:#7c3aed;display:flex;align-items:center;justify-content:center;font-size:14px">🔌</div><b style="font-size:12px">WooCommerce</b></div><p style="font-size:10px;color:var(--txt2);margin-bottom:10px">Conecta Konversa a la plataforma de compras de WordPress para flujos de trabajo más inteligentes y rápidos con IA.</p><button style="font-size:10px;padding:5px 12px;border:none;background:var(--accent);color:#fff;border-radius:4px;cursor:pointer">Instalar</button></div>
@@ -973,7 +973,217 @@ var msgs = {...demoMsgs};
 var aC = null, aCh = 'wa', tplOpen=false, tplTab='browse', tplCat='all', tplQ='', nType='text';
 var hist=[], aiOn=false, chFilt='all', slashMode=false, slashQ='', slashIdx=0;
 var dragId=null, dragOverCol=null, agFilt='all', notifIdx=0, selRole='admin', aRange=7;
-var demoMode = true; // true when Supabase not configured
+var demoMode = true;
+var shopifyProducts = [];
+
+/* ══════════════════════════════════════
+   SUPABASE DATA LAYER
+══════════════════════════════════════ */
+function contactColor(name){
+  var colors=[{bg:'#ede9fe',tc:'#4c1d95'},{bg:'#dbeafe',tc:'#1e3a8a'},{bg:'#d1fae5',tc:'#065f46'},{bg:'#fee2e2',tc:'#991b1b'},{bg:'#fef9c3',tc:'#713f12'},{bg:'#fae8ff',tc:'#701a75'}];
+  var hash=0;for(var i=0;i<name.length;i++)hash=name.charCodeAt(i)+((hash<<5)-hash);
+  return colors[Math.abs(hash)%colors.length];
+}
+
+async function loadContactsFromDB(){
+  if(!sb||demoMode)return;
+  try{
+    var{data,error}=await sb.from('contacts').select('*').order('updated_at',{ascending:false});
+    if(error||!data||!data.length)return;
+    contacts=data.map(function(c){
+      var col=contactColor(c.name);
+      var chs=c.channels||[];
+      var mainCh=chs[0]?.ch||'wa';
+      return{
+        id:c.id,ini:ini(c.name),name:c.name,comp:c.company||'',
+        pre:c.deal_name||'',time:timeSince(c.updated_at||c.created_at),
+        unread:0,bg:col.bg,tc:col.tc,ch:mainCh,
+        deal:c.deal_name,amt:c.deal_amount?fmt(c.deal_amount):'',
+        stage:c.stage||'entrada',channels:chs,
+        phone:c.phone,email:c.email,city:c.city,
+        office:c.company,agent_id:c.agent_id,
+        dbId:c.id
+      };
+    });
+  }catch(e){console.warn('loadContacts error:',e);}
+}
+
+async function loadLeadsFromDB(){
+  if(!sb||demoMode)return;
+  try{
+    var{data,error}=await sb.from('leads').select('*').order('updated_at',{ascending:false});
+    if(error||!data||!data.length)return;
+    leads=data.map(function(l){
+      return{
+        id:l.id,name:l.name,company:l.company||'Sin empresa',
+        amount:parseFloat(l.amount)||0,stage:l.stage||'entrada',
+        ch:l.channel||'wa',ag:'jm',date:timeSince(l.created_at),
+        hot:l.hot||false,agent_id:l.agent_id,dbId:l.id
+      };
+    });
+  }catch(e){console.warn('loadLeads error:',e);}
+}
+
+async function loadMessagesFromDB(){
+  if(!sb||demoMode)return;
+  try{
+    var{data,error}=await sb.from('messages').select('*,conversations!inner(contact_id,channel)').order('sent_at',{ascending:true}).limit(500);
+    if(error||!data)return;
+    msgs={};
+    data.forEach(function(m){
+      var cid=m.conversations?.contact_id;
+      if(!cid)return;
+      if(!msgs[cid])msgs[cid]=[];
+      msgs[cid].push({
+        t:m.sender==='customer'?'in':m.sender==='ai'?'ai':'out',
+        txt:m.content,
+        time:timeOnly(m.sent_at),
+        ch:m.channel||m.conversations?.channel||'wa'
+      });
+    });
+  }catch(e){console.warn('loadMessages error:',e);}
+}
+
+async function loadTemplatesFromDB(){
+  if(!sb||demoMode)return;
+  try{
+    var{data,error}=await sb.from('templates').select('*').order('created_at',{ascending:false});
+    if(error||!data||!data.length)return;
+    templates=data.map(function(t){
+      return{
+        id:t.id,name:t.name,type:t.type,cat:t.category||'bienvenida',
+        shortcut:t.shortcut||t.name.replace(/\s/g,'').toLowerCase(),
+        content:t.content,linkTitle:t.link_title
+      };
+    });
+  }catch(e){console.warn('loadTemplates error:',e);}
+}
+
+async function loadAutomationsFromDB(){
+  if(!sb||demoMode)return;
+  try{
+    var{data,error}=await sb.from('automations').select('*').order('created_at',{ascending:false});
+    if(error||!data||!data.length)return;
+    automations=data.map(function(a){
+      return{
+        id:a.id,icon:'ti-bolt',iconBg:'#f3e8ff',iconColor:'#7c3aed',
+        title:a.title,subtitle:a.is_active?'Activo':'Pausado',
+        on:a.is_active||false,channels:a.channels||[],
+        trigger:a.trigger_desc||'',
+        actions:Array.isArray(a.actions)?a.actions:['Acción configurada'],
+        executions:a.executions||0
+      };
+    });
+  }catch(e){console.warn('loadAutomations error:',e);}
+}
+
+async function loadShopifyProducts(){
+  if(!sb||demoMode)return;
+  try{
+    var{data,error}=await sb.from('shopify_products').select('*').eq('status','active').order('title');
+    if(error||!data)return;
+    shopifyProducts=data;
+  }catch(e){console.warn('loadShopifyProducts error:',e);}
+}
+
+async function loadAllData(){
+  await Promise.all([
+    loadContactsFromDB(),
+    loadLeadsFromDB(),
+    loadMessagesFromDB(),
+    loadTemplatesFromDB(),
+    loadAutomationsFromDB(),
+    loadShopifyProducts()
+  ]);
+}
+
+/* ── SAVE TO SUPABASE ── */
+async function saveContactToDB(c){
+  if(!sb||demoMode)return null;
+  try{
+    var row={name:c.name,company:c.company||null,phone:c.phone||null,email:c.email||null,city:c.city||null,stage:c.stage||'entrada',deal_name:c.deal||null,deal_amount:c.amount||null,channels:c.channels||[],agent_id:currentUser?.id||null};
+    var{data,error}=await sb.from('contacts').insert(row).select().single();
+    if(error)console.error('saveContact:',error);
+    return data;
+  }catch(e){console.warn('saveContact error:',e);return null;}
+}
+
+async function saveLeadToDB(l){
+  if(!sb||demoMode)return null;
+  try{
+    var row={name:l.name,company:l.company||null,amount:l.amount||0,stage:l.stage||'entrada',channel:l.ch||'wa',hot:l.hot||false,agent_id:currentUser?.id||null};
+    var{data,error}=await sb.from('leads').insert(row).select().single();
+    if(error)console.error('saveLead:',error);
+    return data;
+  }catch(e){console.warn('saveLead error:',e);return null;}
+}
+
+async function updateLeadStageToDB(leadId,stage){
+  if(!sb||demoMode||!leadId)return;
+  try{await sb.from('leads').update({stage,updated_at:new Date().toISOString()}).eq('id',leadId);}
+  catch(e){console.warn('updateLeadStage error:',e);}
+}
+
+async function deleteLeadFromDB(leadId){
+  if(!sb||demoMode||!leadId)return;
+  try{await sb.from('leads').delete().eq('id',leadId);}
+  catch(e){console.warn('deleteLeadFromDB error:',e);}
+}
+
+async function saveMessageToDB(contactId,channel,sender,content){
+  if(!sb||demoMode||!contactId)return;
+  try{
+    var{data:conv}=await sb.from('conversations').select('id').eq('contact_id',contactId).eq('channel',channel).single();
+    var convId=conv?.id;
+    if(!convId){
+      var{data:newConv}=await sb.from('conversations').insert({contact_id:contactId,channel,assigned_to:currentUser?.id}).select().single();
+      convId=newConv?.id;
+    }
+    if(convId){
+      await sb.from('messages').insert({conversation_id:convId,sender,content,channel,sent_at:new Date().toISOString()});
+    }
+  }catch(e){console.warn('saveMessage error:',e);}
+}
+
+async function saveTemplateToDB(t){
+  if(!sb||demoMode)return null;
+  try{
+    var row={name:t.name,type:t.type,category:t.cat,shortcut:t.shortcut,content:t.content,link_title:t.linkTitle||null,created_by:currentUser?.id||null};
+    var{data,error}=await sb.from('templates').insert(row).select().single();
+    if(error)console.error('saveTemplate:',error);
+    return data;
+  }catch(e){console.warn('saveTemplate error:',e);return null;}
+}
+
+async function syncShopifyNow(){
+  try{
+    toast('Sincronizando Shopify...');
+    var res=await fetch('/api/shopify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'sync-products'})});
+    var data=await res.json();
+    if(data.status==='ok'){
+      await loadShopifyProducts();
+      renderProducts();
+      toast('Shopify: '+data.synced+' productos sincronizados');
+    }else{
+      toast('Error: '+(data.error||'fallo sync'));
+    }
+  }catch(e){toast('Error sincronizando: '+e.message);}
+}
+
+function timeSince(dateStr){
+  if(!dateStr)return'';
+  var d=new Date(dateStr),now=new Date(),diff=now-d,min=Math.floor(diff/60000);
+  if(min<1)return'Ahora';if(min<60)return min+'m';
+  var hrs=Math.floor(min/60);if(hrs<24)return hrs+'h';
+  var days=Math.floor(hrs/24);
+  if(days===0)return'Hoy';if(days===1)return'Ayer';if(days<7)return['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'][d.getDay()];
+  return d.getDate()+'/'+(d.getMonth()+1);
+}
+function timeOnly(dateStr){
+  if(!dateStr)return'';
+  var d=new Date(dateStr);
+  return d.getHours()+':'+String(d.getMinutes()).padStart(2,'0');
+}
 
 /* ══════════════════════════════════════
    UTILS
@@ -1081,8 +1291,7 @@ async function doLogin(){
 }
 
 function enterDemo(email){
-  var isAdmin=email==='admin@grupopingus.com'||email==='ventas@grupopingus.com'?false:(email.toLowerCase().includes('admin')||email==='admin@grupopingus.com');
-  var isKnownAdmin=email==='admin@grupopingus.com';
+  var isKnownAdmin = email === 'admin@grupopingus.com';
   currentUser={email,id:'demo-'+Date.now(),full_name:isKnownAdmin?'Administrador':'Operador'};
   currentRole=isKnownAdmin?'admin':'operator';
   demoMode=true;
@@ -1102,11 +1311,11 @@ async function doRegister(){
   initSupabase();
   if(demoMode){errEl.textContent='Configura Supabase primero para crear usuarios reales';errEl.classList.add('show');return;}
   btn.disabled=true;btn.textContent='Creando cuenta...';
-  const{data,error}=await sb.auth.signUp({email,password:pass,options:{data:{full_name:name,role:selRole}}});
+  const{data,error}=await sb.auth.signUp({email,password:pass,options:{data:{full_name:name,role:'operator'}}});
   btn.disabled=false;btn.textContent='Crear cuenta';
   if(error){errEl.textContent=error.message;errEl.classList.add('show');return;}
   errEl.style.background='#d1fae5';errEl.style.color='#065f46';
-  errEl.textContent=`✅ Cuenta creada como ${selRole==='admin'?'Administrador':'Operador'}. Revisa tu correo para confirmar.`;
+  errEl.textContent=`✅ Cuenta creada como Operador. Un administrador puede cambiar tu rol. Revisa tu correo para confirmar.`;
   errEl.classList.add('show');
 }
 
@@ -1124,23 +1333,39 @@ async function doLogout(){
   document.getElementById('appShell').classList.remove('active');
 }
 
-function bootApp(){
+async function bootApp(){
   document.getElementById('authScreen').style.display='none';
   document.getElementById('appShell').classList.add('active');
-  // Update user chip
   var n=currentUser?.full_name||currentUser?.email||'Usuario';
   document.getElementById('userName').textContent=n;
   document.getElementById('userInitials').textContent=ini(n);
   document.getElementById('rolePill').textContent=currentRole==='admin'?'Admin':'Operador';
   document.getElementById('rolePill').className='role-pill '+(currentRole==='admin'?'admin':'operator');
-  // Apply permission UI
   applyPermissions();
-  // Init views
+
+  // Cargar datos reales si Supabase está conectado
+  if(!demoMode && sb){
+    try{
+      await loadAllData();
+      console.log('Datos cargados desde Supabase');
+    }catch(e){
+      console.warn('Error cargando datos, usando demo:',e);
+    }
+  }
+
   if(aC)renderChatAll();else{renderContactList();renderTools();}
   renderPipeline();
+  renderProducts();
   switchView('pipeline');
-  // Notifications
   setTimeout(showNotif,3000);setInterval(showNotif,10000);
+
+  // Actualizar UI de Shopify si hay productos
+  if(shopifyProducts.length){
+    var ss=document.getElementById('shopifyStatus');
+    if(ss){ss.textContent='Conectado';ss.style.background='#d1fae5';ss.style.color='#065f46';}
+    var sc=document.getElementById('shopifyProductCount');
+    if(sc)sc.textContent=shopifyProducts.length+' productos sincronizados';
+  }
 }
 
 function applyPermissions(){
@@ -1245,13 +1470,13 @@ function sendAIAChat(){
   var input=document.getElementById('aiaChatInput');
   var msg=input.value.trim();if(!msg)return;
   var box=document.getElementById('aiaChatMsgs');
-  box.innerHTML+='<div style="align-self:flex-end;background:#4f46e5;color:#fff;padding:6px 10px;border-radius:10px 10px 2px 10px;font-size:9px;max-width:85%">'+msg+'</div>';
+  box.innerHTML+='<div style="align-self:flex-end;background:#4f46e5;color:#fff;padding:6px 10px;border-radius:10px 10px 2px 10px;font-size:9px;max-width:85%">'+escHtml(msg)+'</div>';
   input.value='';
   var reply='Gracias por tu mensaje. Déjame buscar esa información en mis fuentes... ¿Podrías darme más detalles?';
   var low=msg.toLowerCase();
   for(var key in aiaResponses){if(low.includes(key)){var arr=aiaResponses[key];reply=arr[Math.floor(Math.random()*arr.length)];break;}}
   setTimeout(function(){
-    box.innerHTML+='<div style="align-self:flex-start;background:#2a2a4a;color:#fff;padding:6px 10px;border-radius:10px 10px 10px 2px;font-size:9px;max-width:85%;line-height:1.4">'+reply+'</div>';
+    box.innerHTML+='<div style="align-self:flex-start;background:#2a2a4a;color:#fff;padding:6px 10px;border-radius:10px 10px 10px 2px;font-size:9px;max-width:85%;line-height:1.4">'+escHtml(reply)+'</div>';
     box.scrollTop=box.scrollHeight;
   },800);
 }
@@ -1351,8 +1576,8 @@ function renderContactList(){
         <div class="cdot" style="background:${CH[c.ch].color}">${cI(c.ch,7)}</div>
       </div>
       <div style="flex:1;min-width:0">
-        <div class="ci-nm">${c.name}</div>
-        <div class="ci-pre">${c.pre}</div>
+        <div class="ci-nm">${escHtml(c.name)}</div>
+        <div class="ci-pre">${escHtml(c.pre)}</div>
       </div>
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex-shrink:0">
         <div style="font-size:9px;color:var(--txt3)">${c.time}</div>
@@ -1396,12 +1621,12 @@ function renderMsgs(){
   if(!aC)return;
   var list=msgs[aC.id]||[];
   document.getElementById('msgsArea').innerHTML=`<div class="dsep">Hoy · ${CH[aCh]?.label}</div>`+list.map(m=>{
-    if(m.t==='ai') return`<div style="display:flex;align-items:center;gap:5px;padding:5px 11px;font-size:10px;color:#3730a3;background:#eef2ff;border-radius:20px;width:fit-content;margin:2px 0;border:.5px solid #c7d2fe"><i class="ti ti-robot" style="font-size:11px"></i>${m.txt}</div>`;
+    if(m.t==='ai') return`<div style="display:flex;align-items:center;gap:5px;padding:5px 11px;font-size:10px;color:#3730a3;background:#eef2ff;border-radius:20px;width:fit-content;margin:2px 0;border:.5px solid #c7d2fe"><i class="ti ti-robot" style="font-size:11px"></i>${escHtml(m.txt)}</div>`;
     const ch=m.ch?CH[m.ch]:null;
     return`<div class="mrow${m.t==='out'?' out':''}">
       ${m.t==='in'?`<div class="av" style="width:24px;height:24px;font-size:9px;background:${aC.bg};color:${aC.tc}">${aC.ini}</div>`:''}
       <div>
-        <div class="mb ${m.t}">${m.txt}</div>
+        <div class="mb ${m.t}">${escHtml(m.txt)}</div>
         ${ch?`<div class="mch">${cI(m.ch,9)}<span style="font-size:9px">${ch.label}</span></div>`:''}
         <div class="mtime">${m.time}</div>
       </div>
@@ -1564,6 +1789,7 @@ function saveTpl(){
   else{t.content=document.getElementById('nUrl')?.value||'https://';t.linkTitle=document.getElementById('nLT')?.value||'Ver más';}
   templates.unshift(t);
   toast(`"${nm}" guardada · /${sc}`);tplTab='browse';tplQ='';renderTpl();
+  saveTemplateToDB(t).then(function(saved){if(saved)t.dbId=saved.id;});
 }
 
 function useTpl(id){
@@ -1633,6 +1859,7 @@ function sendMsg(){
   var ts=now();
   if(aC){if(!msgs[aC.id])msgs[aC.id]=[];msgs[aC.id].push({t:'out',txt,time:ts,ch:aCh});}
   inp.value='';renderMsgs();
+  if(aC?.dbId)saveMessageToDB(aC.dbId,aCh,'agent',txt);
   if(aiOn){
     setTimeout(()=>{document.getElementById('typingInd').style.display='inline';
       setTimeout(()=>{document.getElementById('typingInd').style.display='none';
@@ -1667,29 +1894,45 @@ var PINGUS_PRODUCTS = [
 function renderProducts(){
   var grid = document.getElementById('productsGrid');
   if(!grid) return;
+
+  // Si hay productos Shopify sincronizados, mostrar esos + locales
+  var allProds = PINGUS_PRODUCTS.map(function(p){return{source:'local',id:p.id,name:p.name,category:p.category,precio:p.precio,tag:p.tag,tagColor:p.tagColor,tagTc:p.tagTc,desc:p.desc,img:p.img,url:p.url};});
+
+  if(shopifyProducts.length){
+    var shopProds = shopifyProducts.map(function(sp){
+      var img = (sp.images&&sp.images[0])?sp.images[0].src:'';
+      var price = sp.price_min?('$'+Number(sp.price_min).toLocaleString('es-MX')+' MXN'):'Consultar';
+      return{source:'shopify',id:'sp-'+sp.shopify_id,name:sp.title,category:sp.product_type||sp.vendor||'Shopify',precio:price,tag:'Shopify',tagColor:'#d1fae5',tagTc:'#065f46',desc:(sp.description||'').substring(0,120),img:img,url:'https://'+((sp.handle)?'www.grupopingus.com/products/'+sp.handle:'#'),inventory:sp.inventory_total};
+    });
+    allProds = shopProds.concat(allProds);
+  }
+
   var h = '';
-  for(var i=0;i<PINGUS_PRODUCTS.length;i++){
-    var p = PINGUS_PRODUCTS[i];
+  for(var i=0;i<allProds.length;i++){
+    var p = allProds[i];
     h += '<div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;display:flex;flex-direction:column">';
     h += '<div style="height:130px;overflow:hidden;position:relative;background:#f9fafb;display:flex;align-items:center;justify-content:center">';
-    h += '<img src="'+p.img+'" alt="'+p.name+'" style="max-height:120px;max-width:100%;object-fit:contain;padding:6px" loading="lazy">';
-    h += '<span style="position:absolute;top:7px;right:7px;font-size:9px;padding:2px 7px;border-radius:10px;background:'+p.tagColor+';color:'+p.tagTc+';font-weight:600">'+p.tag+'</span>';
+    if(p.img) h += '<img src="'+escHtml(p.img)+'" alt="'+escHtml(p.name)+'" style="max-height:120px;max-width:100%;object-fit:contain;padding:6px" loading="lazy">';
+    else h += '<i class="ti ti-package" style="font-size:36px;color:#d1d5db"></i>';
+    h += '<span style="position:absolute;top:7px;right:7px;font-size:9px;padding:2px 7px;border-radius:10px;background:'+p.tagColor+';color:'+p.tagTc+';font-weight:600">'+escHtml(p.tag)+'</span>';
+    if(p.inventory!==undefined) h += '<span style="position:absolute;top:7px;left:7px;font-size:9px;padding:2px 7px;border-radius:10px;background:#f3f4f6;color:#374151">Stock: '+p.inventory+'</span>';
     h += '</div>';
     h += '<div style="padding:10px;display:flex;flex-direction:column;gap:4px;flex:1">';
-    h += '<div style="font-size:12px;font-weight:600;color:#111827">'+p.name+'</div>';
-    h += '<div style="font-size:9px;color:#9ca3af;text-transform:uppercase;letter-spacing:.4px">'+p.category+'</div>';
-    h += '<div style="font-size:10px;color:#6b7280;line-height:1.4;flex:1">'+p.desc+'</div>';
+    h += '<div style="font-size:12px;font-weight:600;color:#111827">'+escHtml(p.name)+'</div>';
+    h += '<div style="font-size:9px;color:#9ca3af;text-transform:uppercase;letter-spacing:.4px">'+escHtml(p.category)+'</div>';
+    h += '<div style="font-size:10px;color:#6b7280;line-height:1.4;flex:1">'+escHtml(p.desc)+'</div>';
     h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px;padding-top:6px;border-top:1px solid #f3f4f6">';
-    h += '<div style="font-size:13px;font-weight:700;color:#4f46e5">'+p.precio+'</div>';
+    h += '<div style="font-size:13px;font-weight:700;color:#4f46e5">'+escHtml(p.precio)+'</div>';
     h += '<div style="display:flex;gap:4px">';
-    h += '<a href="'+p.url+'" target="_blank" style="font-size:9px;padding:4px 7px;border-radius:5px;border:1px solid #e5e7eb;background:#fff;color:#374151;cursor:pointer;text-decoration:none">Ver</a>';
-    h += '<button style="font-size:9px;padding:4px 8px;border-radius:5px;border:none;background:#4f46e5;color:#fff;cursor:pointer;font-weight:500" data-prod="'+p.id+'">+Lead</button>';
+    h += '<a href="'+escHtml(p.url)+'" target="_blank" style="font-size:9px;padding:4px 7px;border-radius:5px;border:1px solid #e5e7eb;background:#fff;color:#374151;cursor:pointer;text-decoration:none">Ver</a>';
+    h += '<button style="font-size:9px;padding:4px 8px;border-radius:5px;border:none;background:#4f46e5;color:#fff;cursor:pointer;font-weight:500" data-prod="'+escHtml(p.id)+'">+Lead</button>';
     h += '</div></div></div></div>';
   }
   grid.innerHTML = h;
-document.querySelectorAll('[data-prod]').forEach(btn=>{
+  document.querySelectorAll('[data-prod]').forEach(btn=>{
     btn.addEventListener('click',()=>{
-      const prod=PINGUS_PRODUCTS.find(p=>p.id===btn.dataset.prod);
+      var allP = PINGUS_PRODUCTS.concat(shopifyProducts.map(function(sp){return{id:'sp-'+sp.shopify_id,name:sp.title};}));
+      const prod=allP.find(p=>p.id===btn.dataset.prod);
       if(prod) toast(`"${prod.name}" — selecciona un lead en el pipeline para asignarlo`);
     });
   });
@@ -1925,7 +2168,7 @@ document.querySelectorAll('[data-lt]').forEach(t=>t.addEventListener('click',()=
 function renderFileList(lead){
   var el=document.getElementById('fileList');
   if(!lead.files||!lead.files.length){el.innerHTML=`<div style="text-align:center;padding:16px;font-size:11px;color:var(--txt3)"><i class="ti ti-files" style="font-size:24px;display:block;margin-bottom:6px;opacity:.4"></i>Sin archivos adjuntos aún</div>`;return;}
-  el.innerHTML=lead.files.map((f,i)=>{const fi=getFileIcon(f.name);return`<div class="file-item"><div class="file-icon ${fi.cls}"><i class="ti ${fi.icon}"></i></div><div style="flex:1;min-width:0"><div class="file-name">${f.name}</div><div style="font-size:10px;color:var(--txt3)">${fmtSize(f.size)} · ${f.date}</div></div><div class="file-download" data-fidx="${i}" title="Descargar"><i class="ti ti-download"></i></div><div class="file-del" data-fdel="${i}" title="Eliminar"><i class="ti ti-trash"></i></div></div>`;}).join('');
+  el.innerHTML=lead.files.map((f,i)=>{const fi=getFileIcon(f.name);return`<div class="file-item"><div class="file-icon ${fi.cls}"><i class="ti ${fi.icon}"></i></div><div style="flex:1;min-width:0"><div class="file-name">${escHtml(f.name)}</div><div style="font-size:10px;color:var(--txt3)">${fmtSize(f.size)} · ${escHtml(f.date)}</div></div><div class="file-download" data-fidx="${i}" title="Descargar"><i class="ti ti-download"></i></div><div class="file-del" data-fdel="${i}" title="Eliminar"><i class="ti ti-trash"></i></div></div>`;}).join('');
   el.querySelectorAll('[data-fidx]').forEach(btn=>{btn.addEventListener('click',()=>{const f=lead.files[parseInt(btn.dataset.fidx)];if(f?.dataUrl){const a=document.createElement('a');a.href=f.dataUrl;a.download=f.name;a.click();}else toast('Archivo no disponible');});});
   el.querySelectorAll('[data-fdel]').forEach(btn=>{btn.addEventListener('click',()=>{lead.files.splice(parseInt(btn.dataset.fdel),1);renderFileList(lead);renderPipeline();toast('Archivo eliminado');});});
 }
@@ -1933,7 +2176,7 @@ function renderFileList(lead){
 function renderNoteHistory(lead){
   var el=document.getElementById('ldNoteHistory');
   if(!lead.notes||!lead.notes.length){el.innerHTML='';return;}
-  el.innerHTML=`<div style="font-size:10px;font-weight:500;color:var(--txt2);margin-bottom:6px;text-transform:uppercase;letter-spacing:.4px">Historial</div>`+lead.notes.slice().reverse().map(n=>`<div style="background:var(--bg2);border-left:2px solid var(--accent);border-radius:0 6px 6px 0;padding:7px 10px;margin-bottom:6px"><div style="font-size:11px;color:var(--txt);line-height:1.5">${n.text}</div><div style="font-size:10px;color:var(--txt3);margin-top:3px">${n.date} · ${n.user}</div></div>`).join('');
+  el.innerHTML=`<div style="font-size:10px;font-weight:500;color:var(--txt2);margin-bottom:6px;text-transform:uppercase;letter-spacing:.4px">Historial</div>`+lead.notes.slice().reverse().map(n=>`<div style="background:var(--bg2);border-left:2px solid var(--accent);border-radius:0 6px 6px 0;padding:7px 10px;margin-bottom:6px"><div style="font-size:11px;color:var(--txt);line-height:1.5">${escHtml(n.text)}</div><div style="font-size:10px;color:var(--txt3);margin-top:3px">${escHtml(n.date)} · ${escHtml(n.user)}</div></div>`).join('');
 }
 
 var dropZone;
@@ -2023,10 +2266,10 @@ function renderKCard(l){
   var fileCount=(l.files||[]).length;
   return`<div class="kcard" data-id="${l.id}">
     <div class="kcard-drag" data-drag="${l.id}" style="cursor:grab;margin:-8px -8px 6px -8px;padding:5px 8px 5px 8px;border-radius:6px 6px 0 0;display:flex;align-items:center;justify-content:space-between;background:rgba(0,0,0,0.02)" draggable="true">
-      <div class="kcard-title">${l.name}</div>
+      <div class="kcard-title">${escHtml(l.name)}</div>
       <div style="display:flex;align-items:center;gap:4px"><i class="ti ti-grip-horizontal" style="font-size:12px;color:var(--txt3);opacity:.4"></i>${delBtn}</div>
     </div>
-    <div class="kcard-comp"><i class="ti ti-building" style="font-size:11px;color:var(--txt3)"></i>${l.company}</div>
+    <div class="kcard-comp"><i class="ti ti-building" style="font-size:11px;color:var(--txt3)"></i>${escHtml(l.company)}</div>
     <div class="kcard-amt">${fmt(l.amount)}</div>
     <div class="prog-bar"><div class="prog-fill" style="width:${s?.prog||0}%;background:${s?.dot||'#818cf8'}"></div></div>
     <div style="margin-top:7px;display:flex;align-items:center;justify-content:space-between">
@@ -2092,6 +2335,7 @@ function bindDrag(){
           lead.stage=zone.dataset.zone;
           const contact=contacts.find(c=>c.name===lead.name);if(contact)contact.stage=zone.dataset.zone;
           renderPipeline();toast(`${lead.name.split(' ')[0]} → "${to}"`);
+          updateLeadStageToDB(lead.dbId||lead.id,zone.dataset.zone);
         }
       }
       dragId=null;dragOverCol=null;
@@ -2106,7 +2350,9 @@ function bindKActions(){
       guardAction('delete_lead',()=>{
         const lead=leads.find(l=>l.id===id);
         if(lead) confirmDialog('¿Eliminar venta?',`Se eliminará "${lead.name}" del pipeline. Esta acción no se puede deshacer.`,()=>{
+          var delId=lead.dbId||lead.id;
           leads=leads.filter(l=>l.id!==id);renderPipeline();toast(`"${lead.name}" eliminado del pipeline`);
+          deleteLeadFromDB(delId);
         });
       });
     });
@@ -2145,8 +2391,10 @@ document.getElementById('leadModal')?.addEventListener('click',function(e){if(e.
 document.getElementById('lmSave')?.addEventListener('click',()=>{
   var name=document.getElementById('fName').value.trim();if(!name){toast('Escribe el nombre');return;}
   var stage=document.getElementById('fStage').value;
-  leads.unshift({id:Date.now(),name,company:document.getElementById('fComp').value.trim()||'Sin empresa',amount:parseInt(document.getElementById('fAmt').value)||0,stage,ch:document.getElementById('fCh').value,ag:document.getElementById('fAg').value,date:'Hoy',hot:false});
+  var newLead={id:Date.now(),name,company:document.getElementById('fComp').value.trim()||'Sin empresa',amount:parseInt(document.getElementById('fAmt').value)||0,stage,ch:document.getElementById('fCh').value,ag:document.getElementById('fAg').value,date:'Hoy',hot:false};
+  leads.unshift(newLead);
   closeLeadModal();renderPipeline();toast(`Lead "${name}" en "${STAGE_MAP[stage]?.label}"`);
+  saveLeadToDB(newLead).then(function(saved){if(saved)newLead.dbId=saved.id;});
 });
 document.querySelectorAll('[data-ag]').forEach(el=>el.addEventListener('click',()=>{agFilt=el.dataset.ag;document.querySelectorAll('[data-ag]').forEach(e=>e.classList.toggle('on',e.dataset.ag===agFilt));renderPipeline();}));
 

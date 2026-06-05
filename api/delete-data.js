@@ -1,7 +1,20 @@
-export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'https://konversa-crm.vercel.app').split(',');
+
+function setCors(req, res) {
+  const origin = req.headers.origin;
+  if (ALLOWED_ORIGINS.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+}
+
+export default async function handler(req, res) {
+  setCors(req, res);
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -33,7 +46,7 @@ export default async function handler(req, res) {
             <div class="icon">✅</div>
             <h1>Solicitud recibida</h1>
             <p>Tu solicitud de eliminación de datos ha sido registrada y será procesada en los próximos 30 días.</p>
-            <div class="code">Código: ${confirmation_code}</div>
+            <div class="code">Código: ${escHtml(confirmation_code)}</div>
             <p>Guarda este código para dar seguimiento a tu solicitud escribiendo a <strong>privacidad@grupopingus.com</strong>.</p>
           </div>
         </body>
@@ -88,11 +101,33 @@ export default async function handler(req, res) {
 
     // Meta sends a signed_request when user removes app from Facebook
     if (contentType.includes('application/x-www-form-urlencoded') && req.body?.signed_request) {
-      const confirmationCode = `DEL-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
-      const statusUrl = `https://konversa-crm.vercel.app/api/delete-data?confirmation_code=${confirmationCode}`;
+      const appSecret = process.env.META_APP_SECRET;
+      if (!appSecret) {
+        console.error('META_APP_SECRET no configurado — no se puede validar signed_request');
+        return res.status(500).json({ error: 'Servidor mal configurado' });
+      }
 
-      // Here you would queue the actual deletion in your database
-      // e.g. await deleteUserData(userId);
+      const [encodedSig, payload] = req.body.signed_request.split('.', 2);
+      if (!encodedSig || !payload) {
+        return res.status(400).json({ error: 'signed_request mal formado' });
+      }
+
+      const { createHmac } = await import('crypto');
+      const expectedSig = createHmac('sha256', appSecret).update(payload).digest('base64url');
+      const receivedSig = encodedSig.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+      if (expectedSig !== receivedSig) {
+        return res.status(403).json({ error: 'Firma inválida' });
+      }
+
+      const userData = JSON.parse(Buffer.from(payload, 'base64url').toString());
+      const userId = userData.user_id;
+
+      const confirmationCode = `DEL-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+      const statusUrl = `https://konversa-crm.vercel.app/api/delete-data?confirmation_code=${encodeURIComponent(confirmationCode)}`;
+
+      // TODO: implementar eliminación real en Supabase
+      // await supabase.from('contacts').delete().eq('fb_user_id', userId);
+      console.log(`Solicitud de eliminación de Meta para user_id: ${userId}, código: ${confirmationCode}`);
 
       return res.status(200).json({
         url: statusUrl,

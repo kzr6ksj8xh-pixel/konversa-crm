@@ -1,9 +1,17 @@
 {
   "rewrites": [
-    { "source": "/webhook", "destination": "/api/webhook" }
+    { "source": "/webhook", "destination": "/api/webhook" },
+    { "source": "/shopify/install", "destination": "/api/shopify?action=install" },
+    { "source": "/shopify/webhook", "destination": "/api/shopify-webhook" }
   ],
-  "env": {
-    "WHATSAPP_VERIFY_TOKEN": "konversa_verify_2024",
-    "CLAUDE_MODEL": "claude-haiku-4-5-20251001"
-  }
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "DENY" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
+      ]
+    }
+  ]
 }

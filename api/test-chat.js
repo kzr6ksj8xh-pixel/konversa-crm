@@ -7,6 +7,19 @@
 
 const CLAUDE_API_KEY = process.env.CLAUDE_API_KEY;
 const CLAUDE_MODEL = process.env.CLAUDE_MODEL || 'claude-haiku-4-5-20251001';
+const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'https://konversa-crm.vercel.app').split(',');
+
+const rateLimitMap = new Map();
+function rateLimit(ip, maxReqs = 20, windowMs = 60000) {
+  const now = Date.now();
+  const entry = rateLimitMap.get(ip);
+  if (!entry || now - entry.start > windowMs) {
+    rateLimitMap.set(ip, { start: now, count: 1 });
+    return true;
+  }
+  entry.count++;
+  return entry.count <= maxReqs;
+}
 
 const SYSTEM_PROMPT = `Eres PINGUS ASISTENTE, el chatbot de ventas de Grupo PINGUS, empresa mexicana de purificadores de aire y agua con tecnologia de ozono.
 
@@ -23,11 +36,20 @@ PAUTAS: Maximo 3 lineas. Habla de tu. Pide m2 antes de recomendar. Recomendacion
 const testConversations = new Map();
 
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  const origin = req.headers.origin;
+  if (ALLOWED_ORIGINS.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Solo POST' });
+
+  const clientIp = req.headers['x-forwarded-for']?.split(',')[0] || 'unknown';
+  if (!rateLimit(clientIp)) {
+    return res.status(429).json({ error: 'Demasiadas solicitudes. Intenta en 1 minuto.' });
+  }
+
   try {
     const { message, sessionId } = req.body;
     if (!message) return res.status(400).json({ error: 'Falta message' });
