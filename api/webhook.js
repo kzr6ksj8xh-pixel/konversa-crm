@@ -221,7 +221,9 @@ async function sendWhatsAppMessage(to, text) {
     headers: { 'Authorization': `Bearer ${WHATSAPP_TOKEN}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({ messaging_product: 'whatsapp', to, type: 'text', text: { body: text } })
   });
-  if (!response.ok) console.error('WA send error:', response.status, await response.text());
+  const respText = await response.text();
+  if (!response.ok) console.error('WA send error:', response.status, respText);
+  else console.log('WA send ok:', respText);
   return response.ok;
 }
 
