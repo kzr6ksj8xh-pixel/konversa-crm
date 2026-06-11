@@ -237,6 +237,11 @@ async function markAsRead(messageId) {
 async function handleWhatsApp(body) {
   const entry = body.entry?.[0];
   const value = entry?.changes?.[0]?.value;
+  if (value?.statuses?.length) {
+    for (const s of value.statuses) {
+      console.log(`[WA status] ${s.status} → ${s.recipient_id}`, s.errors ? JSON.stringify(s.errors) : '');
+    }
+  }
   if (!value?.messages?.length) return { status: 'no_messages' };
 
   const message = value.messages[0];
