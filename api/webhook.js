@@ -281,7 +281,9 @@ async function sendFBMessage(recipientId, text) {
       access_token: token
     })
   });
-  if (!response.ok) console.error('FB send error:', response.status, await response.text());
+  const respText = await response.text();
+  if (!response.ok) console.error('FB send error:', response.status, respText);
+  else console.log('[FB send OK]', respText);
   return response.ok;
 }
 
