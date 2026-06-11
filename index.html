@@ -2109,16 +2109,16 @@ function renderProducts(){
   var grid = document.getElementById('productsGrid');
   if(!grid) return;
 
-  // Si hay productos Shopify sincronizados, mostrar esos + locales
-  var allProds = PINGUS_PRODUCTS.map(function(p){return{source:'local',id:p.id,name:p.name,category:p.category,precio:p.precio,tag:p.tag,tagColor:p.tagColor,tagTc:p.tagTc,desc:p.desc,img:p.img,url:p.url};});
-
+  // Catálogo local solo como fallback: con Shopify sincronizado son los mismos productos (se duplicaban)
+  var allProds;
   if(shopifyProducts.length){
-    var shopProds = shopifyProducts.map(function(sp){
+    allProds = shopifyProducts.map(function(sp){
       var img = (sp.images&&sp.images[0])?sp.images[0].src:'';
       var price = sp.price_min?('$'+Number(sp.price_min).toLocaleString('es-MX')+' MXN'):'Consultar';
       return{source:'shopify',id:'sp-'+sp.shopify_id,name:sp.title,category:sp.product_type||sp.vendor||'Shopify',precio:price,tag:'Shopify',tagColor:'#d1fae5',tagTc:'#065f46',desc:(sp.description||'').substring(0,120),img:img,url:'https://'+((sp.handle)?'www.grupopingus.com/products/'+sp.handle:'#'),inventory:sp.inventory_total};
     });
-    allProds = shopProds.concat(allProds);
+  } else {
+    allProds = PINGUS_PRODUCTS.map(function(p){return{source:'local',id:p.id,name:p.name,category:p.category,precio:p.precio,tag:p.tag,tagColor:p.tagColor,tagTc:p.tagTc,desc:p.desc,img:p.img,url:p.url};});
   }
 
   var h = '';
