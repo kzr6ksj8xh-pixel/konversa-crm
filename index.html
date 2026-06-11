@@ -329,6 +329,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div class="auth-field"><label>Contraseña</label><input type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password"></div>
     <button class="auth-btn" id="loginBtn">Entrar al CRM</button>
     <div class="auth-err" id="loginErr"></div>
+    <div id="forgotLink" style="margin-top:10px;text-align:center;font-size:12px;color:var(--txt2);cursor:pointer;text-decoration:underline">¿Olvidaste tu contraseña?</div>
     <div style="margin-top:14px;padding-top:12px;border-top:.5px solid var(--border)">
       <button class="auth-btn" id="demoBtn" style="background:var(--bg2);color:var(--txt2);border:.5px solid var(--border);margin-bottom:0">
         Entrar en modo demo (sin conexión)
@@ -355,6 +356,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     </div>
     <button class="auth-btn" id="registerBtn" style="margin-top:16px">Crear cuenta</button>
     <div class="auth-err" id="regErr"></div>
+  </div>
+  <!-- RESET PASSWORD (llega por link de correo) -->
+  <div id="resetForm" style="display:none">
+    <div class="auth-field"><label>Nueva contraseña (mínimo 6 caracteres)</label><input type="password" id="resetPass" placeholder="••••••••" autocomplete="new-password"></div>
+    <div class="auth-field"><label>Confirmar contraseña</label><input type="password" id="resetPass2" placeholder="••••••••" autocomplete="new-password"></div>
+    <button class="auth-btn" id="resetBtn">Guardar nueva contraseña</button>
+    <div class="auth-err" id="resetErr"></div>
   </div>
   <!-- Supabase config — preconfigurado -->
   <div style="margin-top:14px;padding-top:12px;border-top:.5px solid var(--border)">
@@ -1466,6 +1474,46 @@ async function doRegister(){
   errEl.classList.add('show');
 }
 
+async function doForgot(){
+  var email=document.getElementById('loginEmail').value.trim();
+  var errEl=document.getElementById('loginErr');
+  errEl.classList.remove('show');errEl.style.background='';errEl.style.color='';
+  if(!email){errEl.textContent='Escribe tu correo arriba y vuelve a dar clic en el enlace';errEl.classList.add('show');return;}
+  if(!initSupabase()){errEl.textContent='No se pudo conectar con Supabase';errEl.classList.add('show');return;}
+  var link=document.getElementById('forgotLink');
+  link.style.pointerEvents='none';link.textContent='Enviando...';
+  const{error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});
+  link.style.pointerEvents='';link.textContent='¿Olvidaste tu contraseña?';
+  if(error){errEl.textContent=error.message;errEl.classList.add('show');return;}
+  errEl.style.background='#d1fae5';errEl.style.color='#065f46';
+  errEl.textContent='✅ Si el correo está registrado, te llegará un enlace para restablecer tu contraseña.';
+  errEl.classList.add('show');
+}
+
+function showResetForm(){
+  document.querySelector('.auth-tabs').style.display='none';
+  document.getElementById('loginForm').style.display='none';
+  document.getElementById('registerForm').style.display='none';
+  document.getElementById('resetForm').style.display='block';
+}
+
+async function doResetPass(){
+  var btn=document.getElementById('resetBtn');
+  var p1=document.getElementById('resetPass').value;
+  var p2=document.getElementById('resetPass2').value;
+  var errEl=document.getElementById('resetErr');
+  errEl.classList.remove('show');errEl.style.background='';errEl.style.color='';
+  if(p1.length<6){errEl.textContent='La contraseña debe tener al menos 6 caracteres';errEl.classList.add('show');return;}
+  if(p1!==p2){errEl.textContent='Las contraseñas no coinciden';errEl.classList.add('show');return;}
+  btn.disabled=true;btn.textContent='Guardando...';
+  const{data,error}=await sb.auth.updateUser({password:p1});
+  btn.disabled=false;btn.textContent='Guardar nueva contraseña';
+  if(error){errEl.textContent=error.message+' — pide un enlace nuevo desde el login';errEl.classList.add('show');return;}
+  history.replaceState(null,'',location.pathname);
+  await loadUserProfile(data.user);
+  bootApp();
+}
+
 async function loadUserProfile(user){
   if(!sb)return;
   currentUser=user;
@@ -1541,12 +1589,27 @@ document.getElementById('loginEmail')?.addEventListener('keydown',e=>{if(e.key==
 document.getElementById('loginPass')?.addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
 document.getElementById('registerBtn')?.addEventListener('click',doRegister);
 document.getElementById('logoutBtn')?.addEventListener('click',doLogout);
+document.getElementById('forgotLink')?.addEventListener('click',doForgot);
+document.getElementById('resetBtn')?.addEventListener('click',doResetPass);
+document.getElementById('resetPass2')?.addEventListener('keydown',e=>{if(e.key==='Enter')doResetPass();});
 
 /* Check existing session */
 window.addEventListener('DOMContentLoaded',async()=>{
   // Keys ya configuradas — inicializar Supabase automáticamente
   initSupabase();
   if(sb){
+    // Link de recuperación de contraseña (hash con type=recovery del correo)
+    if(location.hash.includes('type=recovery')){
+      sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY')showResetForm();});
+      showResetForm();
+      return;
+    }
+    if(location.hash.includes('error_code')){
+      var errEl=document.getElementById('loginErr');
+      errEl.textContent='El enlace de recuperación expiró o ya se usó. Pide uno nuevo.';
+      errEl.classList.add('show');
+      history.replaceState(null,'',location.pathname);
+    }
     const{data:{session}}=await sb.auth.getSession();
     if(session){await loadUserProfile(session.user);bootApp();}
   }
