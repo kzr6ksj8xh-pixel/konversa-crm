@@ -1140,7 +1140,9 @@ async function saveMessageToDB(contactId,channel,sender,content){
       convId=newConv?.id;
     }
     if(convId){
-      await sb.from('messages').insert({conversation_id:convId,sender,content,channel,sent_at:new Date().toISOString()});
+      // DB CHECK sender ∈ in|out|note|tpl|ai. Mensaje saliente del agente = 'out'
+      var dbSender=sender==='agent'?'out':sender==='customer'?'in':sender;
+      await sb.from('messages').insert({conversation_id:convId,sender:dbSender,content,channel,sent_at:new Date().toISOString()});
     }
   }catch(e){console.warn('saveMessage error:',e);}
 }
@@ -1158,7 +1160,10 @@ async function saveTemplateToDB(t){
 async function syncShopifyNow(){
   try{
     toast('Sincronizando Shopify...');
-    var res=await fetch('/api/shopify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'sync-products'})});
+    var token=null;
+    if(sb){try{const{data:{session}}=await sb.auth.getSession();token=session?.access_token||null;}catch(e){}}
+    if(!token){toast('Inicia sesión real (no demo) para sincronizar Shopify');return;}
+    var res=await fetch('/api/shopify',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({action:'sync-products'})});
     var data=await res.json();
     if(data.status==='ok'){
       await loadShopifyProducts();
@@ -1213,7 +1218,7 @@ async function handleRealtimeMessage(m){
   // Agregar mensaje al cache local
   if(!msgs[contactId])msgs[contactId]=[];
   var newMsg={
-    t: m.sender==='customer'?'in':m.sender==='ai'?'ai':'out',
+    t: m.sender==='in'?'in':m.sender==='ai'?'ai':'out',
     txt: m.content,
     time: timeOnly(m.sent_at),
     ch: channel
@@ -1238,14 +1243,14 @@ async function handleRealtimeMessage(m){
   if(contact){
     contact.pre=m.content.substring(0,40);
     contact.time=timeOnly(m.sent_at);
-    if(m.sender==='customer' && (!aC||aC.id!==contactId)){
+    if(m.sender==='in' && (!aC||aC.id!==contactId)){
       contact.unread=(contact.unread||0)+1;
     }
     renderContactList();
   }
 
   // Notificación visual si es mensaje entrante
-  if(m.sender==='customer'){
+  if(m.sender==='in'){
     var name=contact?contact.name:'Nuevo mensaje';
     showRealtimeNotif(name, m.content, channel);
   }

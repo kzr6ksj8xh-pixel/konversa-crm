@@ -8,6 +8,24 @@
 const CLAUDE_API_KEY = process.env.CLAUDE_API_KEY;
 const CLAUDE_MODEL = process.env.CLAUDE_MODEL || 'claude-haiku-4-5-20251001';
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'https://konversa-crm.vercel.app').split(',');
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const MAX_MESSAGE_LEN = 2000;
+
+// Exige JWT de Supabase: endpoint autenticado (evita abuso de cuota Claude)
+async function requireAuth(req) {
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) return null;
+  const authHeader = req.headers['authorization'] || '';
+  const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
+  if (!token) return null;
+  const { createClient } = await import('@supabase/supabase-js');
+  const sb = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
+    auth: { persistSession: false, autoRefreshToken: false }
+  });
+  const { data, error } = await sb.auth.getUser(token);
+  if (error || !data?.user) return null;
+  return data.user;
+}
 
 const rateLimitMap = new Map();
 function rateLimit(ip, maxReqs = 20, windowMs = 60000) {
@@ -45,6 +63,9 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Solo POST' });
 
+  const user = await requireAuth(req);
+  if (!user) return res.status(401).json({ error: 'No autorizado' });
+
   const clientIp = req.headers['x-forwarded-for']?.split(',')[0] || 'unknown';
   if (!rateLimit(clientIp)) {
     return res.status(429).json({ error: 'Demasiadas solicitudes. Intenta en 1 minuto.' });
@@ -53,6 +74,9 @@ export default async function handler(req, res) {
   try {
     const { message, sessionId } = req.body;
     if (!message) return res.status(400).json({ error: 'Falta message' });
+    if (typeof message !== 'string' || message.length > MAX_MESSAGE_LEN) {
+      return res.status(400).json({ error: 'Mensaje inválido o demasiado largo' });
+    }
     if (!CLAUDE_API_KEY) return res.status(500).json({ error: 'CLAUDE_API_KEY no configurada' });
     const sid = sessionId || 'test-default';
     if (!testConversations.has(sid)) testConversations.set(sid, []);

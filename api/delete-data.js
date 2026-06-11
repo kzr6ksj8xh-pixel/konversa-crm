@@ -4,6 +4,49 @@ function escHtml(s) {
 
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'https://konversa-crm.vercel.app').split(',');
 
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+async function getSupabase() {
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) return null;
+  const { createClient } = await import('@supabase/supabase-js');
+  return createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
+    auth: { persistSession: false, autoRefreshToken: false }
+  });
+}
+
+// Borra contactos (por email o PSID/handle de Meta) y su rastro:
+// messages → conversations → leads → contacts
+async function deleteUserData({ email, fbUserId }) {
+  const sb = await getSupabase();
+  if (!sb) return { deleted: false, reason: 'supabase_no_configurado' };
+
+  const ids = new Set();
+  if (email) {
+    const { data } = await sb.from('contacts').select('id').eq('email', email);
+    (data || []).forEach(r => ids.add(r.id));
+  }
+  if (fbUserId) {
+    for (const ch of ['fb', 'ig', 'wa']) {
+      const { data } = await sb.from('contacts').select('id')
+        .contains('channels', [{ ch, handle: fbUserId }]);
+      (data || []).forEach(r => ids.add(r.id));
+    }
+  }
+
+  const contactIds = [...ids];
+  if (!contactIds.length) return { deleted: true, contacts: 0 };
+
+  const { data: convs } = await sb.from('conversations').select('id').in('contact_id', contactIds);
+  const convIds = (convs || []).map(c => c.id);
+  if (convIds.length) await sb.from('messages').delete().in('conversation_id', convIds);
+  await sb.from('conversations').delete().in('contact_id', contactIds);
+  await sb.from('leads').delete().in('contact_id', contactIds);
+  await sb.from('contacts').delete().in('id', contactIds);
+
+  return { deleted: true, contacts: contactIds.length };
+}
+
 function setCors(req, res) {
   const origin = req.headers.origin;
   if (ALLOWED_ORIGINS.includes(origin)) {
@@ -125,9 +168,12 @@ export default async function handler(req, res) {
       const confirmationCode = `DEL-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
       const statusUrl = `https://konversa-crm.vercel.app/api/delete-data?confirmation_code=${encodeURIComponent(confirmationCode)}`;
 
-      // TODO: implementar eliminación real en Supabase
-      // await supabase.from('contacts').delete().eq('fb_user_id', userId);
-      console.log(`Solicitud de eliminación de Meta para user_id: ${userId}, código: ${confirmationCode}`);
+      try {
+        const result = await deleteUserData({ fbUserId: userId });
+        console.log(`Eliminación Meta user_id ${userId} (${confirmationCode}):`, result);
+      } catch (e) {
+        console.error('Error eliminando datos de Meta:', e);
+      }
 
       return res.status(200).json({
         url: statusUrl,
@@ -139,9 +185,12 @@ export default async function handler(req, res) {
     const { email, fb_user_id } = req.body || {};
     const confirmationCode = `DEL-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
 
-    // Here you would trigger actual data deletion:
-    // await supabase.from('contacts').delete().eq('email', email)
-    // await supabase.from('conversations').delete().eq('fb_user_id', fb_user_id)
+    try {
+      const result = await deleteUserData({ email, fbUserId: fb_user_id });
+      console.log(`Eliminación por formulario (${confirmationCode}):`, result);
+    } catch (e) {
+      console.error('Error eliminando datos (formulario):', e);
+    }
 
     return res.redirect(302, `/api/delete-data?confirmation_code=${confirmationCode}`);
   }

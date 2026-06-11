@@ -10,6 +10,7 @@ RETURNS text
 LANGUAGE sql
 STABLE
 SECURITY DEFINER
+SET search_path = public
 AS $$
   SELECT role FROM public.profiles WHERE id = auth.uid();
 $$;
@@ -20,6 +21,7 @@ RETURNS boolean
 LANGUAGE sql
 STABLE
 SECURITY DEFINER
+SET search_path = public
 AS $$
   SELECT EXISTS (
     SELECT 1 FROM public.profiles
@@ -121,11 +123,11 @@ CREATE POLICY "contacts_select"
   TO authenticated
   USING (true);
 
--- Cualquier autenticado puede crear contactos
+-- Crear contactos: propios (o admin). Evita WITH CHECK(true) permisivo.
 CREATE POLICY "contacts_insert"
   ON public.contacts FOR INSERT
   TO authenticated
-  WITH CHECK (true);
+  WITH CHECK (public.is_admin() OR agent_id = auth.uid() OR agent_id IS NULL);
 
 -- Operador solo edita sus contactos asignados, admin edita todos
 CREATE POLICY "contacts_update"
@@ -160,7 +162,7 @@ CREATE POLICY "conversations_select"
 CREATE POLICY "conversations_insert"
   ON public.conversations FOR INSERT
   TO authenticated
-  WITH CHECK (true);
+  WITH CHECK (public.is_admin() OR assigned_to = auth.uid() OR assigned_to IS NULL);
 
 -- Operador solo edita conversaciones asignadas a él
 CREATE POLICY "conversations_update"
@@ -195,7 +197,7 @@ CREATE POLICY "leads_select"
 CREATE POLICY "leads_insert"
   ON public.leads FOR INSERT
   TO authenticated
-  WITH CHECK (true);
+  WITH CHECK (public.is_admin() OR agent_id = auth.uid() OR agent_id IS NULL);
 
 -- Operador solo edita sus leads, admin edita todos
 CREATE POLICY "leads_update"
@@ -226,11 +228,19 @@ CREATE POLICY "messages_select"
   TO authenticated
   USING (true);
 
--- Cualquier autenticado puede insertar mensajes
+-- Insertar mensajes solo en conversaciones propias (o admin).
 CREATE POLICY "messages_insert"
   ON public.messages FOR INSERT
   TO authenticated
-  WITH CHECK (true);
+  WITH CHECK (
+    public.is_admin()
+    OR conversation_id IS NULL
+    OR EXISTS (
+      SELECT 1 FROM public.conversations c
+      WHERE c.id = conversation_id
+        AND (c.assigned_to = auth.uid() OR c.assigned_to IS NULL)
+    )
+  );
 
 -- Solo admin puede eliminar mensajes
 CREATE POLICY "messages_delete"
@@ -253,11 +263,11 @@ CREATE POLICY "templates_select"
   TO authenticated
   USING (true);
 
--- Cualquier autenticado puede crear plantillas
+-- Crear plantillas propias (o admin).
 CREATE POLICY "templates_insert"
   ON public.templates FOR INSERT
   TO authenticated
-  WITH CHECK (true);
+  WITH CHECK (public.is_admin() OR created_by = auth.uid() OR created_by IS NULL);
 
 -- Creador o admin puede editar
 CREATE POLICY "templates_update"
@@ -332,6 +342,28 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON public.automations TO authenticated;
 
 -- El service_role bypasea RLS (para webhooks/serverless)
 -- No necesita grants adicionales
+
+
+-- ============================================================
+-- 12b. REVOCAR EXECUTE DE FUNCIONES SECURITY DEFINER
+-- ============================================================
+-- Son helpers internos de las políticas RLS, no RPC públicas.
+-- Evita que anon/authenticated las invoquen vía /rest/v1/rpc/*.
+REVOKE EXECUTE ON FUNCTION public.get_my_role() FROM anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.is_admin() FROM anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.handle_new_user() FROM anon, authenticated;
+
+
+-- ============================================================
+-- 12c. ÍNDICES EN FOREIGN KEYS (perf + RLS subqueries)
+-- ============================================================
+CREATE INDEX IF NOT EXISTS idx_contacts_agent_id ON public.contacts(agent_id);
+CREATE INDEX IF NOT EXISTS idx_leads_agent_id ON public.leads(agent_id);
+CREATE INDEX IF NOT EXISTS idx_leads_contact_id ON public.leads(contact_id);
+CREATE INDEX IF NOT EXISTS idx_conversations_contact_id ON public.conversations(contact_id);
+CREATE INDEX IF NOT EXISTS idx_conversations_assigned_to ON public.conversations(assigned_to);
+CREATE INDEX IF NOT EXISTS idx_messages_conversation_id ON public.messages(conversation_id);
+CREATE INDEX IF NOT EXISTS idx_templates_created_by ON public.templates(created_by);
 
 
 -- ============================================================

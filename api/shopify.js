@@ -31,7 +31,48 @@ function verifyShopifyHmac(query) {
   if (!hmac || !SHOPIFY_API_SECRET) return false;
   const sorted = Object.keys(params).sort().map(k => `${k}=${params[k]}`).join('&');
   const computed = crypto.createHmac('sha256', SHOPIFY_API_SECRET).update(sorted).digest('hex');
-  return crypto.timingSafeEqual(Buffer.from(hmac), Buffer.from(computed));
+  const a = Buffer.from(hmac);
+  const b = Buffer.from(computed);
+  if (a.length !== b.length) return false; // timingSafeEqual lanza si difieren
+  return crypto.timingSafeEqual(a, b);
+}
+
+// ── State firmado para OAuth (CSRF, stateless) ────────────
+function makeOAuthState() {
+  const ts = Date.now().toString();
+  const sig = crypto.createHmac('sha256', SHOPIFY_API_SECRET).update(ts).digest('hex');
+  return `${ts}.${sig}`;
+}
+function isValidOAuthState(state) {
+  if (!state || !SHOPIFY_API_SECRET) return false;
+  const [ts, sig] = String(state).split('.');
+  if (!ts || !sig) return false;
+  if (Date.now() - Number(ts) > 600000) return false; // 10 min TTL
+  const expected = crypto.createHmac('sha256', SHOPIFY_API_SECRET).update(ts).digest('hex');
+  const a = Buffer.from(sig);
+  const b = Buffer.from(expected);
+  if (a.length !== b.length) return false;
+  return crypto.timingSafeEqual(a, b);
+}
+
+// ── Autenticación: JWT de Supabase o clave interna ────────
+async function requireAuth(req, sb) {
+  const internal = process.env.INTERNAL_API_KEY;
+  const headerKey = req.headers['x-internal-key'];
+  if (internal && headerKey && headerKey === internal) return { internal: true };
+
+  const authHeader = req.headers['authorization'] || '';
+  const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
+  if (!token) return null;
+  const { data, error } = await sb.auth.getUser(token);
+  if (error || !data?.user) return null;
+  return data.user;
+}
+
+// ── Sanea texto de búsqueda para filtros PostgREST ────────
+// Quita caracteres que permiten inyección en la expresión .or()
+function sanitizeSearch(q) {
+  return String(q).replace(/[,()%\\*]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 80);
 }
 
 // ── Validar formato de dominio Shopify ────────────────────
@@ -77,19 +118,19 @@ function handleInstall(shop, res) {
   if (!SHOPIFY_API_KEY) return res.status(500).json({ error: 'SHOPIFY_API_KEY no configurado' });
   if (!isValidShopDomain(shop)) return res.status(400).json({ error: 'Dominio de tienda inválido' });
 
-  const nonce = crypto.randomBytes(16).toString('hex');
+  const state = makeOAuthState();
   const redirectUri = `${APP_URL}/api/shopify?action=callback`;
-  const installUrl = `https://${shop}/admin/oauth/authorize?client_id=${SHOPIFY_API_KEY}&scope=${SHOPIFY_SCOPES}&redirect_uri=${encodeURIComponent(redirectUri)}&state=${nonce}`;
+  const installUrl = `https://${shop}/admin/oauth/authorize?client_id=${SHOPIFY_API_KEY}&scope=${SHOPIFY_SCOPES}&redirect_uri=${encodeURIComponent(redirectUri)}&state=${state}`;
 
-  // TODO: guardar nonce en DB para validar en callback
   return res.redirect(302, installUrl);
 }
 
 async function handleCallback(query, res) {
-  const { shop, code, hmac } = query;
+  const { shop, code, hmac, state } = query;
 
   if (!shop || !code) return res.status(400).json({ error: 'Faltan parámetros' });
   if (!isValidShopDomain(shop)) return res.status(400).json({ error: 'Dominio inválido' });
+  if (!isValidOAuthState(state)) return res.status(403).json({ error: 'State inválido (posible CSRF)' });
   if (!verifyShopifyHmac(query)) return res.status(403).json({ error: 'HMAC inválido' });
 
   // Intercambiar code por access_token
@@ -225,10 +266,12 @@ async function syncOrders(sb, shopDomain, accessToken) {
 // BUSCAR PRODUCTO (para el agente IA)
 // ══════════════════════════════════════════════════════════════
 async function searchProduct(sb, query) {
+  const q = sanitizeSearch(query);
+  if (!q) return [];
   const { data, error } = await sb.from('shopify_products')
     .select('title, description, price_min, price_max, handle, status, inventory_total, vendor')
     .eq('status', 'active')
-    .or(`title.ilike.%${query}%,description.ilike.%${query}%,product_type.ilike.%${query}%`)
+    .or(`title.ilike.%${q}%,description.ilike.%${q}%,product_type.ilike.%${q}%`)
     .limit(5);
 
   if (error) throw error;
@@ -277,6 +320,10 @@ export default async function handler(req, res) {
       if (!action) return res.status(400).json({ error: 'Falta action' });
 
       const sb = await getSupabase();
+
+      // ── Autenticación obligatoria (JWT Supabase o clave interna) ──
+      const auth = await requireAuth(req, sb);
+      if (!auth) return res.status(401).json({ error: 'No autorizado' });
 
       // Determinar tienda (usar la primera activa si no se especifica)
       let shopDomain = shop_domain;

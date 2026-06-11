@@ -4,9 +4,18 @@
 // Maneja: WhatsApp, Facebook Messenger, Instagram DM
 // Todos llegan al mismo endpoint desde Meta
 // Deploy: Vercel Serverless Function (api/webhook.js)
+//
+// Persiste contactos / conversaciones / mensajes en Supabase
+// (service_role) para que la bandeja omnicanal del CRM los vea
+// vía Realtime. El historial de contexto del bot se reconstruye
+// desde la tabla messages, no desde memoria del proceso.
 // ============================================================
 
 import crypto from 'crypto';
+
+// Desactivar el body-parser para acceder a los bytes crudos y validar
+// la firma HMAC contra el payload exacto que envió Meta.
+export const config = { api: { bodyParser: false } };
 
 const VERIFY_TOKEN = process.env.WHATSAPP_VERIFY_TOKEN;
 const WHATSAPP_TOKEN = process.env.WHATSAPP_ACCESS_TOKEN;
@@ -15,6 +24,9 @@ const META_PAGE_TOKEN = process.env.META_PAGE_TOKEN;
 const CLAUDE_API_KEY = process.env.CLAUDE_API_KEY;
 const CLAUDE_MODEL = process.env.CLAUDE_MODEL || 'claude-haiku-4-5-20251001';
 const META_APP_SECRET = process.env.META_APP_SECRET;
+
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 // ── System Prompt del Agente IA ───────────────────────────
 const SYSTEM_PROMPT = `Eres PINGUS ASISTENTE, el chatbot de ventas de Grupo PINGUS, una empresa mexicana especializada en purificadores de aire y agua con tecnología de ozono avanzada.
@@ -78,24 +90,80 @@ TRANSFERIR A HUMANO cuando:
 - Pregunta compleja fuera de tus fuentes
 En estos casos responde: "¡Perfecto! Te conecto con un asesor de Grupo PINGUS para ayudarte. Un momento 🔄"`;
 
-// ── Almacén de conversaciones en memoria ─────────────────────
-const conversations = new Map();
-
-function getConversationKey(channel, senderId) {
-  return `${channel}:${senderId}`;
+// ── Supabase (service_role) ───────────────────────────────
+let _sb = null;
+async function getSupabase() {
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) return null;
+  if (_sb) return _sb;
+  const { createClient } = await import('@supabase/supabase-js');
+  _sb = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
+    auth: { persistSession: false, autoRefreshToken: false }
+  });
+  return _sb;
 }
 
-function addMessage(key, role, content) {
-  if (!conversations.has(key)) conversations.set(key, []);
-  const conv = conversations.get(key);
-  conv.push({ role, content });
-  if (conv.length > 20) conv.splice(0, conv.length - 20);
-  return conv;
+// ── Resolver / crear contacto por canal+handle ────────────
+// handle = teléfono (wa) o PSID (fb/ig)
+async function resolveContact(sb, channel, handle, name) {
+  if (channel === 'wa') {
+    const { data } = await sb.from('contacts').select('id,channels')
+      .eq('phone', handle).limit(1).maybeSingle();
+    if (data) return data;
+  }
+  const { data: byChannel } = await sb.from('contacts').select('id,channels')
+    .contains('channels', [{ ch: channel, handle }]).limit(1).maybeSingle();
+  if (byChannel) return byChannel;
+
+  const row = {
+    name: name || 'Cliente',
+    phone: channel === 'wa' ? handle : null,
+    channels: [{ ch: channel, handle }],
+    stage: 'entrada'
+  };
+  const { data: created, error } = await sb.from('contacts').insert(row).select('id,channels').single();
+  if (error) { console.error('resolveContact insert:', error); return null; }
+  return created;
 }
 
-// ── Claude API ────────────────────────────────────────────────
-async function callClaude(convKey, userMessage) {
-  const messages = addMessage(convKey, 'user', userMessage);
+// ── Resolver / crear conversación por contacto+canal ──────
+async function resolveConversation(sb, contactId, channel) {
+  const { data } = await sb.from('conversations').select('id')
+    .eq('contact_id', contactId).eq('channel', channel).limit(1).maybeSingle();
+  if (data) return data.id;
+  const { data: created, error } = await sb.from('conversations')
+    .insert({ contact_id: contactId, channel }).select('id').single();
+  if (error) { console.error('resolveConversation insert:', error); return null; }
+  return created.id;
+}
+
+// ── Guardar mensaje. sender: 'in' | 'out' | 'ai' ──────────
+async function persistMessage(sb, conversationId, channel, sender, content) {
+  const { error } = await sb.from('messages').insert({
+    conversation_id: conversationId, sender, content, channel,
+    sent_at: new Date().toISOString()
+  });
+  if (error) console.error('persistMessage:', error);
+  await sb.from('conversations')
+    .update({ last_message: content.substring(0, 200), updated_at: new Date().toISOString() })
+    .eq('id', conversationId);
+}
+
+// ── Historial de contexto desde la DB (últimos 20) ────────
+async function loadHistory(sb, conversationId) {
+  const { data } = await sb.from('messages')
+    .select('sender,content').eq('conversation_id', conversationId)
+    .order('sent_at', { ascending: true }).limit(20);
+  if (!data) return [];
+  return data
+    .filter(m => m.sender === 'in' || m.sender === 'out' || m.sender === 'ai')
+    .map(m => ({ role: m.sender === 'in' ? 'user' : 'assistant', content: m.content }));
+}
+
+// ── Claude API ────────────────────────────────────────────
+async function callClaude(history, userMessage) {
+  const messages = [...history, { role: 'user', content: userMessage }];
+  // Anthropic exige que la conversación empiece con 'user'
+  while (messages.length && messages[0].role !== 'user') messages.shift();
 
   const response = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
@@ -119,8 +187,27 @@ async function callClaude(convKey, userMessage) {
   }
 
   const data = await response.json();
-  const reply = data.content[0]?.text || 'Disculpa, no pude procesar tu mensaje.';
-  addMessage(convKey, 'assistant', reply);
+  return data.content[0]?.text || 'Disculpa, no pude procesar tu mensaje.';
+}
+
+// ── Orquestador: persiste entrante, llama IA, persiste salida ──
+async function processIncoming(channel, handle, name, text) {
+  const sb = await getSupabase();
+  if (!sb) {
+    // Sin Supabase configurado: responder sin contexto persistente
+    return callClaude([], text);
+  }
+  const contact = await resolveContact(sb, channel, handle, name);
+  if (!contact) return callClaude([], text);
+
+  const convId = await resolveConversation(sb, contact.id, channel);
+  if (!convId) return callClaude([], text);
+
+  const history = await loadHistory(sb, convId);
+  await persistMessage(sb, convId, channel, 'in', text);
+
+  const reply = await callClaude(history, text);
+  await persistMessage(sb, convId, channel, 'ai', reply);
   return reply;
 }
 
@@ -164,7 +251,7 @@ async function handleWhatsApp(body) {
     return { status: 'non_text_handled', channel: 'whatsapp' };
   }
 
-  const aiResponse = await callClaude(getConversationKey('wa', from), message.text.body);
+  const aiResponse = await processIncoming('wa', from, contactName, message.text.body);
   const sent = await sendWhatsAppMessage(from, aiResponse);
   return { status: 'processed', channel: 'whatsapp', from, sent };
 }
@@ -222,7 +309,7 @@ async function handleMessenger(body) {
     })
   }).catch(() => {});
 
-  const aiResponse = await callClaude(getConversationKey('fb', senderId), text);
+  const aiResponse = await processIncoming('fb', senderId, 'Cliente Facebook', text);
   const sent = await sendFBMessage(senderId, aiResponse);
   return { status: 'processed', channel: 'messenger', from: senderId, sent };
 }
@@ -268,21 +355,48 @@ async function handleInstagram(body) {
 
   console.log(`[IG] ${senderId}: "${text}"`);
 
-  const aiResponse = await callClaude(getConversationKey('ig', senderId), text);
+  const aiResponse = await processIncoming('ig', senderId, 'Cliente Instagram', text);
   const sent = await sendIGMessage(senderId, aiResponse);
   return { status: 'processed', channel: 'instagram', from: senderId, sent };
 }
 
 // ══════════════════════════════════════════════════════════════
-// VERIFICAR FIRMA
+// VERIFICAR FIRMA (fail-closed)
 // ══════════════════════════════════════════════════════════════
-function verifySignature(req) {
-  if (!META_APP_SECRET) return true;
+function verifySignature(req, rawBody) {
+  // Sin secret configurado: rechazar (fail-closed) en vez de aceptar todo.
+  if (!META_APP_SECRET) {
+    console.error('META_APP_SECRET no configurado — rechazando webhook');
+    return false;
+  }
   const signature = req.headers['x-hub-signature-256'];
   if (!signature) return false;
-  const rawBody = typeof req.body === 'string' ? req.body : JSON.stringify(req.body);
-  const expected = 'sha256=' + crypto.createHmac('sha256', META_APP_SECRET).update(rawBody).digest('hex');
-  return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected));
+  // HMAC sobre los bytes crudos exactos que envió Meta. Reserializar
+  // req.body NO reproduce los bytes (emojis/acentos/orden) → firma falla.
+  const body = rawBody != null ? rawBody
+    : (typeof req.body === 'string' ? req.body : JSON.stringify(req.body));
+  const expected = 'sha256=' + crypto.createHmac('sha256', META_APP_SECRET).update(body).digest('hex');
+  const sigBuf = Buffer.from(signature);
+  const expBuf = Buffer.from(expected);
+  // timingSafeEqual lanza si difieren las longitudes → comparar antes
+  if (sigBuf.length !== expBuf.length) return false;
+  return crypto.timingSafeEqual(sigBuf, expBuf);
+}
+
+// ── Leer body crudo (necesario para validar la firma HMAC) ──
+// Strictly-improving: si la plataforma ya consumió el stream,
+// devuelve '' y el llamador cae al comportamiento anterior.
+async function readRawBody(req) {
+  try {
+    if (req.rawBody) return req.rawBody.toString('utf8');
+    const chunks = [];
+    for await (const chunk of req) {
+      chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk);
+    }
+    return Buffer.concat(chunks).toString('utf8');
+  } catch {
+    return '';
+  }
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -311,12 +425,22 @@ export default async function handler(req, res) {
   // ── POST: Mensaje entrante ──
   if (req.method === 'POST') {
     try {
-      if (!verifySignature(req)) {
+      // Leer bytes crudos para validar la firma. Fallback a req.body si
+      // la plataforma ya consumió el stream (mejora estricta).
+      let raw = await readRawBody(req);
+      let body;
+      if (raw) {
+        try { body = JSON.parse(raw); } catch { body = null; }
+      } else if (req.body) {
+        body = req.body;
+        raw = typeof req.body === 'string' ? req.body : JSON.stringify(req.body);
+      }
+
+      if (!verifySignature(req, raw)) {
         console.error('Firma inválida — posible falsificación');
         return res.status(403).json({ error: 'Firma inválida' });
       }
 
-      const body = req.body;
       if (!body?.object) return res.status(200).json({ status: 'no_object' });
 
       let result;

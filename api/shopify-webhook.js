@@ -10,6 +10,9 @@
 
 import crypto from 'crypto';
 
+// Body crudo necesario para validar el HMAC de Shopify.
+export const config = { api: { bodyParser: false } };
+
 const SHOPIFY_API_SECRET = process.env.SHOPIFY_API_SECRET;
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -19,25 +22,55 @@ async function getSupabase() {
   return createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 }
 
-function verifyShopifyWebhook(req) {
-  if (!SHOPIFY_API_SECRET) return true;
+async function readRawBody(req) {
+  try {
+    if (req.rawBody) return req.rawBody.toString('utf8');
+    const chunks = [];
+    for await (const chunk of req) {
+      chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk);
+    }
+    return Buffer.concat(chunks).toString('utf8');
+  } catch {
+    return '';
+  }
+}
+
+function verifyShopifyWebhook(req, rawBody) {
+  // Sin secret: rechazar (fail-closed) en vez de aceptar todo.
+  if (!SHOPIFY_API_SECRET) {
+    console.error('SHOPIFY_API_SECRET no configurado — rechazando webhook');
+    return false;
+  }
   const hmac = req.headers['x-shopify-hmac-sha256'];
   if (!hmac) return false;
-  const rawBody = typeof req.body === 'string' ? req.body : JSON.stringify(req.body);
-  const computed = crypto.createHmac('sha256', SHOPIFY_API_SECRET).update(rawBody, 'utf8').digest('base64');
-  return crypto.timingSafeEqual(Buffer.from(hmac), Buffer.from(computed));
+  const body = rawBody != null ? rawBody
+    : (typeof req.body === 'string' ? req.body : JSON.stringify(req.body));
+  const computed = crypto.createHmac('sha256', SHOPIFY_API_SECRET).update(body, 'utf8').digest('base64');
+  const a = Buffer.from(hmac);
+  const b = Buffer.from(computed);
+  if (a.length !== b.length) return false; // timingSafeEqual lanza si difieren
+  return crypto.timingSafeEqual(a, b);
 }
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Solo POST' });
 
-  if (!verifyShopifyWebhook(req)) {
+  // Bytes crudos para el HMAC, con fallback a req.body.
+  let raw = await readRawBody(req);
+  let body;
+  if (raw) {
+    try { body = JSON.parse(raw); } catch { body = null; }
+  } else if (req.body) {
+    body = req.body;
+    raw = typeof req.body === 'string' ? req.body : JSON.stringify(req.body);
+  }
+
+  if (!verifyShopifyWebhook(req, raw)) {
     console.error('Shopify webhook: HMAC inválido');
     return res.status(401).json({ error: 'HMAC inválido' });
   }
 
   const topic = req.headers['x-shopify-topic'];
-  const body = req.body;
 
   console.log(`[Shopify webhook] ${topic}`);
 
