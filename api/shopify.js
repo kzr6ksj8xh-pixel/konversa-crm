@@ -119,7 +119,8 @@ function handleInstall(shop, res) {
   if (!isValidShopDomain(shop)) return res.status(400).json({ error: 'Dominio de tienda inválido' });
 
   const state = makeOAuthState();
-  const redirectUri = `${APP_URL}/api/shopify?action=callback`;
+  // Sin query params: Shopify rechaza redirect URLs con query string en la config de la app
+  const redirectUri = `${APP_URL}/api/shopify`;
   const installUrl = `https://${shop}/admin/oauth/authorize?client_id=${SHOPIFY_API_KEY}&scope=${SHOPIFY_SCOPES}&redirect_uri=${encodeURIComponent(redirectUri)}&state=${state}`;
 
   return res.redirect(302, installUrl);
@@ -298,14 +299,15 @@ async function orderStatus(sb, email) {
 export default async function handler(req, res) {
   // ── GET: OAuth flow ──
   if (req.method === 'GET') {
-    const { action, shop } = req.query;
+    const { action, shop, code } = req.query;
 
     if (action === 'install') {
       if (!shop) return res.status(400).json({ error: 'Falta parámetro shop' });
       return handleInstall(shop, res);
     }
 
-    if (action === 'callback') {
+    // El callback de OAuth llega sin "action" (la redirect URL no admite query params)
+    if (action === 'callback' || (code && shop)) {
       return handleCallback(req.query, res);
     }
 
