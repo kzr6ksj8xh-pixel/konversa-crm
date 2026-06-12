@@ -2173,6 +2173,14 @@ function renderProducts(){
    INTEGRATIONS / API CONNECTIONS
 ══════════════════════════════════════ */
 var INTEGRATIONS = [
+  {id:'shopify', name:'Shopify', icon:'ti-shopping-cart', color:'#95bf47', bg:'#f0fdf4',
+   desc:'Conecta tu tienda Shopify para sincronizar productos y pedidos con el agente de IA.',
+   fields:[
+     {id:'shopify-domain',  label:'Dominio de tienda',          ph:'tadvis-d6.myshopify.com'},
+     {id:'shopify-token',   label:'Admin API Access Token',     ph:'shpat_xxxxxxxxxxxxxxxxxxxxxxxx'},
+     {id:'shopify-api-key', label:'API Key (Client ID)',        ph:'1a2b3c4d5e6f7890abcd'},
+     {id:'shopify-secret',  label:'API Secret (Client Secret)', ph:'shpss_xxxxxxxxxxxxxxxxxxxxxxxx'},
+   ]},
   {id:'wa', name:'WhatsApp Business API', icon:'ti-brand-whatsapp', color:'#25d366', bg:'#d1fae5',
    desc:'Conecta tu número de WhatsApp Business para recibir y enviar mensajes directamente en el CRM.',
    fields:[{label:'Business Phone Number ID',ph:'123456789012345'},{label:'WhatsApp Token',ph:'EAABxx...'},{label:'App ID Meta',ph:'1234567890'}]},
@@ -2199,6 +2207,10 @@ function renderIntegrations(){
   <div style="margin-bottom:12px">
     ${isOp ? `<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#d1fae5;border-radius:8px;font-size:12px;color:#065f46;margin-bottom:10px"><i class="ti ti-circle-check" style="font-size:15px"></i>Los operadores tienen acceso completo para conectar integraciones API y META.</div>` : ''}
   </div>
+  <div id="shopify-status-banner" style="display:none;align-items:center;gap:8px;padding:8px 10px;background:#f0fdf4;border:1px solid #86efac;border-radius:8px;font-size:11px;color:#166534;margin-bottom:10px">
+    <i class="ti ti-circle-check" style="font-size:14px"></i>
+    <span id="shopify-status-text">Shopify conectado</span>
+  </div>
   ${INTEGRATIONS.map(int=>`
   <div style="background:var(--bg2);border:.5px solid var(--border);border-radius:10px;padding:12px;margin-bottom:10px">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
@@ -2211,12 +2223,71 @@ function renderIntegrations(){
       </div>
     </div>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:6px">
-      ${int.fields.map(f=>`<div class="mf"><label style="font-size:10px">${f.label}</label><input style="font-size:11px;padding:6px 9px;border-radius:6px;border:.5px solid var(--border);background:var(--bg);color:var(--txt);outline:none;width:100%" placeholder="${f.ph}" type="${f.label.toLowerCase().includes('token')||f.label.toLowerCase().includes('secret')||f.label.toLowerCase().includes('password')?'password':'text'}"></div>`).join('')}
+      ${int.fields.map(f=>`<div class="mf"><label style="font-size:10px">${f.label}</label><input ${f.id?'id="'+f.id+'"':''} style="font-size:11px;padding:6px 9px;border-radius:6px;border:.5px solid var(--border);background:var(--bg);color:var(--txt);outline:none;width:100%" placeholder="${f.ph}" type="${f.label.toLowerCase().includes('token')||f.label.toLowerCase().includes('secret')||f.label.toLowerCase().includes('password')?'password':'text'}"></div>`).join('')}
     </div>
-    <button style="margin-top:8px;font-size:11px;padding:5px 12px;border-radius:6px;border:none;background:${int.color};color:#fff;cursor:pointer;font-weight:500" onclick="toast('${int.name} — configuración guardada ✓')">
+    <button style="margin-top:8px;font-size:11px;padding:5px 12px;border-radius:6px;border:none;background:${int.color};color:#fff;cursor:pointer;font-weight:500" onclick="saveIntegration('${int.id}')">
       <i class="ti ti-device-floppy" style="font-size:11px"></i> Guardar configuración
     </button>
   </div>`).join('')}`;
+  loadShopifyConfig();
+}
+
+async function loadShopifyConfig(){
+  if(!sb) return;
+  try{
+    var{data}=await sb.from('integrations').select('shop_domain,access_token,config').eq('provider','shopify').eq('is_active',true).maybeSingle();
+    if(!data) return;
+    var el;
+    if((el=document.getElementById('shopify-domain'))) el.value=data.shop_domain||'';
+    if((el=document.getElementById('shopify-token')))  el.value=data.access_token||'';
+    if((el=document.getElementById('shopify-api-key')))el.value=data.config?.api_key||'';
+    if((el=document.getElementById('shopify-secret'))) el.value=data.config?.api_secret||'';
+    var banner=document.getElementById('shopify-status-banner');
+    if(banner){
+      banner.style.display='flex';
+      var txt=document.getElementById('shopify-status-text');
+      if(txt) txt.textContent='Shopify conectado — '+data.shop_domain;
+    }
+  }catch(e){console.warn('loadShopifyConfig:',e);}
+}
+
+async function saveIntegration(id){
+  if(id==='shopify'){
+    await saveShopifyIntegration();
+  } else {
+    var int=INTEGRATIONS.find(i=>i.id===id);
+    toast((int?.name||'Integración')+' — configuración guardada ✓');
+  }
+}
+
+async function saveShopifyIntegration(){
+  var domain=(document.getElementById('shopify-domain')?.value||'').trim();
+  var token=(document.getElementById('shopify-token')?.value||'').trim();
+  var apiKey=(document.getElementById('shopify-api-key')?.value||'').trim();
+  var apiSecret=(document.getElementById('shopify-secret')?.value||'').trim();
+  if(!domain){toast('Escribe el dominio de la tienda');return;}
+  if(!token){toast('Escribe el Admin API Access Token');return;}
+  if(!sb){toast('Sin conexión a base de datos');return;}
+  try{
+    var{data:existing}=await sb.from('integrations').select('id').eq('provider','shopify').maybeSingle();
+    var payload={provider:'shopify',shop_domain:domain,access_token:token,config:{api_key:apiKey,api_secret:apiSecret},is_active:true,updated_at:new Date().toISOString()};
+    var err;
+    if(existing){
+      var{error}=await sb.from('integrations').update(payload).eq('id',existing.id);
+      err=error;
+    } else {
+      var{error}=await sb.from('integrations').insert(payload);
+      err=error;
+    }
+    if(err){toast('Error: '+err.message);return;}
+    toast('Shopify — configuración guardada ✓');
+    var banner=document.getElementById('shopify-status-banner');
+    if(banner){banner.style.display='flex';var t=document.getElementById('shopify-status-text');if(t)t.textContent='Shopify conectado — '+domain;}
+    var ss=document.getElementById('shopifyStatus');
+    if(ss){ss.textContent='Conectado';ss.style.background='#d1fae5';ss.style.color='#065f46';}
+    var sd=document.getElementById('shopifyDomain');
+    if(sd) sd.value=domain;
+  }catch(e){toast('Error guardando: '+e.message);}
 }
 
 document.getElementById('integrationsBtn')?.addEventListener('click',()=>{
