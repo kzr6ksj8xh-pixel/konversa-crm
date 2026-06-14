@@ -2175,6 +2175,7 @@ function renderProducts(){
 var INTEGRATIONS = [
   {id:'shopify', name:'Shopify', icon:'ti-shopping-cart', color:'#95bf47', bg:'#f0fdf4',
    desc:'Conecta tu tienda Shopify para sincronizar productos y pedidos con el agente de IA.',
+   tokenField:'shopify-token',
    fields:[
      {id:'shopify-domain',  label:'Dominio de tienda',          ph:'tadvis-d6.myshopify.com'},
      {id:'shopify-token',   label:'Admin API Access Token',     ph:'shpat_xxxxxxxxxxxxxxxxxxxxxxxx'},
@@ -2183,22 +2184,53 @@ var INTEGRATIONS = [
    ]},
   {id:'wa', name:'WhatsApp Business API', icon:'ti-brand-whatsapp', color:'#25d366', bg:'#d1fae5',
    desc:'Conecta tu número de WhatsApp Business para recibir y enviar mensajes directamente en el CRM.',
-   fields:[{label:'Business Phone Number ID',ph:'123456789012345'},{label:'WhatsApp Token',ph:'EAABxx...'},{label:'App ID Meta',ph:'1234567890'}]},
+   tokenField:'wa-token',
+   fields:[
+     {id:'wa-phone-id', label:'Business Phone Number ID', ph:'123456789012345'},
+     {id:'wa-token',    label:'WhatsApp Token',           ph:'EAABxx...'},
+     {id:'wa-app-id',   label:'App ID Meta',              ph:'1234567890'},
+   ]},
   {id:'fb', name:'Facebook Messenger', icon:'ti-brand-facebook', color:'#1877f2', bg:'#dbeafe',
    desc:'Recibe mensajes de tu página de Facebook y responde desde el CRM.',
-   fields:[{label:'Page ID',ph:'Ej: 123456789'},{label:'Page Access Token',ph:'EAABxx...'},{label:'App Secret',ph:'abcdef123456'}]},
+   tokenField:'fb-token',
+   fields:[
+     {id:'fb-page-id', label:'Page ID',           ph:'Ej: 123456789'},
+     {id:'fb-token',   label:'Page Access Token', ph:'EAABxx...'},
+     {id:'fb-secret',  label:'App Secret',        ph:'abcdef123456'},
+   ]},
   {id:'ig', name:'Instagram DM', icon:'ti-brand-instagram', color:'#c026d3', bg:'#fae8ff',
    desc:'Gestiona los mensajes directos de Instagram en tu bandeja omnicanal.',
-   fields:[{label:'Instagram Business Account ID',ph:'17841400...'},{label:'Access Token',ph:'EAABxx...'}]},
+   tokenField:'ig-token',
+   fields:[
+     {id:'ig-account-id', label:'Instagram Business Account ID', ph:'17841400...'},
+     {id:'ig-token',      label:'Access Token',                  ph:'EAABxx...'},
+   ]},
   {id:'em', name:'Email (SMTP)', icon:'ti-mail', color:'#d97706', bg:'#fef3c7',
    desc:'Conecta tu cuenta de email para enviar y recibir correos desde el CRM.',
-   fields:[{label:'SMTP Host',ph:'smtp.gmail.com'},{label:'Puerto',ph:'587'},{label:'Email',ph:'ventas@grupopingus.com'},{label:'Password App',ph:'xxxx xxxx xxxx xxxx'}]},
+   tokenField:'em-password',
+   fields:[
+     {id:'em-host',     label:'SMTP Host',    ph:'smtp.gmail.com'},
+     {id:'em-port',     label:'Puerto',       ph:'587'},
+     {id:'em-email',    label:'Email',        ph:'ventas@grupopingus.com'},
+     {id:'em-password', label:'Password App', ph:'xxxx xxxx xxxx xxxx'},
+   ]},
   {id:'meta', name:'Meta Business Suite', icon:'ti-brand-meta', color:'#0866FF', bg:'#dbeafe',
    desc:'Conecta Meta Business Suite para gestionar WhatsApp, Facebook e Instagram desde una sola API.',
-   fields:[{label:'App ID',ph:'1234567890'},{label:'App Secret',ph:'abcdef...'},{label:'System User Token',ph:'EAABxx...'},{label:'Business ID',ph:'987654321'}]},
+   tokenField:'meta-token',
+   fields:[
+     {id:'meta-app-id',      label:'App ID',             ph:'1234567890'},
+     {id:'meta-secret',      label:'App Secret',         ph:'abcdef...'},
+     {id:'meta-token',       label:'System User Token',  ph:'EAABxx...'},
+     {id:'meta-business-id', label:'Business ID',        ph:'987654321'},
+   ]},
   {id:'wa-cloud', name:'WhatsApp Cloud API', icon:'ti-cloud', color:'#25d366', bg:'#d1fae5',
    desc:'Conecta directamente con la API en la nube de WhatsApp (Meta Cloud API) sin servidor propio.',
-   fields:[{label:'Phone Number ID',ph:'123456789012345'},{label:'Token permanente',ph:'EAABxx...'},{label:'Webhook Verify Token',ph:'mi_token_secreto'}]},
+   tokenField:'wac-token',
+   fields:[
+     {id:'wac-phone-id', label:'Phone Number ID',       ph:'123456789012345'},
+     {id:'wac-token',    label:'Token permanente',      ph:'EAABxx...'},
+     {id:'wac-verify',   label:'Webhook Verify Token',  ph:'mi_token_secreto'},
+   ]},
 ];
 
 function renderIntegrations(){
@@ -2229,65 +2261,79 @@ function renderIntegrations(){
       <i class="ti ti-device-floppy" style="font-size:11px"></i> Guardar configuración
     </button>
   </div>`).join('')}`;
-  loadShopifyConfig();
+  loadIntegrationConfigs();
 }
 
-async function loadShopifyConfig(){
+async function loadIntegrationConfigs(){
   if(!sb) return;
   try{
-    var{data}=await sb.from('integrations').select('shop_domain,access_token,config').eq('provider','shopify').eq('is_active',true).maybeSingle();
-    if(!data) return;
-    var el;
-    if((el=document.getElementById('shopify-domain'))) el.value=data.shop_domain||'';
-    if((el=document.getElementById('shopify-token')))  el.value=data.access_token||'';
-    if((el=document.getElementById('shopify-api-key')))el.value=data.config?.api_key||'';
-    if((el=document.getElementById('shopify-secret'))) el.value=data.config?.api_secret||'';
-    var banner=document.getElementById('shopify-status-banner');
-    if(banner){
-      banner.style.display='flex';
-      var txt=document.getElementById('shopify-status-text');
-      if(txt) txt.textContent='Shopify conectado — '+data.shop_domain;
+    var{data,error}=await sb.from('integrations').select('provider,shop_domain,access_token,config').eq('is_active',true);
+    if(error||!data) return;
+    data.forEach(function(row){
+      var int=INTEGRATIONS.find(function(i){return i.id===row.provider;});
+      if(!int) return;
+      int.fields.forEach(function(f){
+        if(!f.id) return;
+        var el=document.getElementById(f.id);
+        if(!el) return;
+        if(f.id===int.tokenField) el.value=row.access_token||'';
+        else if(f.id==='shopify-domain') el.value=row.shop_domain||'';
+        else el.value=(row.config&&row.config[f.id])||'';
+      });
+    });
+    var shopifyRow=data.find(function(r){return r.provider==='shopify';});
+    if(shopifyRow){
+      var banner=document.getElementById('shopify-status-banner');
+      if(banner){
+        banner.style.display='flex';
+        var txt=document.getElementById('shopify-status-text');
+        if(txt) txt.textContent='Shopify conectado — '+shopifyRow.shop_domain;
+      }
     }
-  }catch(e){console.warn('loadShopifyConfig:',e);}
+  }catch(e){console.warn('loadIntegrationConfigs:',e);}
 }
 
-async function saveIntegration(id){
-  if(id==='shopify'){
-    await saveShopifyIntegration();
-  } else {
-    var int=INTEGRATIONS.find(i=>i.id===id);
-    toast((int?.name||'Integración')+' — configuración guardada ✓');
+async function saveIntegration(intId){
+  var int=INTEGRATIONS.find(function(i){return i.id===intId;});
+  if(!int){toast('Integración no encontrada');return;}
+  if(!sb){
+    toast('Inicia sesión para guardar la configuración');
+    return;
   }
-}
-
-async function saveShopifyIntegration(){
-  var domain=(document.getElementById('shopify-domain')?.value||'').trim();
-  var token=(document.getElementById('shopify-token')?.value||'').trim();
-  var apiKey=(document.getElementById('shopify-api-key')?.value||'').trim();
-  var apiSecret=(document.getElementById('shopify-secret')?.value||'').trim();
-  if(!domain){toast('Escribe el dominio de la tienda');return;}
-  if(!token){toast('Escribe el Admin API Access Token');return;}
-  if(!sb){toast('Sin conexión a base de datos');return;}
+  var config={};
+  var accessToken='';
+  int.fields.forEach(function(f){
+    if(!f.id) return;
+    var val=(document.getElementById(f.id)?.value||'').trim();
+    if(f.id===int.tokenField) accessToken=val;
+    if(f.id!=='shopify-domain') config[f.id]=val;
+  });
+  var shopDomain=intId==='shopify'?(document.getElementById('shopify-domain')?.value||'').trim():null;
+  if(intId==='shopify'&&!shopDomain){toast('Escribe el dominio de la tienda');return;}
+  if(!accessToken){toast('El campo de token/contraseña es obligatorio');return;}
   try{
-    var{data:existing}=await sb.from('integrations').select('id').eq('provider','shopify').maybeSingle();
-    var payload={provider:'shopify',shop_domain:domain,access_token:token,config:{api_key:apiKey,api_secret:apiSecret},is_active:true,updated_at:new Date().toISOString()};
-    var err;
+    var{data:existing}=await sb.from('integrations').select('id').eq('provider',intId).maybeSingle();
+    var payload={provider:intId,access_token:accessToken,config:config,is_active:true,updated_at:new Date().toISOString()};
+    if(shopDomain) payload.shop_domain=shopDomain;
+    var saveError;
     if(existing){
-      var{error}=await sb.from('integrations').update(payload).eq('id',existing.id);
-      err=error;
+      var{error:e1}=await sb.from('integrations').update(payload).eq('id',existing.id);
+      saveError=e1;
     } else {
-      var{error}=await sb.from('integrations').insert(payload);
-      err=error;
+      var{error:e2}=await sb.from('integrations').insert(payload);
+      saveError=e2;
     }
-    if(err){toast('Error: '+err.message);return;}
-    toast('Shopify — configuración guardada ✓');
-    var banner=document.getElementById('shopify-status-banner');
-    if(banner){banner.style.display='flex';var t=document.getElementById('shopify-status-text');if(t)t.textContent='Shopify conectado — '+domain;}
-    var ss=document.getElementById('shopifyStatus');
-    if(ss){ss.textContent='Conectado';ss.style.background='#d1fae5';ss.style.color='#065f46';}
-    var sd=document.getElementById('shopifyDomain');
-    if(sd) sd.value=domain;
-  }catch(e){toast('Error guardando: '+e.message);}
+    if(saveError){toast('Error al guardar: '+saveError.message);return;}
+    toast(int.name+' — configuración guardada ✓');
+    if(intId==='shopify'){
+      var banner=document.getElementById('shopify-status-banner');
+      if(banner){banner.style.display='flex';var t=document.getElementById('shopify-status-text');if(t)t.textContent='Shopify conectado — '+shopDomain;}
+      var ss=document.getElementById('shopifyStatus');
+      if(ss){ss.textContent='Conectado';ss.style.background='#d1fae5';ss.style.color='#065f46';}
+      var sd=document.getElementById('shopifyDomain');
+      if(sd) sd.value=shopDomain;
+    }
+  }catch(e){toast('Error: '+e.message);}
 }
 
 document.getElementById('integrationsBtn')?.addEventListener('click',()=>{
