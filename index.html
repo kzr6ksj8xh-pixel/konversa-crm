@@ -4,6 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
 <title>Konversa CRM</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#0f0f1a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Konversa">
+<link rel="apple-touch-icon" href="/icon-180.png">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.js"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
 <style>
@@ -790,10 +797,8 @@ Solo vendemos purificadores de aire a base de ozono.
   <div class="bn-btn" data-view="chat"><i class="ti ti-message-dots"></i><div class="nb"></div><span>Chats</span></div>
   <div class="bn-btn" data-view="pipeline"><i class="ti ti-layout-columns"></i><span>Pipeline</span></div>
   <div class="bn-btn" data-view="products"><i class="ti ti-package"></i><span>Productos</span></div>
-  <div class="bn-btn" data-view="analytics"><i class="ti ti-chart-bar"></i><span>Analíticas</span></div>
-  <div class="bn-btn" data-view="automation"><i class="ti ti-bolt"></i><span>Auto.</span></div>
-  <div class="bn-btn" data-view="aiagent"><i class="ti ti-robot"></i><span>IA</span></div>
-  <div class="bn-btn" id="integrationsBtnMobile"><i class="ti ti-plug-connected"></i><span>Config.</span></div>
+  <div class="bn-btn" id="bnTplBtn"><i class="ti ti-template"></i><span>Plantillas</span></div>
+  <div class="bn-btn" id="bnNewLeadBtn"><i class="ti ti-plus"></i><span>Nuevo lead</span></div>
 </nav>
 
 </div><!-- end appShell -->
@@ -1700,7 +1705,8 @@ function switchView(v){
   if(v==='products')renderProducts();
 }
 document.querySelectorAll('.tn-btn[data-view],.bn-btn[data-view]').forEach(el=>el.addEventListener('click',()=>switchView(el.dataset.view)));
-document.getElementById('integrationsBtnMobile')?.addEventListener('click',()=>{renderIntegrations();document.getElementById('integrationsModal').classList.add('open');});
+document.getElementById('bnTplBtn')?.addEventListener('click',()=>{switchView('chat');tplOpen=true;tplTab='browse';renderTpl();});
+document.getElementById('bnNewLeadBtn')?.addEventListener('click',()=>{document.getElementById('leadModal').classList.add('open');setTimeout(()=>{var f=document.getElementById('fName');if(f)f.focus();},50);});
 
 /* ══════════════════════════════════════
    AI AGENT FUNCTIONS
