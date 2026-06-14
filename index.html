@@ -321,6 +321,33 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .tab-row{display:flex;border-bottom:0.5px solid var(--border);margin-bottom:12px;}
 .tab-item{flex:1;padding:8px 4px;font-size:11px;text-align:center;cursor:pointer;color:var(--txt2);border-bottom:2px solid transparent;}
 .tab-item.on{color:var(--accent);border-bottom-color:var(--accent);font-weight:500;}
+
+/* ─── RESPONSIVE GRID UTILITY ─── */
+.g2{display:grid;grid-template-columns:1fr 1fr;}
+
+/* ─── BOTTOM NAV (mobile only) ─── */
+#bottomNav{display:none;background:#0f0f1a;border-top:.5px solid rgba(255,255,255,.08);flex-shrink:0;}
+#bottomNav .bn-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:7px 2px 5px;color:#6b7280;cursor:pointer;gap:2px;font-size:9px;position:relative;transition:color .15s;-webkit-tap-highlight-color:transparent;}
+#bottomNav .bn-btn.on,#bottomNav .bn-btn:active{color:#a5b4fc;}
+#bottomNav .bn-btn i{font-size:20px;}
+#bottomNav .bn-btn .nb{position:absolute;top:4px;right:calc(50% - 14px);width:7px;height:7px;border-radius:50%;background:#ef4444;border:1.5px solid #0f0f1a;}
+
+/* ─── MOBILE BREAKPOINT ─── */
+@media(max-width:640px){
+  :root{font-size:115%;}
+  .tn-nav{display:none;}
+  .tn-title{display:none;}
+  .user-chip .uname,.user-chip .role-pill{display:none;}
+  #bottomNav{display:flex;}
+  .g2{grid-template-columns:1fr !important;}
+  .modal-bg{padding:0;align-items:flex-end;}
+  .modal{width:100%;max-width:100%;border-radius:var(--rl) var(--rl) 0 0;max-height:92dvh;}
+  .toast{bottom:72px;}
+  .pipe-col{min-width:170px;}
+  .board{padding:8px;}
+  .an-top,.au-top,.pipe-top{padding:8px 12px;}
+  .topnav{padding:8px 12px;}
+}
 </style>
 </head>
 <body>
@@ -631,7 +658,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
           <p style="font-size:12px;color:var(--txt2);margin-bottom:14px">Ve el uso y rendimiento del agente de IA para comprender el impacto de su agente y dónde realizar ajustes.</p>
           <div style="font-size:12px;font-weight:600;margin-bottom:10px;text-decoration:underline">ACTIVIDAD DEL AGENTE DE IA PARA ÚLTIMOS 7 DÍAS</div>
           <div style="font-size:12px;font-weight:600;margin-bottom:8px">Estadísticas</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px">
+          <div class="g2" style="gap:8px;margin-bottom:16px">
             <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px"><div style="font-size:10px;color:var(--txt2)">Leads únicos</div><div style="font-size:18px;font-weight:700">11 <span style="font-size:10px;color:#059669">↑ 11 (100%)</span></div></div>
             <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px"><div style="font-size:10px;color:var(--txt2)">Conversaciones respondidas</div><div style="font-size:18px;font-weight:700">4 <span style="font-size:10px;color:#059669">↑ 4 (100%)</span></div></div>
             <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px"><div style="font-size:10px;color:var(--txt2)">Leads del fin de semana</div><div style="font-size:18px;font-weight:700">0 <span style="font-size:10px;color:var(--txt3)">—</span></div></div>
@@ -648,7 +675,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
           </div>
           <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:14px;height:120px;display:flex;align-items:center;justify-content:center;color:var(--txt3);font-size:11px">📊 Gráfica de actividad por canal</div>
           <div style="font-size:12px;font-weight:600;margin:16px 0 8px">Uso de créditos por tipo de mensaje</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div class="g2" style="gap:8px">
             <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px"><div style="font-size:10px;color:var(--txt2)">● Procesamiento de mensajes de texto</div><div style="font-size:18px;font-weight:700">418</div></div>
             <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px"><div style="font-size:10px;color:var(--txt2)">● Procesamiento de mensajes de voz</div><div style="font-size:18px;font-weight:700">0</div></div>
           </div>
@@ -666,11 +693,11 @@ Solo vendemos purificadores de aire a base de ozono.
 2. Recomendar el equipo correcto según m² y uso
 3. Resolver dudas con información de las Fuentes
 4. Capturar datos del lead y pasarlo a un asesor humano cuando hay intención de compra</textarea>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+          <div class="g2" style="gap:10px;margin-bottom:14px">
             <div><div style="font-size:11px;font-weight:500;margin-bottom:4px">Tono de voz</div><select style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;font-size:11px"><option>Formal</option><option>Amigable</option><option>Casual</option><option>Profesional</option></select></div>
             <div><div style="font-size:11px;font-weight:500;margin-bottom:4px">Longitud de las respuestas</div><select style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;font-size:11px"><option>Corta</option><option>Media</option><option>Larga</option></select></div>
           </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+          <div class="g2" style="gap:10px;margin-bottom:14px">
             <div><div style="font-size:11px;font-weight:500;margin-bottom:4px">Idioma de la respuesta</div><select style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;font-size:11px"><option>Español</option><option>Inglés</option><option>Portugués</option></select></div>
             <div><div style="font-size:11px;font-weight:500;margin-bottom:4px">Demora antes de responder (seg)</div><input type="number" value="3" min="0" max="30" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;font-size:11px"></div>
           </div>
@@ -757,6 +784,18 @@ Solo vendemos purificadores de aire a base de ozono.
   </div>
 </div><!-- end view-aiagent -->
 </div><!-- end main-content -->
+
+<!-- Bottom Nav (mobile only) -->
+<nav id="bottomNav">
+  <div class="bn-btn" data-view="chat"><i class="ti ti-message-dots"></i><div class="nb"></div><span>Chats</span></div>
+  <div class="bn-btn" data-view="pipeline"><i class="ti ti-layout-columns"></i><span>Pipeline</span></div>
+  <div class="bn-btn" data-view="products"><i class="ti ti-package"></i><span>Productos</span></div>
+  <div class="bn-btn" data-view="analytics"><i class="ti ti-chart-bar"></i><span>Analíticas</span></div>
+  <div class="bn-btn" data-view="automation"><i class="ti ti-bolt"></i><span>Auto.</span></div>
+  <div class="bn-btn" data-view="aiagent"><i class="ti ti-robot"></i><span>IA</span></div>
+  <div class="bn-btn" id="integrationsBtnMobile"><i class="ti ti-plug-connected"></i><span>Config.</span></div>
+</nav>
+
 </div><!-- end appShell -->
 
 
@@ -782,7 +821,7 @@ Solo vendemos purificadores de aire a base de ozono.
   <div class="modal" style="width:420px">
     <div class="modal-hd"><h3 id="cModalTitle">Editar contacto</h3><button style="width:26px;height:26px;border-radius:6px;border:none;background:transparent;cursor:pointer;color:var(--txt3);font-size:16px" id="cModalClose"><i class="ti ti-x"></i></button></div>
     <div class="modal-bd">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div class="g2" style="gap:10px">
         <div class="mf"><label>Nombre</label><input id="cName" placeholder="Juan García"></div>
         <div class="mf"><label>Empresa</label><input id="cComp" placeholder="Empresa SA"></div>
         <div class="mf"><label>Tel. móvil (WhatsApp)</label><input id="cMobile" placeholder="+52 55 1234 5678"></div>
@@ -795,7 +834,7 @@ Solo vendemos purificadores de aire a base de ozono.
       <div class="mf"><label>Facebook</label><input id="cFb" placeholder="perfil.facebook"></div>
       <div class="mf"><label>Instagram</label><input id="cIg" placeholder="@usuario_instagram"></div>
       <div class="mf"><label>Negocio / Oportunidad</label><input id="cDeal" placeholder="Nombre del negocio"></div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div class="g2" style="gap:10px">
         <div class="mf"><label>Valor estimado (MXN)</label><input id="cAmt" type="number" placeholder="50000"></div>
         <div class="mf"><label>Etapa</label><select id="cStage"><option value="entrada">Entrada</option><option value="interes">Interés</option><option value="cotizacion">Cotización</option><option value="venta">Venta</option><option value="tarea">Tarea</option><option value="finalizado">Finalizado</option></select></div>
       </div>
@@ -836,7 +875,7 @@ Solo vendemos purificadores de aire a base de ozono.
 
       <!-- INFO TAB -->
       <div id="ldInfoTab" style="display:none">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="g2" style="gap:10px">
           <div class="mf"><label>Nombre del lead</label><input id="ldName" placeholder="Nombre completo"></div>
           <div class="mf"><label>Empresa</label><input id="ldCompany" placeholder="Empresa SA"></div>
           <div class="mf"><label>Tel. móvil (WhatsApp)</label><input id="ldPhone" placeholder="+52 55 1234 5678"></div>
@@ -1656,11 +1695,12 @@ function switchView(v){
     if(v==='pipeline'||v==='chat'||v==='aiagent'){el.style.display='flex';}
     else{el.style.display='block';}
   }
-  document.querySelectorAll('.tn-btn[data-view]').forEach(b=>b.classList.toggle('on',b.dataset.view===v));
+  document.querySelectorAll('.tn-btn[data-view],.bn-btn[data-view]').forEach(b=>b.classList.toggle('on',b.dataset.view===v));
   if(v==='pipeline')renderPipeline();
   if(v==='products')renderProducts();
 }
-document.querySelectorAll('.tn-btn[data-view]').forEach(el=>el.addEventListener('click',()=>switchView(el.dataset.view)));
+document.querySelectorAll('.tn-btn[data-view],.bn-btn[data-view]').forEach(el=>el.addEventListener('click',()=>switchView(el.dataset.view)));
+document.getElementById('integrationsBtnMobile')?.addEventListener('click',()=>{renderIntegrations();document.getElementById('integrationsModal').classList.add('open');});
 
 /* ══════════════════════════════════════
    AI AGENT FUNCTIONS
