@@ -15,19 +15,19 @@ self.addEventListener('activate', e => {
 
 self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
+  // Dejar pasar sin interceptar: APIs externas (Supabase, CDN, etc.)
+  if (url.origin !== self.location.origin) return;
   // HTML siempre desde red (actualización inmediata)
   if (e.request.mode === 'navigate' || url.pathname === '/' || url.pathname.endsWith('.html')) {
-    e.respondWith(
-      fetch(e.request).catch(() => caches.match('/index.html'))
-    );
+    e.respondWith(fetch(e.request).catch(() => caches.match('/index.html')));
     return;
   }
-  // Recursos estáticos: caché primero, luego red
+  // Recursos estáticos del mismo origen: caché primero, luego red
   e.respondWith(
     caches.match(e.request).then(cached => {
       if (cached) return cached;
       return fetch(e.request).then(res => {
-        if (res.ok) {
+        if (res && res.ok) {
           const clone = res.clone();
           caches.open(CACHE).then(c => c.put(e.request, clone));
         }
