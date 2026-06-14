@@ -2257,9 +2257,12 @@ function renderIntegrations(){
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:6px">
       ${int.fields.map(f=>`<div class="mf"><label style="font-size:10px">${f.label}</label><input ${f.id?'id="'+f.id+'"':''} style="font-size:11px;padding:6px 9px;border-radius:6px;border:.5px solid var(--border);background:var(--bg);color:var(--txt);outline:none;width:100%" placeholder="${f.ph}" type="${f.label.toLowerCase().includes('token')||f.label.toLowerCase().includes('secret')||f.label.toLowerCase().includes('password')?'password':'text'}"></div>`).join('')}
     </div>
-    <button style="margin-top:8px;font-size:11px;padding:5px 12px;border-radius:6px;border:none;background:${int.color};color:#fff;cursor:pointer;font-weight:500" onclick="saveIntegration('${int.id}')">
-      <i class="ti ti-device-floppy" style="font-size:11px"></i> Guardar configuración
-    </button>
+    <div style="display:flex;align-items:center;gap:10px;margin-top:8px;flex-wrap:wrap">
+      <button id="intbtn-${int.id}" style="font-size:11px;padding:5px 12px;border-radius:6px;border:none;background:${int.color};color:#fff;cursor:pointer;font-weight:500" onclick="saveIntegration('${int.id}')">
+        <i class="ti ti-device-floppy" style="font-size:11px"></i> Guardar configuración
+      </button>
+      <span id="intfb-${int.id}" style="font-size:10px;display:none"></span>
+    </div>
   </div>`).join('')}`;
   loadIntegrationConfigs();
 }
@@ -2293,13 +2296,28 @@ async function loadIntegrationConfigs(){
   }catch(e){console.warn('loadIntegrationConfigs:',e);}
 }
 
+function intFeedback(intId, msg, ok){
+  var el=document.getElementById('intfb-'+intId);
+  if(!el) return;
+  el.textContent=msg;
+  el.style.color=ok?'#16a34a':'#dc2626';
+  el.style.display='inline';
+}
+
 async function saveIntegration(intId){
   var int=INTEGRATIONS.find(function(i){return i.id===intId;});
-  if(!int){toast('Integración no encontrada');return;}
-  if(!sb){
-    toast('Inicia sesión para guardar la configuración');
+  if(!int) return;
+
+  if(demoMode){
+    intFeedback(intId,'⚠ Inicia sesión real para guardar credenciales',false);
+    toast('Inicia sesión real para guardar');
     return;
   }
+
+  var btn=document.getElementById('intbtn-'+intId);
+  if(btn){btn.disabled=true;btn.textContent='Guardando...';}
+  intFeedback(intId,'',true);
+
   var config={};
   var accessToken='';
   int.fields.forEach(function(f){
@@ -2309,8 +2327,18 @@ async function saveIntegration(intId){
     if(f.id!=='shopify-domain') config[f.id]=val;
   });
   var shopDomain=intId==='shopify'?(document.getElementById('shopify-domain')?.value||'').trim():null;
-  if(intId==='shopify'&&!shopDomain){toast('Escribe el dominio de la tienda');return;}
-  if(!accessToken){toast('El campo de token/contraseña es obligatorio');return;}
+
+  if(intId==='shopify'&&!shopDomain){
+    intFeedback(intId,'⚠ Escribe el dominio de la tienda',false);
+    if(btn){btn.disabled=false;btn.innerHTML='<i class="ti ti-device-floppy" style="font-size:11px"></i> Guardar configuración';}
+    return;
+  }
+  if(!accessToken){
+    intFeedback(intId,'⚠ El campo de token / contraseña es obligatorio',false);
+    if(btn){btn.disabled=false;btn.innerHTML='<i class="ti ti-device-floppy" style="font-size:11px"></i> Guardar configuración';}
+    return;
+  }
+
   try{
     var{data:existing}=await sb.from('integrations').select('id').eq('provider',intId).maybeSingle();
     var payload={provider:intId,access_token:accessToken,config:config,is_active:true,updated_at:new Date().toISOString()};
@@ -2323,17 +2351,26 @@ async function saveIntegration(intId){
       var{error:e2}=await sb.from('integrations').insert(payload);
       saveError=e2;
     }
-    if(saveError){toast('Error al guardar: '+saveError.message);return;}
-    toast(int.name+' — configuración guardada ✓');
-    if(intId==='shopify'){
-      var banner=document.getElementById('shopify-status-banner');
-      if(banner){banner.style.display='flex';var t=document.getElementById('shopify-status-text');if(t)t.textContent='Shopify conectado — '+shopDomain;}
-      var ss=document.getElementById('shopifyStatus');
-      if(ss){ss.textContent='Conectado';ss.style.background='#d1fae5';ss.style.color='#065f46';}
-      var sd=document.getElementById('shopifyDomain');
-      if(sd) sd.value=shopDomain;
+    if(saveError){
+      intFeedback(intId,'✗ Error: '+saveError.message,false);
+      toast('Error al guardar');
+    } else {
+      intFeedback(intId,'✓ Guardado correctamente',true);
+      toast(int.name+' — configuración guardada ✓');
+      if(intId==='shopify'){
+        var banner=document.getElementById('shopify-status-banner');
+        if(banner){banner.style.display='flex';var t=document.getElementById('shopify-status-text');if(t)t.textContent='Shopify conectado — '+shopDomain;}
+        var ss=document.getElementById('shopifyStatus');
+        if(ss){ss.textContent='Conectado';ss.style.background='#d1fae5';ss.style.color='#065f46';}
+        var sd=document.getElementById('shopifyDomain');
+        if(sd) sd.value=shopDomain;
+      }
     }
-  }catch(e){toast('Error: '+e.message);}
+  }catch(e){
+    intFeedback(intId,'✗ Error: '+e.message,false);
+    toast('Error al guardar');
+  }
+  if(btn){btn.disabled=false;btn.innerHTML='<i class="ti ti-device-floppy" style="font-size:11px"></i> Guardar configuración';}
 }
 
 document.getElementById('integrationsBtn')?.addEventListener('click',()=>{
