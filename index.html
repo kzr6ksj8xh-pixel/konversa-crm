@@ -43,24 +43,24 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .ag-blue{width:460px;height:460px;background:radial-gradient(circle,rgba(24,119,242,.22) 0%,transparent 65%);bottom:-160px;left:-130px;}
 .ag-green{width:340px;height:340px;background:radial-gradient(circle,rgba(37,211,102,.16) 0%,transparent 65%);bottom:15%;right:-80px;}
 .auth-card{background:#fff;border-radius:20px;padding:36px 32px;width:100%;max-width:400px;box-shadow:0 24px 80px rgba(0,0,0,.4);position:relative;z-index:1;}
-.auth-logo-img{display:block;width:140px;height:auto;margin:0 auto 6px;}
-.auth-tagline{text-align:center;font-size:12px;color:var(--txt3);margin-bottom:16px;letter-spacing:.3px;}
+.auth-logo-img{display:block;width:182px;height:auto;margin:0 auto 8px;}
+.auth-tagline{text-align:center;font-size:16px;color:var(--txt3);margin-bottom:16px;letter-spacing:.3px;}
 .auth-ch-row{display:flex;justify-content:center;gap:5px;margin-bottom:24px;flex-wrap:wrap;}
-.auth-ch-pill{display:flex;align-items:center;gap:4px;padding:4px 9px;border-radius:20px;font-size:10px;font-weight:600;color:#fff;}
+.auth-ch-pill{display:flex;align-items:center;gap:4px;padding:4px 9px;border-radius:20px;font-size:13px;font-weight:600;color:#fff;}
 .auth-field{display:flex;flex-direction:column;gap:5px;margin-bottom:14px;}
-.auth-field label{font-size:11px;font-weight:500;color:var(--txt2);}
-.auth-field input,.auth-field select{padding:10px 12px;border-radius:var(--r);border:1px solid var(--border2);font-size:13px;color:var(--txt);outline:none;background:var(--bg);width:100%;}
+.auth-field label{font-size:14px;font-weight:500;color:var(--txt2);}
+.auth-field input,.auth-field select{padding:10px 12px;border-radius:var(--r);border:1px solid var(--border2);font-size:17px;color:var(--txt);outline:none;background:var(--bg);width:100%;}
 .auth-field input:focus,.auth-field select:focus{border-color:#E8622A;}
 .pw-wrap{position:relative;display:flex;align-items:center;}
 .pw-wrap input{padding-right:42px;}
-.pw-eye{position:absolute;right:11px;background:none;border:none;cursor:pointer;color:var(--txt3);font-size:17px;padding:0;line-height:1;display:flex;align-items:center;}
+.pw-eye{position:absolute;right:11px;background:none;border:none;cursor:pointer;color:var(--txt3);font-size:22px;padding:0;line-height:1;display:flex;align-items:center;}
 .pw-eye:hover{color:var(--txt);}
-.auth-btn{width:100%;padding:12px;border-radius:var(--r);border:none;color:#fff;font-size:14px;font-weight:600;cursor:pointer;margin-top:6px;transition:filter .15s;}
+.auth-btn{width:100%;padding:14px;border-radius:var(--r);border:none;color:#fff;font-size:18px;font-weight:600;cursor:pointer;margin-top:6px;transition:filter .15s;}
 .auth-btn:hover{filter:brightness(1.1);}
 .auth-btn:disabled{opacity:.6;cursor:not-allowed;}
 #loginBtn{background:linear-gradient(135deg,#E8622A 0%,#C94D1C 100%);}
 #registerBtn,#resetBtn{background:linear-gradient(135deg,#E8622A 0%,#C94D1C 100%);}
-.auth-err{font-size:11px;color:#dc2626;padding:8px 10px;background:#fee2e2;border-radius:var(--r);margin-top:8px;display:none;}
+.auth-err{font-size:14px;color:#dc2626;padding:8px 10px;background:#fee2e2;border-radius:var(--r);margin-top:8px;display:none;}
 .auth-err.show{display:block;}
 .role-badges{display:flex;gap:8px;margin-top:16px;}
 .rbadge{flex:1;padding:10px;border-radius:var(--r);border:1.5px solid var(--border);text-align:center;cursor:pointer;transition:all .15s;}
@@ -407,10 +407,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div class="auth-tagline">CRM · Sistema omnicanal de ventas</div>
     <!-- Channel pills -->
     <div class="auth-ch-row">
-      <div class="auth-ch-pill" style="background:#25D366"><i class="ti ti-brand-whatsapp" style="font-size:12px"></i> WhatsApp</div>
-      <div class="auth-ch-pill" style="background:#1877F2"><i class="ti ti-brand-facebook" style="font-size:12px"></i> Facebook</div>
-      <div class="auth-ch-pill" style="background:#E4405F"><i class="ti ti-brand-instagram" style="font-size:12px"></i> Instagram</div>
-      <div class="auth-ch-pill" style="background:#E8622A"><i class="ti ti-mail" style="font-size:12px"></i> Email</div>
+      <div class="auth-ch-pill" style="background:#25D366"><i class="ti ti-brand-whatsapp" style="font-size:16px"></i> WhatsApp</div>
+      <div class="auth-ch-pill" style="background:#1877F2"><i class="ti ti-brand-facebook" style="font-size:16px"></i> Facebook</div>
+      <div class="auth-ch-pill" style="background:#E4405F"><i class="ti ti-brand-instagram" style="font-size:16px"></i> Instagram</div>
+      <div class="auth-ch-pill" style="background:#E8622A"><i class="ti ti-mail" style="font-size:16px"></i> Email</div>
     </div>
     <!-- LOGIN -->
     <div id="loginForm">
@@ -427,7 +427,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       </div>
       <button class="auth-btn" id="loginBtn">Iniciar sesión</button>
       <div class="auth-err" id="loginErr"></div>
-      <div id="forgotLink" style="margin-top:12px;text-align:center;font-size:12px;color:var(--txt2);cursor:pointer;text-decoration:underline">¿Olvidaste tu contraseña?</div>
+      <div id="forgotLink" style="margin-top:12px;text-align:center;font-size:16px;color:var(--txt2);cursor:pointer;text-decoration:underline">¿Olvidaste tu contraseña?</div>
     </div>
     <!-- REGISTER (oculto, acceso solo por admin vía backend) -->
     <div id="registerForm" style="display:none">
