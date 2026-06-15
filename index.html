@@ -139,19 +139,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .ib.on{background:#ede9fe;border-color:var(--accent);color:var(--accent);}
 .ib.danger{color:#dc2626;}
 .ib.danger:hover{background:#fee2e2;}
-.msgs-area{flex:1;overflow-y:auto;padding:11px;display:flex;flex-direction:column;gap:7px;background:var(--bg3);}
-.mrow{display:flex;gap:5px;align-items:flex-end;}
+.msgs-area{flex:1;overflow-y:auto;padding:14px 12px;display:flex;flex-direction:column;gap:3px;background:var(--bg3);}
+.mrow{display:flex;gap:6px;align-items:flex-end;margin-bottom:2px;}
 .mrow.out{flex-direction:column;align-items:flex-end;}
 .mb-out{width:100%;display:flex;flex-direction:column;align-items:flex-end;}
-.mb{max-width:72%;padding:8px 11px;border-radius:12px;font-size:17px;line-height:1.55;}
-.mb.in{background:var(--bg);border:.5px solid var(--border);border-bottom-left-radius:3px;}
-.mb.out{background:var(--accent);color:#fff;border-bottom-right-radius:3px;}
-.mb.note{background:#fef9c3;color:#713f12;border:.5px solid #fde047;font-style:italic;border-radius:12px;}
-.mb.tpl{background:#d1fae5;color:#065f46;border:.5px solid #6ee7b7;border-radius:12px;}
-.mb.ai{background:#eef2ff;color:#3730a3;border:.5px solid #c7d2fe;border-radius:12px;font-style:italic;}
-.mtime{font-size:9px;margin-top:2px;opacity:.5;text-align:right;}
-.mch{font-size:9px;margin-top:2px;opacity:.6;display:flex;align-items:center;gap:3px;}
-.dsep{text-align:center;font-size:10px;color:var(--txt3);padding:3px 0;}
+.mb{max-width:75%;padding:10px 14px;border-radius:20px;font-size:16px;line-height:1.5;word-break:break-word;}
+.mb.in{background:var(--bg2);color:var(--txt);border-bottom-left-radius:5px;}
+.mb.out{background:var(--accent);color:#fff;border-bottom-right-radius:5px;}
+.mb.note{background:#fef9c3;color:#713f12;border:.5px solid #fde047;font-style:italic;border-radius:20px;}
+.mb.tpl{background:#d1fae5;color:#065f46;border:.5px solid #6ee7b7;border-radius:20px;}
+.mb.ai{background:#eef2ff;color:#3730a3;border:.5px solid #c7d2fe;border-radius:20px;font-style:italic;}
+.mtime{font-size:10px;margin-top:3px;opacity:.45;text-align:right;}
+.mch{font-size:10px;margin-top:2px;opacity:.6;display:flex;align-items:center;gap:3px;}
+.dsep{text-align:center;font-size:11px;color:var(--txt3);padding:6px 0;letter-spacing:.3px;}
 .notif-s{display:none;align-items:center;gap:8px;padding:7px 12px;background:var(--bg2);border-bottom:.5px solid var(--border);}
 .notif-s.show{display:flex;}
 .slash-pop{background:var(--bg);border:.5px solid var(--border2);border-radius:var(--rl);overflow:hidden;margin:0 11px 5px;}
@@ -376,7 +376,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   .ff textarea,.rv,.stsel,.stat-pill,.nlbtn,.col-cnt,.add-cb,.aubtn,.mf label,
   .file-name,.tab-item,.aia-pauta,.aia-accion,.auth-err,.auth-field label,
   .rbadge .rtitle,.user-chip .uname{font-size:14px!important;}
-  .mb{font-size:17px!important;}
+  .mb{font-size:16px!important;border-radius:20px!important;}
+  .mb.out{border-bottom-right-radius:5px!important;}
+  .mb.in{border-bottom-left-radius:5px!important;}
   /* 12px → 16px */
   .auth-logo-sub,.auth-tab,.svbtn,.kcard-amt,.mf input,.mf select,.btn-c,.btn-s,
   .btn-danger,.confirm-box p,.file-del,.file-download,.aia-tab,.ip-head h3,
@@ -1142,7 +1144,7 @@ async function loadMessagesFromDB(){
       if(!cid)return;
       if(!msgs[cid])msgs[cid]=[];
       msgs[cid].push({
-        t:m.sender==='in'?'in':m.sender==='ai'?'ai':'out',
+        t:m.sender==='in'?'in':m.sender==='note'?'note':m.sender==='tpl'?'tpl':'out',
         txt:m.content,
         time:timeOnly(m.sent_at),
         ch:m.channel||m.conversations?.channel||'wa'
@@ -1325,7 +1327,7 @@ async function handleRealtimeMessage(m){
   // Agregar mensaje al cache local
   if(!msgs[contactId])msgs[contactId]=[];
   var newMsg={
-    t: m.sender==='in'?'in':m.sender==='ai'?'ai':'out',
+    t: m.sender==='in'?'in':m.sender==='note'?'note':m.sender==='tpl'?'tpl':'out',
     txt: m.content,
     time: timeOnly(m.sent_at),
     ch: channel
