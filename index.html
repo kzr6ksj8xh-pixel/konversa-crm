@@ -535,6 +535,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       </div>
       <div class="hd-acts">
         <div class="ib" title="Llamar"><i class="ti ti-phone"></i></div>
+        <div class="ib" id="hdEditBtn" title="Editar contacto" onclick="openContactEditor()" style="display:none"><i class="ti ti-edit"></i></div>
         <div class="ib" id="tplToggle" title="Plantillas"><i class="ti ti-template"></i></div>
         <div class="ib danger" id="deleteChatBtn" title="Eliminar chat"><i class="ti ti-trash"></i></div>
       </div>
@@ -552,8 +553,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <div class="ai-row">
         <i class="ti ti-robot" style="font-size:13px;color:#7c3aed"></i>
         <span style="font-size:10px;color:var(--txt2);flex:1">Respuesta automática IA</span>
-        <div class="tog off" id="aiTog"><div class="knob"></div></div>
-        <span style="font-size:10px;color:var(--txt3)" id="aiStat">Desactivada</span>
+        <div class="tog on2" id="aiTog"><div class="knob"></div></div>
+        <span style="font-size:10px;color:var(--txt3)" id="aiStat">Activada</span>
       </div>
     </div>
   </div>
@@ -858,7 +859,7 @@ Solo vendemos purificadores de aire a base de ozono.
         <div class="mf"><label>Valor estimado (MXN)</label><input id="fAmt" type="number" placeholder="50000"></div>
         <div class="mf"><label>Etapa</label><select id="fStage"></select></div>
         <div class="mf"><label>Canal</label><select id="fCh"><option value="wa">WhatsApp</option><option value="fb">Facebook Messenger</option><option value="ig">Instagram DM</option><option value="em">Email</option></select></div>
-        <div class="mf"><label>Agente</label><select id="fAg"><option value="jm">Juan Martínez</option><option value="ap">Ana Pérez</option><option value="lr">Luis Ramos</option></select></div>
+        <div class="mf"><label>Agente</label><select id="fAg"><option value="eq">Enrique</option></select></div>
       </div>
       <div class="modal-ft"><button class="btn-c" id="lmCancel">Cancelar</button><button class="btn-s" id="lmSave"><i class="ti ti-device-floppy" style="font-size:12px"></i> Guardar</button></div>
     </div>
@@ -930,7 +931,7 @@ Solo vendemos purificadores de aire a base de ozono.
           <div class="mf"><label>Valor estimado (MXN)</label><input id="ldAmt" type="number" placeholder="50000"></div>
           <div class="mf"><label>Etapa</label><select id="ldStage"><option value="entrada">Entrada</option><option value="interes">Interés</option><option value="cotizacion">Cotización</option><option value="venta">Venta</option><option value="tarea">Tarea</option><option value="finalizado">Finalizado</option></select></div>
           <div class="mf"><label>Canal</label><select id="ldCh"><option value="wa">WhatsApp</option><option value="fb">Facebook</option><option value="ig">Instagram</option><option value="em">Email</option></select></div>
-          <div class="mf"><label>Agente</label><select id="ldAg"><option value="jm">Juan Martínez</option><option value="ap">Ana Pérez</option><option value="lr">Luis Ramos</option></select></div>
+          <div class="mf"><label>Agente</label><select id="ldAg"><option value="eq">Enrique</option></select></div>
         </div>
         <div class="mf" style="margin-top:6px"><label>Producto(s) de interés</label>
           <select id="ldProduct" style="font-size:12px;padding:7px 10px;border-radius:var(--r);border:.5px solid var(--border);background:var(--bg2);color:var(--txt);outline:none;width:100%">
@@ -1067,19 +1068,13 @@ var demoAutoList = [
   {id:6,icon:'ti-trophy',iconBg:'#dcfce7',iconColor:'#059669',title:'Cierre de negocio',subtitle:'Pipeline · Activo',on:true,channels:['em'],trigger:'Cuando el negocio pasa a etapa "Finalizado"',actions:['Enviar email de bienvenida al cliente','Crear proyecto en sistema','Notificar al equipo de onboarding'],executions:124},
   {id:7,icon:'ti-robot',iconBg:'#f3e8ff',iconColor:'#7c3aed',title:'Respuesta IA multicanal',subtitle:'Todos los canales · Activo',on:true,channels:['wa','fb','ig','em'],trigger:'Cuando no hay agente disponible (fuera de horario)',actions:['IA responde preguntas frecuentes','Agenda demo automáticamente','Registra conversación completa'],executions:456},
 ];
-var notifList = [
-  {msg:'Carlos Ruiz escribió por Instagram DM',icon:'ti-brand-instagram',color:'#c026d3'},
-  {msg:'Jorge Torres envió un mensaje por Facebook',icon:'ti-brand-facebook',color:'#1877f2'},
-  {msg:'Ana Peña respondió tu email',icon:'ti-mail',color:'#d97706'},
-  {msg:'Laura Soto te envió un DM de Instagram',icon:'ti-brand-instagram',color:'#c026d3'},
-  {msg:'Nuevo lead desde Facebook: Roberto Vega',icon:'ti-brand-facebook',color:'#1877f2'},
-];
+var notifList = [];
 
 /* ─── STATE ─── */
 var contacts = demoContacts, leads = demoLeads, templates = demoTemplates;
 var msgs = {...demoMsgs};
 var aC = null, aCh = 'wa', tplOpen=false, tplTab='browse', tplCat='all', tplQ='', nType='text';
-var hist=[], aiOn=false, chFilt='all', slashMode=false, slashQ='', slashIdx=0;
+var hist=[], aiOn=true, chFilt='all', slashMode=false, slashQ='', slashIdx=0;
 var dragId=null, dragOverCol=null, agFilt='all', notifIdx=0, selRole='admin', aRange=7;
 var demoMode = true;
 var shopifyProducts = [];
@@ -1717,7 +1712,6 @@ async function bootApp(){
   renderPipeline();
   renderProducts();
   switchView('pipeline');
-  setTimeout(showNotif,3000);setInterval(showNotif,10000);
 
   // Pedir permiso de notificaciones
   requestPushPermission();
@@ -2058,6 +2052,9 @@ function renderTools(){
    RIGHT PANEL
 ══════════════════════════════════════ */
 function renderRightPanel(){
+  // Mostrar botón editar en header solo en móvil (right panel oculto < 1000px)
+  var hdEdit=document.getElementById('hdEditBtn');
+  if(hdEdit)hdEdit.style.display=(aC&&window.innerWidth<1000)?'flex':'none';
   if(!aC)return;
   document.getElementById('rpAv').textContent=aC.ini;document.getElementById('rpAv').style.background=aC.bg;document.getElementById('rpAv').style.color=aC.tc;
   document.getElementById('rpNm').textContent=aC.name;document.getElementById('rpCo').textContent=aC.comp;
