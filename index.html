@@ -531,7 +531,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
         <div class="ch-nm" id="chNm">Selecciona un contacto</div>
         <div class="ch-sub">
           <span class="chbdg" id="chBdg" style="background:#d1fae5;color:#065f46"><i class="ti ti-brand-whatsapp" style="font-size:10px"></i> WhatsApp</span>
-          <span style="color:var(--txt3)">· En línea</span>
+          <span style="color:var(--txt3)">·</span>
+          <span id="agentChip" onclick="toggleAgentDrop(event)" style="cursor:pointer;display:inline-flex;align-items:center;gap:3px;padding:1px 6px;border-radius:8px;background:var(--bg2);color:var(--txt2);font-size:9px;border:.5px solid var(--border)"><i class="ti ti-user" style="font-size:9px"></i> <span id="agentChipLbl">Sin asignar</span></span>
           <span id="typingInd" style="display:none;color:var(--txt3);font-style:italic">escribiendo...</span>
         </div>
       </div>
@@ -542,6 +543,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
         <div class="ib danger" id="deleteChatBtn" title="Eliminar chat"><i class="ti ti-trash"></i></div>
       </div>
     </div>
+    <div id="agentDrop" style="display:none;position:absolute;z-index:200;background:var(--bg);border:.5px solid var(--border);border-radius:10px;box-shadow:0 4px 16px #0002;padding:4px;min-width:140px"></div>
     <div class="msgs-area" id="msgsArea"><div class="dsep">Selecciona un contacto para ver la conversación</div></div>
     <div id="slashDiv" style="display:none"></div>
     <div class="iz">
@@ -1107,7 +1109,7 @@ async function loadContactsFromDB(){
         deal:c.deal_name,amt:c.deal_amount?fmt(c.deal_amount):'',
         stage:c.stage||'entrada',channels:chs,
         phone:c.phone,email:c.email,city:c.city,
-        office:c.company,agent_id:c.agent_id,
+        office:c.company,agent_id:c.agent_id,ag:c.agent_id||null,
         dbId:c.id
       };
     });
@@ -1974,7 +1976,7 @@ function renderContactList(){
   var activeTab=document.querySelector('.itab.on')?.textContent||'Todo';
   var list=contacts.filter(c=>(chFilt==='all'||c.ch===chFilt)&&(!q||c.name.toLowerCase().includes(q)||c.comp.toLowerCase().includes(q)));
   if(activeTab==='Sin leer') list=list.filter(c=>c.unread>0);
-  if(activeTab==='Míos') list=list.filter(c=>c.ag&&c.ag===curUser?.id);
+  if(activeTab==='Míos') list=list.filter(c=>c.ag&&currentUser&&c.ag===currentUser.id);
   list=list.slice().sort(function(a,b){return (b.lastMsgAt||0)-(a.lastMsgAt||0);});
   document.getElementById('contactList').innerHTML=list.map(c=>`
     <div class="ci${aC&&c.id===aC.id?' on':''}" data-cid="${c.id}" style="border-left:3px solid ${CH[c.ch].color};background:${aC&&c.id===aC.id?CH[c.ch].bg:''}">
@@ -2051,6 +2053,44 @@ function renderMsgs(){
   var dot=document.getElementById('chDot');dot.style.background=CH[aCh].color;dot.innerHTML=cI(aCh,7);
   var bdg=document.getElementById('chBdg');bdg.style.background=CH[aCh].bg;bdg.style.color=CH[aCh].tc;
   bdg.innerHTML=`${cI(aCh,10)} ${CH[aCh].label}`;
+  // update agent chip
+  var ag=aC.ag?AG[aC.ag]:null;
+  var chip=document.getElementById('agentChipLbl');
+  if(chip) chip.textContent=ag?ag.name:'Sin asignar';
+  var chipEl=document.getElementById('agentChip');
+  if(chipEl){chipEl.style.background=ag?ag.bg:'var(--bg2)';chipEl.style.color=ag?ag.tc:'var(--txt2)';}
+}
+
+function toggleAgentDrop(e){
+  e.stopPropagation();
+  var drop=document.getElementById('agentDrop');
+  if(!drop)return;
+  if(drop.style.display!=='none'){drop.style.display='none';return;}
+  var chip=document.getElementById('agentChip');
+  var rect=chip.getBoundingClientRect();
+  drop.style.top=(rect.bottom+4)+'px';
+  drop.style.left=rect.left+'px';
+  drop.style.position='fixed';
+  var opts=[{key:'',label:'Sin asignar',bg:'var(--bg2)',tc:'var(--txt2)'}]
+    .concat(Object.entries(AG).map(([k,v])=>({key:k,label:v.name,bg:v.bg,tc:v.tc})));
+  drop.innerHTML=opts.map(o=>`<div onclick="assignAgent('${o.key}')" style="padding:6px 10px;border-radius:7px;cursor:pointer;display:flex;align-items:center;gap:6px;font-size:11px;" onmouseover="this.style.background='var(--bg2)'" onmouseout="this.style.background=''">${o.key?`<div style="width:20px;height:20px;border-radius:50%;background:${o.bg};color:${o.tc};font-size:9px;display:flex;align-items:center;justify-content:center;font-weight:600">${AG[o.key]?.label||''}</div>`:'<div style="width:20px;height:20px;border-radius:50%;background:var(--bg2);border:.5px solid var(--border);display:flex;align-items:center;justify-content:center"><i class="ti ti-minus" style="font-size:9px;color:var(--txt3)"></i></div>'} ${o.label}</div>`).join('');
+  drop.style.display='block';
+  setTimeout(()=>document.addEventListener('click',()=>{drop.style.display='none';},{once:true}),10);
+}
+
+function assignAgent(agKey){
+  var drop=document.getElementById('agentDrop');
+  if(drop)drop.style.display='none';
+  if(!aC)return;
+  aC.ag=agKey||null;
+  var ag=agKey?AG[agKey]:null;
+  var chip=document.getElementById('agentChipLbl');
+  if(chip)chip.textContent=ag?ag.name:'Sin asignar';
+  var chipEl=document.getElementById('agentChip');
+  if(chipEl){chipEl.style.background=ag?ag.bg:'var(--bg2)';chipEl.style.color=ag?ag.tc:'var(--txt2)';}
+  if(sb&&!demoMode&&aC.dbId) sb.from('contacts').update({agent_id:agKey||null,updated_at:new Date().toISOString()}).eq('id',aC.dbId).then(()=>{});
+  toast(ag?`Asignado a ${ag.name}`:'Agente removido');
+  renderContactList();
 }
 
 /* ══════════════════════════════════════
