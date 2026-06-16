@@ -376,7 +376,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   #main-content{flex:1;overflow:hidden;}
 }
 #leftSidebar{display:none;flex-direction:column;align-items:center;width:64px;background:#0f0f1a;border-right:.5px solid rgba(255,255,255,.08);flex-shrink:0;padding:10px 0;gap:4px;}
-#leftSidebar .ls-logo{width:36px;height:36px;background:var(--accent);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;margin-bottom:6px;flex-shrink:0;}
+#leftSidebar .ls-logo{width:40px;height:40px;border-radius:9px;display:flex;align-items:center;justify-content:center;margin-bottom:6px;flex-shrink:0;overflow:hidden;} #leftSidebar .ls-logo img{width:100%;height:100%;object-fit:contain;}
 #leftSidebar .ls-sep{width:32px;height:.5px;background:rgba(255,255,255,.1);margin:4px 0;}
 #leftSidebar .ls-btn{width:46px;height:46px;border-radius:11px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#6b7280;cursor:pointer;font-size:21px;transition:all .15s;position:relative;gap:3px;flex-shrink:0;}
 #leftSidebar .ls-btn:hover{background:rgba(232,98,42,.18);color:#fdba74;}
@@ -513,7 +513,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <div id="appShell">
 <!-- Desktop Left Sidebar (hidden on mobile) -->
 <nav id="leftSidebar">
-  <div class="ls-logo">K</div>
+  <div class="ls-logo"><img src="/logo_konversa.png" alt="Konversa"></div>
   <div class="ls-sep"></div>
   <div class="ls-btn" data-view="chat" title="Chats"><i class="ti ti-message-dots"></i><div class="nb"></div><span class="ls-lbl">Chats</span></div>
   <div class="ls-btn on" data-view="pipeline" title="Pipeline"><i class="ti ti-layout-columns"></i><span class="ls-lbl">Pipeline</span></div>
