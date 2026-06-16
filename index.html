@@ -1997,7 +1997,6 @@ function renderContactList(){
     aC=contacts.find(c=>c.id==el.dataset.cid);
     if(aC&&aC.unread>0){
       aC.unread=0;
-      if(sb&&!demoMode&&aC.dbId) sb.from('contacts').update({unread_count:0}).eq('id',aC.dbId).then(()=>{});
     }
     aCh=aC.ch;
     document.getElementById('inboxPanel').classList.remove('show');
