@@ -211,6 +211,8 @@ async function processIncoming(channel, handle, name, text) {
 
   const history = await loadHistory(sb, convId);
     await persistMessage(sb, convId, channel, 'customer', text);
+    // Actualizar updated_at del contacto para mantener orden por mensaje reciente
+    await sb.from('contacts').update({updated_at:new Date().toISOString()}).eq('id',contact.id);
 
   const reply = await callClaude(history, text);
     await persistMessage(sb, convId, channel, 'ai', reply);
