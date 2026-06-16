@@ -2805,7 +2805,7 @@ function getFileIcon(name){const ext=(name.split('.').pop()||'').toLowerCase();r
 function fmtSize(b){if(b<1024)return b+'B';if(b<1048576)return(b/1024).toFixed(1)+'KB';return(b/1048576).toFixed(1)+'MB';}
 
 function openLeadDetail(id){
-  currentLeadId=id;const lead=leads.find(l=>l.id===id);if(!lead)return;
+  id=String(id);currentLeadId=id;const lead=allLeadsAndContacts().find(l=>String(l.id)===id);if(!lead)return;
   if(!lead.files)lead.files=[];if(!lead.notes)lead.notes=[];
   document.getElementById('ldTitle').textContent=lead.name;
   document.getElementById('ldComp').textContent=lead.company;
@@ -2824,7 +2824,7 @@ function openLeadDetail(id){
   initDropZone();switchLeadTab('files');renderFileList(lead);renderNoteHistory(lead);
   document.getElementById('leadDetailModal').classList.add('open');
 }
-function openLeadEdit(id){currentLeadId=id;const lead=leads.find(l=>l.id===id);if(!lead)return;if(!lead.files)lead.files=[];if(!lead.notes)lead.notes=[];document.getElementById('ldTitle').textContent=lead.name;document.getElementById('ldComp').textContent=lead.company;document.getElementById('ldAmt').value=lead.amount||'';document.getElementById('ldStage').value=lead.stage||'entrada';document.getElementById('ldCh').value=lead.ch||'wa';document.getElementById('ldAg').value=lead.ag||'jm';document.getElementById('ldName').value=lead.name||'';document.getElementById('ldCompany').value=lead.company||'';document.getElementById('ldNote').value='';document.getElementById('ldHotTog').className='tog '+(lead.hot?'on2':'off');switchLeadTab('info');renderFileList(lead);renderNoteHistory(lead);document.getElementById('leadDetailModal').classList.add('open');}
+function openLeadEdit(id){id=String(id);currentLeadId=id;const lead=allLeadsAndContacts().find(l=>String(l.id)===id);if(!lead)return;if(!lead.files)lead.files=[];if(!lead.notes)lead.notes=[];document.getElementById('ldTitle').textContent=lead.name;document.getElementById('ldComp').textContent=lead.company;document.getElementById('ldAmt').value=lead.amount||'';document.getElementById('ldStage').value=lead.stage||'entrada';document.getElementById('ldCh').value=lead.ch||'wa';document.getElementById('ldAg').value=lead.ag||'jm';document.getElementById('ldName').value=lead.name||'';document.getElementById('ldCompany').value=lead.company||'';document.getElementById('ldNote').value='';document.getElementById('ldHotTog').className='tog '+(lead.hot?'on2':'off');switchLeadTab('info');renderFileList(lead);renderNoteHistory(lead);document.getElementById('leadDetailModal').classList.add('open');}
 
 function switchLeadTab(tab){
   activeLeadTab=tab;
@@ -2967,10 +2967,10 @@ function renderKCard(l){
       </div>
     </div>
     <div style="margin-top:6px;border-top:0.5px solid var(--border);padding-top:6px;display:flex;gap:5px">
-      <button style="flex:1;font-size:10px;padding:5px 0;border-radius:6px;border:0.5px solid var(--accent);background:#ede9fe;color:var(--accent);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;font-weight:500" onclick="event.stopPropagation();openLeadDetail(${l.id})">
+      <button style="flex:1;font-size:10px;padding:5px 0;border-radius:6px;border:0.5px solid var(--accent);background:#ede9fe;color:var(--accent);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;font-weight:500" onclick="event.stopPropagation();openLeadDetail('${l.id}')">
         <i class="ti ti-paperclip" style="font-size:11px"></i> Archivos${fileCount?` (${fileCount})`:''}
       </button>
-      <button style="flex:1;font-size:10px;padding:5px 0;border-radius:6px;border:0.5px solid #059669;background:#d1fae5;color:#065f46;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;font-weight:500" onclick="event.stopPropagation();openLeadEdit(${l.id})">
+      <button style="flex:1;font-size:10px;padding:5px 0;border-radius:6px;border:0.5px solid #059669;background:#d1fae5;color:#065f46;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;font-weight:500" onclick="event.stopPropagation();openLeadEdit('${l.id}')">
         <i class="ti ti-edit" style="font-size:11px"></i> Editar
       </button>
     </div>
@@ -3036,9 +3036,9 @@ function bindDrag(){
 function bindKActions(){
   document.querySelectorAll('[data-del]').forEach(btn=>{
     btn.addEventListener('click',e=>{
-      e.stopPropagation();const id=parseInt(btn.dataset.del);
+      e.stopPropagation();const id=String(btn.dataset.del);
       guardAction('delete_lead',()=>{
-        const lead=leads.find(l=>l.id===id);
+        const lead=leads.find(l=>String(l.id)===id);
         if(lead) confirmDialog('¿Eliminar venta?',`Se eliminará "${lead.name}" del pipeline. Esta acción no se puede deshacer.`,()=>{
           var delId=lead.dbId||lead.id;
           leads=leads.filter(l=>l.id!==id);renderPipeline();toast(`"${lead.name}" eliminado del pipeline`);
@@ -3052,7 +3052,7 @@ function bindKActions(){
     btn.addEventListener('mousedown',e=>e.stopPropagation());
     btn.addEventListener('click',e=>{
       e.stopPropagation();e.preventDefault();
-      const id=parseInt(btn.dataset.detail);
+      const id=String(btn.dataset.detail);
       openLeadDetail(id);
     });
   });
@@ -3061,7 +3061,7 @@ function bindKActions(){
     btn.addEventListener('mousedown',e=>e.stopPropagation());
     btn.addEventListener('click',e=>{
       e.stopPropagation();e.preventDefault();
-      const id=parseInt(btn.dataset.edit);
+      const id=String(btn.dataset.edit);
       openLeadEdit(id);
     });
   });
