@@ -1125,7 +1125,7 @@ async function loadLeadsFromDB(){
         amount:parseFloat(l.amount)||0,stage:l.stage||'entrada',
         ch:l.channel||'wa',ag:'jm',date:timeSince(l.created_at),
         whatsapp:l.whatsapp||null,office:l.office_phone||null,
-        hot:l.hot||false,agent_id:l.agent_id,dbId:l.id
+        hot:l.hot||false,agent_id:l.agent_id,dbId:l.id,contactId:l.contact_id
       };
     });
   }catch(e){console.warn('loadLeads error:',e);}
@@ -2682,7 +2682,7 @@ document.getElementById('cModalSave')?.addEventListener('click',()=>{
   aC.note=document.getElementById('cNote').value.trim();
   aC.tags=document.getElementById('cTags').value.split(',').map(s=>s.trim()).filter(Boolean);
   if(newCh.length)aC.channels=newCh;
-  var lead=leads.find(l=>l.dbId===aC.dbId||l.name===aC.name);
+  var lead=leads.find(l=>l.contactId===aC.dbId||l.contactId===aC.id||l.name===aC.name);
   if(lead){lead.name=name;lead.company=aC.comp;if(amt)lead.amount=parseInt(amt)||lead.amount;lead.stage=aC.stage;if(lead.dbId)updateLeadStageToDB(lead.dbId,aC.stage);}
   document.getElementById('contactModal').classList.remove('open');
   renderChatAll();renderPipeline();
@@ -2812,7 +2812,19 @@ function renderChatAll(){renderContactList();renderMsgs();renderTools();renderRi
 /* ══════════════════════════════════════
    PIPELINE
 ══════════════════════════════════════ */
-function filteredLeads(){return agFilt==='all'?leads:leads.filter(l=>l.ag===agFilt);}
+function allLeadsAndContacts(){
+  // Contactos mapeados a formato lead (excluir los que ya tienen un lead con mismo nombre)
+  var leadNames=new Set(leads.map(l=>l.name?.toLowerCase()));
+  var contactsAsLeads=contacts.filter(c=>!leadNames.has(c.name?.toLowerCase())).map(c=>({
+    id:c.dbId||c.id,dbId:c.dbId||c.id,
+    name:c.name,company:c.comp||'',
+    amount:0,stage:c.stage||'entrada',
+    ch:c.ch||'wa',ag:null,
+    isContact:true
+  }));
+  return leads.concat(contactsAsLeads);
+}
+function filteredLeads(){var all=allLeadsAndContacts();return agFilt==='all'?all:all.filter(l=>l.ag===agFilt);}
 function renderPipeline(){
   var fl=filteredLeads();
   document.getElementById('pipeBoard').innerHTML=STAGES.map(s=>{
@@ -2828,7 +2840,7 @@ function renderPipeline(){
 }
 
 function renderKCard(l){
-  var ch=CH[l.ch],ag=AG[l.ag],s=STAGE_MAP[l.stage];
+  var ch=CH[l.ch]||CH['wa'],ag=l.ag?AG[l.ag]:null,s=STAGE_MAP[l.stage];
   var chLabel=l.ch==='wa'?'WA':l.ch==='fb'?'FB':l.ch==='ig'?'IG':'Email';
   var delBtn=currentRole==='admin'?`<div style="width:20px;height:20px;border-radius:5px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#9ca3af;font-size:13px" data-del="${l.id}"><i class="ti ti-dots"></i></div>`:'';
   var fileCount=(l.files||[]).length;
@@ -2848,8 +2860,8 @@ function renderKCard(l){
         ${l.product?`<span class="ktag" style="background:#d1fae5;color:#065f46" title="${PINGUS_PRODUCTS.find(p=>p.id===l.product)?.name||l.product}"><i class="ti ti-package" style="font-size:10px"></i> ${PINGUS_PRODUCTS.find(p=>p.id===l.product)?.name?.split(' ').slice(0,2).join(' ')||l.product}</span>`:''}
       </div>
       <div style="display:flex;align-items:center;gap:4px">
-        <div class="av" style="width:19px;height:19px;font-size:8px;background:${ag.bg};color:${ag.tc}">${ag.label}</div>
-        <div style="font-size:9px;color:var(--txt3)">${l.date}</div>
+        ${ag?`<div class="av" style="width:19px;height:19px;font-size:8px;background:${ag.bg};color:${ag.tc}">${ag.label}</div>`:''}
+        <div style="font-size:9px;color:var(--txt3)">${l.date||''}</div>
       </div>
     </div>
     <div style="margin-top:6px;border-top:0.5px solid var(--border);padding-top:6px;display:flex;gap:5px">

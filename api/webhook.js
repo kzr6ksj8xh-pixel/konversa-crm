@@ -213,6 +213,21 @@ async function processIncoming(channel, handle, name, text) {
     await persistMessage(sb, convId, channel, 'customer', text);
     // Actualizar updated_at del contacto para mantener orden por mensaje reciente
     await sb.from('contacts').update({updated_at:new Date().toISOString()}).eq('id',contact.id);
+    // Auto-crear lead en pipeline si no existe para este contacto
+    const { data: existingLead } = await sb.from('leads').select('id').eq('contact_id', contact.id).limit(1).maybeSingle();
+    if (!existingLead) {
+      const contactData = await sb.from('contacts').select('name,phone').eq('id', contact.id).single();
+      await sb.from('leads').insert({
+        name: contactData?.data?.name || name || 'Cliente',
+        company: '',
+        amount: 0,
+        stage: 'entrada',
+        channel,
+        whatsapp: contactData?.data?.phone || (channel === 'wa' ? handle : null),
+        hot: false,
+        contact_id: contact.id
+      }).select('id').single();
+    }
 
   const reply = await callClaude(history, text);
     await persistMessage(sb, convId, channel, 'ai', reply);
