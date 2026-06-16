@@ -2893,7 +2893,7 @@ function bindDrag(){
   document.querySelectorAll('.kcard-drag').forEach(handle=>{
     const card=handle.closest('.kcard');
     handle.addEventListener('dragstart',e=>{
-      dragId=parseInt(handle.dataset.drag);
+      dragId=handle.dataset.drag;
       setTimeout(()=>card.classList.add('dragging'),0);
       e.dataTransfer.effectAllowed='move';
     });
@@ -2909,13 +2909,21 @@ function bindDrag(){
     zone.addEventListener('drop',e=>{
       e.preventDefault();zone.classList.remove('drag-over');
       if(dragId!==null&&zone.dataset.zone){
-        const lead=leads.find(l=>l.id===dragId);
+        const lead=allLeadsAndContacts().find(l=>String(l.id)===String(dragId));
         if(lead&&lead.stage!==zone.dataset.zone){
-          const from=STAGE_MAP[lead.stage]?.label,to=STAGE_MAP[zone.dataset.zone]?.label;
+          const to=STAGE_MAP[zone.dataset.zone]?.label;
           lead.stage=zone.dataset.zone;
-          const contact=contacts.find(c=>c.name===lead.name);if(contact)contact.stage=zone.dataset.zone;
+          // Actualizar en array leads si existe
+          const realLead=leads.find(l=>String(l.id)===String(dragId));
+          if(realLead) realLead.stage=zone.dataset.zone;
+          // Actualizar contacto en memoria y DB
+          const contact=contacts.find(c=>c.name===lead.name||c.dbId===lead.contactId);
+          if(contact){
+            contact.stage=zone.dataset.zone;
+            if(sb&&!demoMode&&contact.dbId) sb.from('contacts').update({stage:zone.dataset.zone,updated_at:new Date().toISOString()}).eq('id',contact.dbId);
+          }
           renderPipeline();toast(`${lead.name.split(' ')[0]} → "${to}"`);
-          updateLeadStageToDB(lead.dbId||lead.id,zone.dataset.zone);
+          if(lead.dbId) updateLeadStageToDB(lead.dbId,zone.dataset.zone);
         }
       }
       dragId=null;dragOverCol=null;
