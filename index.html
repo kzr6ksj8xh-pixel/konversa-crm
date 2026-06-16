@@ -1106,18 +1106,7 @@ var demoLeads = [
   {id:9,name:'Patricia Luna', company:'MedSalud Corp',          amount:91000, stage:'venta',      ch:'em',ag:'jm',date:'Hoy',  hot:true},
   {id:10,name:'Andrés Campos',company:'FinTech MX',             amount:48000, stage:'interes',    ch:'ig',ag:'lr',date:'Mar',  hot:false},
 ];
-var demoTemplates = [
-  {id:1,name:'Saludo inicial',      type:'text',cat:'bienvenida', shortcut:'saludo', content:'¡Hola {{nombre}}! 👋 Soy {{agente}} de Konversa. ¿En qué puedo ayudarte?'},
-  {id:2,name:'Saludo Facebook',     type:'text',cat:'bienvenida', shortcut:'hifb',   content:'¡Hola {{nombre}}! 👋 Gracias por escribirnos por Facebook Messenger.'},
-  {id:3,name:'Saludo Instagram',    type:'text',cat:'bienvenida', shortcut:'hiig',   content:'¡Hola {{nombre}}! 🌟 Gracias por escribirnos por Instagram DM.'},
-  {id:4,name:'Seguimiento propuesta',type:'text',cat:'seguimiento',shortcut:'prop',  content:'Hola {{nombre}}, ¿pudiste revisar la propuesta que te enviamos el {{fecha}}?'},
-  {id:5,name:'Catálogo 2025',       type:'photo',cat:'promos',   shortcut:'catalogo',content:'catalogo_2025.jpg'},
-  {id:6,name:'Agendar demo',        type:'link', cat:'seguimiento',shortcut:'demo',  content:'https://cal.konversacrm.mx',linkTitle:'Agenda tu demo gratis'},
-  {id:7,name:'Oferta especial',     type:'text',cat:'promos',    shortcut:'oferta', content:'¡Hola {{nombre}}! 🎁 20% OFF en Plan Anual esta semana. ¿Te interesa?'},
-  {id:8,name:'Cierre de venta',     type:'text',cat:'cierre',    shortcut:'cierre', content:'¡Felicidades {{nombre}}! 🎉 Ya eres parte de Konversa. Accesos enviados.'},
-  {id:9,name:'Recordatorio cita',   type:'text',cat:'seguimiento',shortcut:'rec',   content:'Hola {{nombre}}, te recuerdo tu demo mañana a las {{hora}}. ¿Confirmas? 📅'},
-  {id:10,name:'FAQ soporte',        type:'link', cat:'soporte',  shortcut:'faq',    content:'https://soporte.konversacrm.mx',linkTitle:'Centro de ayuda Konversa'},
-];
+var demoTemplates = [];
 var demoAutoList = [
   {id:1,icon:'ti-brand-whatsapp',iconBg:'#d1fae5',iconColor:'#059669',title:'Bot de bienvenida WA',subtitle:'WhatsApp · Activo',on:true,channels:['wa'],trigger:'Cuando llega un mensaje nuevo de un contacto desconocido',actions:['Enviar mensaje de bienvenida','Asignar etiqueta "Nuevo lead"','Notificar al equipo'],executions:342},
   {id:2,icon:'ti-brand-facebook',iconBg:'#dbeafe',iconColor:'#1877f2',title:'Bot Facebook Messenger',subtitle:'Facebook · Activo',on:true,channels:['fb'],trigger:'Cuando llega un mensaje nuevo desde Facebook Messenger',actions:['Responder saludo automático','Preguntar nombre y empresa','Crear lead en pipeline'],executions:178},
