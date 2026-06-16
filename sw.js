@@ -1,4 +1,4 @@
-const VERSION = 'v7';
+const VERSION = 'v8';
 const CACHE = 'konversa-' + VERSION;
 
 self.addEventListener('install', e => {
@@ -9,12 +9,7 @@ self.addEventListener('activate', e => {
   e.waitUntil(
     caches.keys().then(keys =>
       Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
-    ).then(() => self.clients.claim()).then(() => {
-      // Notificar a todos los clientes que hay nueva versión
-      self.clients.matchAll({ type: 'window' }).then(clients => {
-        clients.forEach(client => client.postMessage({ type: 'SW_UPDATED', version: VERSION }));
-      });
-    })
+    ).then(() => self.clients.claim())
   );
 });
 

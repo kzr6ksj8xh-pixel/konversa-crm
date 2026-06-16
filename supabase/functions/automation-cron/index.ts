@@ -144,7 +144,7 @@ async function isWithin24HrWindow(
     .from("messages")
     .select("id, sent_at")
     .eq("conversation_id", conversationId)
-    .eq("sender", "contact") // inbound from customer
+    .in("sender", ["in", "customer"]) // inbound from customer
     .gte("sent_at", cutoff)
     .limit(1)
     .maybeSingle();
