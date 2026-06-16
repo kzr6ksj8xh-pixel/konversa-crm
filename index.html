@@ -656,11 +656,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <div class="pipe-top">
     <i class="ti ti-layout-columns" style="font-size:15px;color:var(--accent)"></i>
     <h2>Pipeline de ventas</h2>
-    <div style="display:flex;gap:4px" id="agFilter">
+    <div style="display:flex;gap:4px;align-items:center" id="agFilter">
       <div class="af on" data-ag="all">Todos</div>
-      <div class="af" data-ag="jm">Juan M.</div>
-      <div class="af" data-ag="ap">Ana P.</div>
-      <div class="af" data-ag="lr">Luis R.</div>
+      <div class="af" data-ag="eggs">EGGS</div>
+      <div class="af" id="addAgentBtn" title="Agregar agente" style="cursor:pointer;padding:3px 7px;border-radius:8px;font-size:11px;border:.5px dashed var(--border2);color:var(--txt3);background:transparent" onclick="toast('Próximamente: agregar agente')"><i class="ti ti-plus" style="font-size:10px"></i></div>
     </div>
     <div class="stat-pill"><i class="ti ti-currency-dollar" style="font-size:12px;color:var(--accent)"></i><span id="pTotalVal">$0</span></div>
     <div class="stat-pill"><i class="ti ti-briefcase" style="font-size:12px;color:#059669"></i><span id="pTotalDeals">0</span></div>
@@ -917,7 +916,7 @@ Solo vendemos purificadores de aire a base de ozono.
         <div class="mf"><label>Valor estimado (MXN)</label><input id="fAmt" type="number" placeholder="50000"></div>
         <div class="mf"><label>Etapa</label><select id="fStage"></select></div>
         <div class="mf"><label>Canal</label><select id="fCh"><option value="wa">WhatsApp</option><option value="fb">Facebook Messenger</option><option value="ig">Instagram DM</option><option value="em">Email</option></select></div>
-        <div class="mf"><label>Agente</label><select id="fAg"><option value="eq">Enrique</option></select></div>
+        <div class="mf"><label>Agente</label><select id="fAg"><option value="eggs">EGGS</option></select></div>
       </div>
       <div class="modal-ft"><button class="btn-c" id="lmCancel">Cancelar</button><button class="btn-s" id="lmSave"><i class="ti ti-device-floppy" style="font-size:12px"></i> Guardar</button></div>
     </div>
@@ -989,7 +988,7 @@ Solo vendemos purificadores de aire a base de ozono.
           <div class="mf"><label>Valor estimado (MXN)</label><input id="ldAmt" type="number" placeholder="50000"></div>
           <div class="mf"><label>Etapa</label><select id="ldStage"><option value="entrada">Entrada</option><option value="interes">Interés</option><option value="cotizacion">Cotización</option><option value="venta">Venta</option><option value="tarea">Tarea</option><option value="finalizado">Finalizado</option></select></div>
           <div class="mf"><label>Canal</label><select id="ldCh"><option value="wa">WhatsApp</option><option value="fb">Facebook</option><option value="ig">Instagram</option><option value="em">Email</option></select></div>
-          <div class="mf"><label>Agente</label><select id="ldAg"><option value="eq">Enrique</option></select></div>
+          <div class="mf"><label>Agente</label><select id="ldAg"><option value="eggs">EGGS</option></select></div>
         </div>
         <div class="mf" style="margin-top:6px"><label>Producto(s) de interés</label>
           <select id="ldProduct" style="font-size:12px;padding:7px 10px;border-radius:var(--r);border:.5px solid var(--border);background:var(--bg2);color:var(--txt);outline:none;width:100%">
@@ -1073,9 +1072,7 @@ var STAGES = [
 ];
 var STAGE_MAP = Object.fromEntries(STAGES.map(s => [s.id, s]));
 var AG = {
-  jm:{label:'JM',bg:'#ede9fe',tc:'#4c1d95',name:'Juan M.'},
-  ap:{label:'AP',bg:'#dbeafe',tc:'#1e3a8a',name:'Ana P.'},
-  lr:{label:'LR',bg:'#d1fae5',tc:'#065f46',name:'Luis R.'},
+  eggs:{label:'EG',bg:'#fff0e8',tc:'#c2410c',name:'EGGS'},
 };
 
 /* ─── DEMO DATA (used when Supabase not configured) ─── */
@@ -1179,7 +1176,7 @@ async function loadLeadsFromDB(){
       return{
         id:l.id,name:l.name,company:l.company||'Sin empresa',
         amount:parseFloat(l.amount)||0,stage:l.stage||'entrada',
-        ch:l.channel||'wa',ag:'jm',date:timeSince(l.created_at),
+        ch:l.channel||'wa',ag:l.agent_id||null,date:timeSince(l.created_at),
         whatsapp:l.whatsapp||null,office:l.office_phone||null,
         hot:l.hot||false,agent_id:l.agent_id,dbId:l.id,contactId:l.contact_id
       };
@@ -2812,7 +2809,7 @@ function openLeadDetail(id){
   document.getElementById('ldAmt').value=lead.amount||'';
   document.getElementById('ldStage').value=lead.stage||'entrada';
   document.getElementById('ldCh').value=lead.ch||'wa';
-  document.getElementById('ldAg').value=lead.ag||'jm';
+  document.getElementById('ldAg').value=lead.ag||'eggs';
   document.getElementById('ldName').value=lead.name||'';
   document.getElementById('ldCompany').value=lead.company||'';
   document.getElementById('ldPhone').value=lead.phone||'';
@@ -2824,7 +2821,7 @@ function openLeadDetail(id){
   initDropZone();switchLeadTab('files');renderFileList(lead);renderNoteHistory(lead);
   document.getElementById('leadDetailModal').classList.add('open');
 }
-function openLeadEdit(id){id=String(id);currentLeadId=id;const lead=allLeadsAndContacts().find(l=>String(l.id)===id);if(!lead)return;if(!lead.files)lead.files=[];if(!lead.notes)lead.notes=[];document.getElementById('ldTitle').textContent=lead.name;document.getElementById('ldComp').textContent=lead.company;document.getElementById('ldAmt').value=lead.amount||'';document.getElementById('ldStage').value=lead.stage||'entrada';document.getElementById('ldCh').value=lead.ch||'wa';document.getElementById('ldAg').value=lead.ag||'jm';document.getElementById('ldName').value=lead.name||'';document.getElementById('ldCompany').value=lead.company||'';document.getElementById('ldNote').value='';document.getElementById('ldHotTog').className='tog '+(lead.hot?'on2':'off');switchLeadTab('info');renderFileList(lead);renderNoteHistory(lead);document.getElementById('leadDetailModal').classList.add('open');}
+function openLeadEdit(id){id=String(id);currentLeadId=id;const lead=allLeadsAndContacts().find(l=>String(l.id)===id);if(!lead)return;if(!lead.files)lead.files=[];if(!lead.notes)lead.notes=[];document.getElementById('ldTitle').textContent=lead.name;document.getElementById('ldComp').textContent=lead.company;document.getElementById('ldAmt').value=lead.amount||'';document.getElementById('ldStage').value=lead.stage||'entrada';document.getElementById('ldCh').value=lead.ch||'wa';document.getElementById('ldAg').value=lead.ag||'eggs';document.getElementById('ldName').value=lead.name||'';document.getElementById('ldCompany').value=lead.company||'';document.getElementById('ldNote').value='';document.getElementById('ldHotTog').className='tog '+(lead.hot?'on2':'off');switchLeadTab('info');renderFileList(lead);renderNoteHistory(lead);document.getElementById('leadDetailModal').classList.add('open');}
 
 function switchLeadTab(tab){
   activeLeadTab=tab;
