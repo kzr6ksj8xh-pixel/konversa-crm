@@ -2260,8 +2260,8 @@ function renderTpl(){
       }).join(''):`<div style="text-align:center;padding:20px;font-size:11px;color:var(--txt3)">Sin resultados</div>`}</div>`;
     document.querySelectorAll('[data-tc]').forEach(el=>el.addEventListener('click',()=>{tplCat=el.dataset.tc;renderTpl();}));
     const si=document.getElementById('tpSr');if(si)si.addEventListener('input',e=>{tplQ=e.target.value;renderTpl();});
-    document.querySelectorAll('[data-use]').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();useTpl(parseInt(b.dataset.use));}));
-    document.querySelectorAll('[data-del]').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();deleteTpl(parseInt(b.dataset.del));}));
+    document.querySelectorAll('[data-use]').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();useTpl(b.dataset.use);}));
+    document.querySelectorAll('[data-del]').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();deleteTpl(b.dataset.del);}));
   } else {
     body.innerHTML=`<div class="ntf-form">
       <div class="ff"><label>Tipo</label><div class="type-row">
@@ -2297,19 +2297,20 @@ function saveTpl(){
 }
 
 async function deleteTpl(id){
-  var t=templates.find(x=>x.id===id);if(!t)return;
+  var sid=String(id);
+  var t=templates.find(x=>String(x.id)===sid||String(x.dbId)===sid);if(!t)return;
   if(!confirm(`¿Borrar plantilla "${t.name}"?`))return;
-  templates=templates.filter(x=>x.id!==id);
-  if(sb&&!demoMode&&t.dbId){
-    await sb.from('templates').delete().eq('id',t.dbId);
-  } else if(sb&&!demoMode){
-    await sb.from('templates').delete().eq('id',id);
+  templates=templates.filter(x=>String(x.id)!==sid&&String(x.dbId)!==sid);
+  if(sb&&!demoMode){
+    var dbId=t.dbId||t.id;
+    await sb.from('templates').delete().eq('id',dbId);
   }
   toast(`"${t.name}" eliminada`);
   renderTpl();
 }
 function useTpl(id){
-  var t=templates.find(x=>x.id===id);if(!t)return;
+  var sid=String(id);
+  var t=templates.find(x=>String(x.id)===sid||String(x.dbId)===sid);if(!t)return;
   var ts=now();
   var txt='';
   if(t.type==='text')txt=t.content.replace(/\{\{nombre\}\}/g,aC?.name.split(' ')[0]||'').replace(/\{\{agente\}\}/g,'Juan M.').replace(/\{\{fecha\}\}/g,'hoy').replace(/\{\{hora\}\}/g,'3:00 PM');
@@ -2352,7 +2353,7 @@ function renderSlash(){
         <i class="ti ${CH[aCh].icon}" style="font-size:12px;color:${CH[aCh].color};flex-shrink:0"></i>
       </div>`).join('')}
     </div></div>`;
-  document.querySelectorAll('.spi[data-si]').forEach(el=>el.addEventListener('click',()=>{useTpl(parseInt(el.dataset.si));closeSlash();}));
+  document.querySelectorAll('.spi[data-si]').forEach(el=>el.addEventListener('click',()=>{useTpl(el.dataset.si);closeSlash();}));
 }
 function closeSlash(){slashMode=false;slashQ='';slashIdx=0;document.getElementById('msgInput').value='';renderSlash();}
 
