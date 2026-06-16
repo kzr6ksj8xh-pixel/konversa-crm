@@ -185,21 +185,17 @@ async function handleCallback(query, res) {
 // ══════════════════════════════════════════════════════════════
 // SYNC PRODUCTOS
 // ══════════════════════════════════════════════════════════════
-async function syncProducts(sb, shopDomain, accessToken) {
-  let url = 'products.json?limit=50&status=active';
-  let allProducts = [];
+function productPrices(variants) {
+  const prices = (variants || []).map(v => parseFloat(v.price)).filter(n => !isNaN(n) && n > 0);
+  return {
+    price_min: prices.length ? Math.min(...prices) : 0,
+    price_max: prices.length ? Math.max(...prices) : 0
+  };
+}
 
-  // Paginar todos los productos
-  while (url) {
-    const data = await shopifyAPI(shopDomain, accessToken, url);
-    allProducts = allProducts.concat(data.products || []);
-
-    // Shopify pagination via Link header (simplificado: max 250 productos)
-    if (allProducts.length >= 250 || !data.products?.length) break;
-    url = null; // Una sola página por ahora
-  }
-
-  const rows = allProducts.map(p => ({
+function productRow(p) {
+  const { price_min, price_max } = productPrices(p.variants);
+  return {
     shopify_id: p.id,
     title: p.title,
     description: p.body_html?.replace(/<[^>]*>/g, '') || '',
@@ -210,20 +206,50 @@ async function syncProducts(sb, shopDomain, accessToken) {
     variants: p.variants || [],
     images: (p.images || []).map(img => ({ id: img.id, src: img.src })),
     tags: p.tags ? p.tags.split(',').map(t => t.trim()) : [],
-    price_min: Math.min(...(p.variants || []).map(v => parseFloat(v.price) || 0)),
-    price_max: Math.max(...(p.variants || []).map(v => parseFloat(v.price) || 0)),
+    price_min,
+    price_max,
     inventory_total: (p.variants || []).reduce((sum, v) => sum + (v.inventory_quantity || 0), 0),
     synced_at: new Date().toISOString()
-  }));
+  };
+}
 
-  // Upsert en lotes de 20
-  for (let i = 0; i < rows.length; i += 20) {
-    const batch = rows.slice(i, i + 20);
-    const { error } = await sb.from('shopify_products')
-      .upsert(batch, { onConflict: 'shopify_id' });
-    if (error) console.error('Upsert products error:', error);
+async function syncProducts(sb, shopDomain, accessToken) {
+  let pageInfo = null;
+  let allProducts = [];
+  const PAGE_LIMIT = 250;
+
+  // Paginar con cursor-based pagination de Shopify
+  while (true) {
+    const endpoint = pageInfo
+      ? `products.json?limit=250&page_info=${pageInfo}&status=active`
+      : 'products.json?limit=250&status=active';
+
+    const response = await fetch(`https://${shopDomain}/admin/api/2024-10/${endpoint}`, {
+      headers: { 'X-Shopify-Access-Token': accessToken }
+    });
+    if (!response.ok) throw new Error(`Shopify API ${response.status}`);
+
+    const data = await response.json();
+    const page = data.products || [];
+    allProducts = allProducts.concat(page);
+
+    // Leer Link header para siguiente página
+    const linkHeader = response.headers.get('link') || '';
+    const nextMatch = linkHeader.match(/<[^>]*page_info=([^>&"]+)[^>]*>;\s*rel="next"/);
+    if (!nextMatch || page.length === 0) break;
+    pageInfo = nextMatch[1];
   }
 
+  const rows = allProducts.slice(0, PAGE_LIMIT).map(productRow);
+
+  const errors = [];
+  for (let i = 0; i < rows.length; i += 20) {
+    const batch = rows.slice(i, i + 20);
+    const { error } = await sb.from('shopify_products').upsert(batch, { onConflict: 'shopify_id' });
+    if (error) errors.push(error.message);
+  }
+
+  if (errors.length) throw new Error(`Errores en upsert: ${errors.join('; ')}`);
   return { synced: rows.length };
 }
 
@@ -231,11 +257,12 @@ async function syncProducts(sb, shopDomain, accessToken) {
 // SYNC PEDIDOS
 // ══════════════════════════════════════════════════════════════
 async function syncOrders(sb, shopDomain, accessToken) {
-  const data = await shopifyAPI(shopDomain, accessToken, 'orders.json?limit=50&status=any');
+  const data = await shopifyAPI(shopDomain, accessToken, 'orders.json?limit=250&status=any');
   const orders = data.orders || [];
 
   const rows = orders.map(o => ({
     shopify_id: o.id,
+    shop_domain: shopDomain,
     order_number: o.name,
     email: o.email,
     phone: o.phone,
@@ -253,13 +280,14 @@ async function syncOrders(sb, shopDomain, accessToken) {
     synced_at: new Date().toISOString()
   }));
 
+  const errors = [];
   for (let i = 0; i < rows.length; i += 20) {
     const batch = rows.slice(i, i + 20);
-    const { error } = await sb.from('shopify_orders')
-      .upsert(batch, { onConflict: 'shopify_id' });
-    if (error) console.error('Upsert orders error:', error);
+    const { error } = await sb.from('shopify_orders').upsert(batch, { onConflict: 'shopify_id' });
+    if (error) errors.push(error.message);
   }
 
+  if (errors.length) throw new Error(`Errores en upsert de pedidos: ${errors.join('; ')}`);
   return { synced: rows.length };
 }
 
@@ -282,13 +310,15 @@ async function searchProduct(sb, query) {
 // ══════════════════════════════════════════════════════════════
 // ESTADO DE PEDIDO (para el agente IA)
 // ══════════════════════════════════════════════════════════════
-async function orderStatus(sb, email) {
-  const { data, error } = await sb.from('shopify_orders')
+async function orderStatus(sb, email, shopDomain) {
+  let q = sb.from('shopify_orders')
     .select('order_number, total_price, currency, financial_status, fulfillment_status, customer_name, created_at, line_items')
     .eq('email', email)
     .order('created_at', { ascending: false })
     .limit(3);
+  if (shopDomain) q = q.eq('shop_domain', shopDomain);
 
+  const { data, error } = await q;
   if (error) throw error;
   return data || [];
 }
@@ -368,7 +398,7 @@ export default async function handler(req, res) {
 
         case 'order-status': {
           if (!email) return res.status(400).json({ error: 'Falta email' });
-          const orders = await orderStatus(sb, email);
+          const orders = await orderStatus(sb, email, shop_domain);
           return res.status(200).json({ status: 'ok', orders });
         }
 

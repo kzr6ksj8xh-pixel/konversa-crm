@@ -10,6 +10,14 @@
 
 import crypto from 'crypto';
 
+function productPrices(variants) {
+  const prices = (variants || []).map(v => parseFloat(v.price)).filter(n => !isNaN(n) && n > 0);
+  return {
+    price_min: prices.length ? Math.min(...prices) : 0,
+    price_max: prices.length ? Math.max(...prices) : 0
+  };
+}
+
 // Body crudo necesario para validar el HMAC de Shopify.
 export const config = { api: { bodyParser: false } };
 
@@ -82,7 +90,8 @@ export default async function handler(req, res) {
       case 'products/create':
       case 'products/update': {
         const p = body;
-        await sb.from('shopify_products').upsert({
+        const { price_min, price_max } = productPrices(p.variants);
+        const { error: pe } = await sb.from('shopify_products').upsert({
           shopify_id: p.id,
           title: p.title,
           description: p.body_html?.replace(/<[^>]*>/g, '') || '',
@@ -93,11 +102,12 @@ export default async function handler(req, res) {
           variants: p.variants || [],
           images: (p.images || []).map(img => ({ id: img.id, src: img.src })),
           tags: p.tags ? p.tags.split(',').map(t => t.trim()) : [],
-          price_min: Math.min(...(p.variants || []).map(v => parseFloat(v.price) || 0)),
-          price_max: Math.max(...(p.variants || []).map(v => parseFloat(v.price) || 0)),
+          price_min,
+          price_max,
           inventory_total: (p.variants || []).reduce((sum, v) => sum + (v.inventory_quantity || 0), 0),
           synced_at: new Date().toISOString()
         }, { onConflict: 'shopify_id' });
+        if (pe) throw new Error(`products upsert: ${pe.message}`);
 
         return res.status(200).json({ status: 'product_synced', id: p.id });
       }
@@ -115,8 +125,10 @@ export default async function handler(req, res) {
       case 'orders/create':
       case 'orders/updated': {
         const o = body;
-        await sb.from('shopify_orders').upsert({
+        const shopDomain = req.headers['x-shopify-shop-domain'] || null;
+        const { error: oe } = await sb.from('shopify_orders').upsert({
           shopify_id: o.id,
+          shop_domain: shopDomain,
           order_number: o.name,
           email: o.email,
           phone: o.phone,
@@ -133,6 +145,7 @@ export default async function handler(req, res) {
           created_at: o.created_at,
           synced_at: new Date().toISOString()
         }, { onConflict: 'shopify_id' });
+        if (oe) throw new Error(`orders upsert: ${oe.message}`);
 
         return res.status(200).json({ status: 'order_synced', id: o.id });
       }
