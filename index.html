@@ -2682,10 +2682,15 @@ document.getElementById('cModalSave')?.addEventListener('click',()=>{
   aC.note=document.getElementById('cNote').value.trim();
   aC.tags=document.getElementById('cTags').value.split(',').map(s=>s.trim()).filter(Boolean);
   if(newCh.length)aC.channels=newCh;
-  var lead=leads.find(l=>l.name===name||l.id===aC.id);
-  if(lead){lead.name=name;lead.company=aC.comp;if(amt)lead.amount=parseInt(amt)||lead.amount;lead.stage=aC.stage;}
+  var lead=leads.find(l=>l.dbId===aC.dbId||l.name===aC.name);
+  if(lead){lead.name=name;lead.company=aC.comp;if(amt)lead.amount=parseInt(amt)||lead.amount;lead.stage=aC.stage;if(lead.dbId)updateLeadStageToDB(lead.dbId,aC.stage);}
   document.getElementById('contactModal').classList.remove('open');
   renderChatAll();renderPipeline();
+  // Persistir en Supabase
+  if(sb&&!demoMode&&aC.dbId){
+    var dbRow={name:aC.name,company:aC.comp||null,phone:aC.phone||null,email:email||null,city:aC.city||null,stage:aC.stage,deal_name:aC.deal||null,deal_amount:amt?parseInt(amt):null,channels:aC.channels||[],updated_at:new Date().toISOString()};
+    sb.from('contacts').update(dbRow).eq('id',aC.dbId).then(({error})=>{if(error)console.error('updateContact:',error);});
+  }
   toast(`Contacto "${name}" actualizado ✓`);
 });
 
