@@ -1,0 +1,527 @@
+// automation-cron/index.ts
+// Supabase Edge Function — scheduled automation rules for Konversa CRM.
+// Intended to be called by pg_cron / Supabase Cron every hour.
+//
+// Auth: Bearer <CRON_SECRET> header required.
+//
+// Rules
+//  1. Lead estancado en Cotización 24 hrs → WhatsApp message + internal note + bump updated_at
+//  2. Lead estancado en cualquier etapa 48 hrs → internal note (skip if note already added in last 48 hrs)
+
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
+
+interface Lead {
+  id: string;
+  name: string;
+  stage: string;
+  updated_at: string;
+  whatsapp: string | null;
+  contact_id: string | null;
+  agent_id: string | null;
+}
+
+interface Contact {
+  id: string;
+  name: string;
+  phone: string | null;
+  stage: string | null;
+  updated_at: string;
+  agent_id: string | null;
+}
+
+interface Conversation {
+  id: string;
+  contact_id: string;
+  channel: string;
+}
+
+interface Message {
+  id: string;
+  conversation_id: string;
+  sender: string;
+  content: string;
+  channel: string | null;
+  sent_at: string;
+}
+
+interface ActionResult {
+  rule: string;
+  leadId: string;
+  success: boolean;
+  detail?: string;
+}
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+function getEnv(key: string): string {
+  const value = Deno.env.get(key);
+  if (!value) throw new Error(`Missing env var: ${key}`);
+  return value;
+}
+
+/**
+ * Send a free-form WhatsApp text message via Meta Cloud API.
+ * Only valid within the 24-hour customer service window.
+ */
+async function sendWhatsAppMessage(
+  accessToken: string,
+  phoneNumberId: string,
+  to: string,
+  text: string,
+): Promise<{ success: boolean; error?: string }> {
+  // Normalize phone: strip spaces/dashes, ensure it starts with country code digits only
+  const normalized = to.replace(/[\s\-\(\)]/g, "").replace(/^\+/, "");
+
+  const url =
+    `https://graph.facebook.com/v19.0/${phoneNumberId}/messages`;
+
+  const body = {
+    messaging_product: "whatsapp",
+    recipient_type: "individual",
+    to: normalized,
+    type: "text",
+    text: { preview_url: false, body: text },
+  };
+
+  try {
+    const resp = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (!resp.ok) {
+      const err = await resp.text();
+      return { success: false, error: err };
+    }
+    return { success: true };
+  } catch (e) {
+    return { success: false, error: String(e) };
+  }
+}
+
+/**
+ * Find or look-up the active WhatsApp conversation for a contact.
+ * Returns null if none exists.
+ */
+async function findWhatsAppConversation(
+  supabase: ReturnType<typeof createClient>,
+  contactId: string,
+): Promise<Conversation | null> {
+  const { data, error } = await supabase
+    .from("conversations")
+    .select("id, contact_id, channel")
+    .eq("contact_id", contactId)
+    .eq("channel", "whatsapp")
+    .order("id", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error || !data) return null;
+  return data as Conversation;
+}
+
+/**
+ * Check whether the last inbound message in a conversation is within 24 hours.
+ * Meta requires inbound contact within 24 hrs to send free-form messages.
+ */
+async function isWithin24HrWindow(
+  supabase: ReturnType<typeof createClient>,
+  conversationId: string,
+): Promise<boolean> {
+  const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+
+  const { data, error } = await supabase
+    .from("messages")
+    .select("id, sent_at")
+    .eq("conversation_id", conversationId)
+    .in("sender", ["in", "customer"]) // inbound from customer
+    .gte("sent_at", cutoff)
+    .limit(1)
+    .maybeSingle();
+
+  if (error || !data) return false;
+  return true;
+}
+
+/**
+ * Insert an internal note message into a conversation.
+ */
+async function addInternalNote(
+  supabase: ReturnType<typeof createClient>,
+  conversationId: string,
+  content: string,
+): Promise<{ success: boolean; error?: string }> {
+  const { error } = await supabase.from("messages").insert({
+    conversation_id: conversationId,
+    sender: "note",
+    content,
+    channel: null,
+    sent_at: new Date().toISOString(),
+  });
+
+  if (error) return { success: false, error: error.message };
+  return { success: true };
+}
+
+/**
+ * Check whether an internal note with the given content prefix was already
+ * saved for this conversation within the last `hours` hours.
+ */
+async function noteExistsRecently(
+  supabase: ReturnType<typeof createClient>,
+  conversationId: string,
+  contentLike: string,
+  hours: number,
+): Promise<boolean> {
+  const cutoff = new Date(
+    Date.now() - hours * 60 * 60 * 1000,
+  ).toISOString();
+
+  const { data, error } = await supabase
+    .from("messages")
+    .select("id")
+    .eq("conversation_id", conversationId)
+    .eq("sender", "note")
+    .ilike("content", `%${contentLike}%`)
+    .gte("sent_at", cutoff)
+    .limit(1)
+    .maybeSingle();
+
+  if (error || !data) return false;
+  return true;
+}
+
+// ---------------------------------------------------------------------------
+// Rule 1 — Lead estancado en Cotización 24 hrs
+// ---------------------------------------------------------------------------
+
+async function runRule1(
+  supabase: ReturnType<typeof createClient>,
+  accessToken: string,
+  phoneNumberId: string,
+): Promise<ActionResult[]> {
+  const results: ActionResult[] = [];
+
+  // Leads in 'cotizacion' stage not updated in the last 24 hrs
+  const cutoff24 = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+
+  const { data: leads, error: leadsError } = await supabase
+    .from("leads")
+    .select("id, name, stage, updated_at, whatsapp, contact_id, agent_id")
+    .eq("stage", "cotizacion")
+    .lt("updated_at", cutoff24);
+
+  if (leadsError) {
+    console.error("[Rule1] Error fetching leads:", leadsError.message);
+    return results;
+  }
+
+  if (!leads || leads.length === 0) {
+    console.log("[Rule1] No leads in cotizacion stalled >24h");
+    return results;
+  }
+
+  for (const lead of leads as Lead[]) {
+    try {
+      // Resolve contact
+      if (!lead.contact_id) {
+        results.push({
+          rule: "rule1",
+          leadId: lead.id,
+          success: false,
+          detail: "No contact_id on lead",
+        });
+        continue;
+      }
+
+      const { data: contact, error: contactError } = await supabase
+        .from("contacts")
+        .select("id, name, phone, stage, updated_at, agent_id")
+        .eq("id", lead.contact_id)
+        .maybeSingle();
+
+      if (contactError || !contact) {
+        results.push({
+          rule: "rule1",
+          leadId: lead.id,
+          success: false,
+          detail: `Contact not found: ${contactError?.message ?? "null"}`,
+        });
+        continue;
+      }
+
+      const contactData = contact as Contact;
+
+      // Find WhatsApp conversation
+      const conversation = await findWhatsAppConversation(
+        supabase,
+        contactData.id,
+      );
+
+      let whatsappSent = false;
+      let noteSaved = false;
+
+      if (conversation) {
+        const inWindow = await isWithin24HrWindow(supabase, conversation.id);
+        const phone = contactData.phone ?? lead.whatsapp;
+
+        if (inWindow && phone) {
+          const message =
+            `Hola ${contactData.name ?? lead.name}, ¿pudimos resolver tus dudas sobre nuestra propuesta? Estamos aquí para ayudarte 😊`;
+          const waResult = await sendWhatsAppMessage(
+            accessToken,
+            phoneNumberId,
+            phone,
+            message,
+          );
+          whatsappSent = waResult.success;
+          if (!waResult.success) {
+            console.warn(
+              `[Rule1] WhatsApp failed for lead ${lead.id}:`,
+              waResult.error,
+            );
+          }
+        } else {
+          console.log(
+            `[Rule1] Lead ${lead.id}: outside 24hr window or no phone — skipping WhatsApp`,
+          );
+        }
+
+        // Always add internal note to conversation
+        const noteContent =
+          "🤖 Recordatorio automático enviado al cliente (cotización 24hrs sin movimiento)";
+        const noteResult = await addInternalNote(
+          supabase,
+          conversation.id,
+          noteContent,
+        );
+        noteSaved = noteResult.success;
+        if (!noteResult.success) {
+          console.warn(
+            `[Rule1] Note failed for lead ${lead.id}:`,
+            noteResult.error,
+          );
+        }
+      } else {
+        console.log(
+          `[Rule1] Lead ${lead.id}: no WhatsApp conversation found`,
+        );
+      }
+
+      // Bump updated_at to prevent re-triggering next hour
+      const { error: updateError } = await supabase
+        .from("leads")
+        .update({ updated_at: new Date().toISOString() })
+        .eq("id", lead.id);
+
+      if (updateError) {
+        console.warn(
+          `[Rule1] Could not bump updated_at for lead ${lead.id}:`,
+          updateError.message,
+        );
+      }
+
+      results.push({
+        rule: "rule1",
+        leadId: lead.id,
+        success: true,
+        detail: `whatsappSent=${whatsappSent}, noteSaved=${noteSaved}`,
+      });
+    } catch (e) {
+      console.error(`[Rule1] Unexpected error for lead ${lead.id}:`, e);
+      results.push({
+        rule: "rule1",
+        leadId: lead.id,
+        success: false,
+        detail: String(e),
+      });
+    }
+  }
+
+  return results;
+}
+
+// ---------------------------------------------------------------------------
+// Rule 2 — Lead estancado en cualquier etapa 48 hrs (solo nota interna)
+// ---------------------------------------------------------------------------
+
+async function runRule2(
+  supabase: ReturnType<typeof createClient>,
+): Promise<ActionResult[]> {
+  const results: ActionResult[] = [];
+
+  const cutoff48 = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
+
+  const { data: leads, error: leadsError } = await supabase
+    .from("leads")
+    .select("id, name, stage, updated_at, whatsapp, contact_id, agent_id")
+    .lt("updated_at", cutoff48)
+    .not("stage", "eq", "finalizado");
+
+  if (leadsError) {
+    console.error("[Rule2] Error fetching leads:", leadsError.message);
+    return results;
+  }
+
+  if (!leads || leads.length === 0) {
+    console.log("[Rule2] No leads stalled >48h");
+    return results;
+  }
+
+  for (const lead of leads as Lead[]) {
+    try {
+      if (!lead.contact_id) {
+        results.push({
+          rule: "rule2",
+          leadId: lead.id,
+          success: false,
+          detail: "No contact_id on lead",
+        });
+        continue;
+      }
+
+      const conversation = await findWhatsAppConversation(
+        supabase,
+        lead.contact_id,
+      );
+
+      if (!conversation) {
+        // No conversation at all — skip silently (nothing to attach note to)
+        results.push({
+          rule: "rule2",
+          leadId: lead.id,
+          success: false,
+          detail: "No conversation found for contact",
+        });
+        continue;
+      }
+
+      const NOTE_MARKER = "Lead sin actividad por más de 48 horas";
+
+      // Skip if we already dropped this note in the last 48 hrs
+      const alreadyNoted = await noteExistsRecently(
+        supabase,
+        conversation.id,
+        NOTE_MARKER,
+        48,
+      );
+
+      if (alreadyNoted) {
+        results.push({
+          rule: "rule2",
+          leadId: lead.id,
+          success: true,
+          detail: "Note already exists — skipped",
+        });
+        continue;
+      }
+
+      const noteContent = `⏰ ${NOTE_MARKER}`;
+      const noteResult = await addInternalNote(
+        supabase,
+        conversation.id,
+        noteContent,
+      );
+
+      results.push({
+        rule: "rule2",
+        leadId: lead.id,
+        success: noteResult.success,
+        detail: noteResult.success
+          ? "Internal note saved"
+          : noteResult.error,
+      });
+    } catch (e) {
+      console.error(`[Rule2] Unexpected error for lead ${lead.id}:`, e);
+      results.push({
+        rule: "rule2",
+        leadId: lead.id,
+        success: false,
+        detail: String(e),
+      });
+    }
+  }
+
+  return results;
+}
+
+// ---------------------------------------------------------------------------
+// Main handler
+// ---------------------------------------------------------------------------
+
+Deno.serve(async (req: Request): Promise<Response> => {
+  // ── Auth ────────────────────────────────────────────────────────────────
+  const cronSecret = Deno.env.get("CRON_SECRET");
+  if (cronSecret) {
+    const authHeader = req.headers.get("Authorization") ?? "";
+    const token = authHeader.startsWith("Bearer ")
+      ? authHeader.slice(7)
+      : null;
+    if (token !== cronSecret) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+  }
+
+  // ── Supabase client (service role — bypasses RLS) ───────────────────────
+  const supabaseUrl = getEnv("SUPABASE_URL");
+  const supabaseServiceRoleKey = getEnv("SUPABASE_SERVICE_ROLE_KEY");
+  const supabase = createClient(supabaseUrl, supabaseServiceRoleKey, {
+    auth: { persistSession: false },
+  });
+
+  // ── WhatsApp credentials ─────────────────────────────────────────────────
+  const accessToken = Deno.env.get("WHATSAPP_ACCESS_TOKEN") ?? "";
+  const phoneNumberId = Deno.env.get("WHATSAPP_PHONE_NUMBER_ID") ?? "";
+
+  const missingWa = !accessToken || !phoneNumberId;
+  if (missingWa) {
+    console.warn(
+      "[automation-cron] WHATSAPP_ACCESS_TOKEN or WHATSAPP_PHONE_NUMBER_ID not set — WhatsApp sends will be skipped",
+    );
+  }
+
+  // ── Run rules ────────────────────────────────────────────────────────────
+  const startedAt = new Date().toISOString();
+
+  const [rule1Results, rule2Results] = await Promise.all([
+    runRule1(supabase, accessToken, phoneNumberId),
+    runRule2(supabase),
+  ]);
+
+  const allResults = [...rule1Results, ...rule2Results];
+
+  const summary = {
+    ranAt: startedAt,
+    rule1: {
+      total: rule1Results.length,
+      success: rule1Results.filter((r) => r.success).length,
+      failed: rule1Results.filter((r) => !r.success).length,
+    },
+    rule2: {
+      total: rule2Results.length,
+      success: rule2Results.filter((r) => r.success).length,
+      failed: rule2Results.filter((r) => !r.success).length,
+    },
+    details: allResults,
+  };
+
+  console.log("[automation-cron] Summary:", JSON.stringify(summary, null, 2));
+
+  return new Response(JSON.stringify(summary), {
+    status: 200,
+    headers: { "Content-Type": "application/json" },
+  });
+});
