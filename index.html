@@ -543,10 +543,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div class="msgs-area" id="msgsArea"><div class="dsep">Selecciona un contacto para ver la conversación</div></div>
     <div id="slashDiv" style="display:none"></div>
     <div class="iz">
+      <div id="noteBanner" style="display:none;background:#fef9c3;border:1px solid #fde047;border-radius:8px;padding:4px 10px;font-size:11px;color:#713f12;margin-bottom:4px;display:none;align-items:center;gap:6px">
+        <i class="ti ti-note" style="font-size:13px"></i> Modo <b>Nota Interna</b> — el cliente NO verá este mensaje
+        <span onclick="toggleNoteMode()" style="margin-left:auto;cursor:pointer;font-weight:bold;font-size:13px">✕</span>
+      </div>
       <div class="msg-row">
         <div class="ib"><i class="ti ti-paperclip"></i></div>
         <div class="ib"><i class="ti ti-mood-smile"></i></div>
         <input class="minput" id="msgInput" placeholder="Escribe o usa / para respuestas rápidas...">
+        <button class="ib" id="noteModeBtn" onclick="toggleNoteMode()" title="Nota interna" style="background:none;border:none;cursor:pointer;padding:0 4px"><i class="ti ti-note" style="font-size:18px;color:var(--txt3)"></i></button>
         <button class="sbtn" id="sendBtn"><i class="ti ti-send"></i></button>
       </div>
       <div class="tr" id="toolsRow"></div>
@@ -2259,9 +2264,26 @@ document.getElementById('msgInput')?.addEventListener('keydown',function(e){
 document.getElementById('sendBtn')?.addEventListener('click',sendMsg);
 document.getElementById('msgInput')?.addEventListener('keydown',function(e){if(slashMode)return;if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();}});
 var aiSugs=['¿Le gustaría agendar una demo personalizada esta semana?','Puedo conectarle con un especialista ahora mismo.','¿Tiene dudas sobre la integración de Facebook o Instagram?','¿Prefiere continuar la conversación por WhatsApp o aquí?'];
+var noteMode=false;
+function toggleNoteMode(){
+  noteMode=!noteMode;
+  var banner=document.getElementById('noteBanner');
+  var btn=document.getElementById('noteModeBtn');
+  var inp=document.getElementById('msgInput');
+  if(banner){banner.style.display=noteMode?'flex':'none';}
+  if(btn){btn.querySelector('i').style.color=noteMode?'#b45309':'var(--txt3)';btn.title=noteMode?'Cancelar nota interna':'Nota interna';}
+  if(inp){inp.placeholder=noteMode?'Escribe una nota interna (solo visible para el equipo)...':'Escribe o usa / para respuestas rápidas...';}
+}
 function sendMsg(){
   var inp=document.getElementById('msgInput');const txt=inp.value.trim();if(!txt||txt.startsWith('/'))return;
   var ts=now();
+  if(noteMode){
+    if(aC){if(!msgs[aC.id])msgs[aC.id]=[];msgs[aC.id].push({t:'note',txt,time:ts,ch:null});}
+    inp.value='';renderMsgs();
+    if(aC?.dbId)saveMessageToDB(aC.dbId,null,'note',txt);
+    toggleNoteMode();
+    return;
+  }
   if(aC){if(!msgs[aC.id])msgs[aC.id]=[];msgs[aC.id].push({t:'out',txt,time:ts,ch:aCh});}
   inp.value='';renderMsgs();
   if(aC?.dbId)saveMessageToDB(aC.dbId,aCh,'agent',txt);
