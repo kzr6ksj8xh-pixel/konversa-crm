@@ -1890,7 +1890,7 @@ function switchView(v){
 document.querySelectorAll('.tn-btn[data-view],.bn-btn[data-view],.ls-btn[data-view]').forEach(el=>el.addEventListener('click',()=>switchView(el.dataset.view)));
 document.getElementById('bnTplBtn')?.addEventListener('click',()=>{switchView('chat');tplOpen=true;tplTab='browse';renderTpl();});
 document.getElementById('bnNewLeadBtn')?.addEventListener('click',()=>{document.getElementById('leadModal').classList.add('open');setTimeout(()=>{var f=document.getElementById('fName');if(f)f.focus();},50);});
-document.getElementById('lsIntegrationsBtn')?.addEventListener('click',()=>{renderIntegrations();document.getElementById('intModal')?.classList.add('open');});
+document.getElementById('lsIntegrationsBtn')?.addEventListener('click',()=>{renderIntegrations();document.getElementById('integrationsModal')?.classList.add('open');});
 // Sync sidebar user avatar with logged-in user initials
 function updateSidebarUser(){var u=document.getElementById('lsUserAvatar');if(u&&currentUser){var nm=currentUser.user_metadata?.name||currentUser.email||'K';u.textContent=nm.split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();}}
 
