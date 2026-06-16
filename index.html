@@ -771,25 +771,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
           <div style="font-size:12px;font-weight:600;margin-bottom:10px;text-decoration:underline">ACTIVIDAD DEL AGENTE DE IA PARA ÚLTIMOS 7 DÍAS</div>
           <div style="font-size:12px;font-weight:600;margin-bottom:8px">Estadísticas</div>
           <div class="g2" style="gap:8px;margin-bottom:16px">
-            <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px"><div style="font-size:10px;color:var(--txt2)">Leads únicos</div><div style="font-size:18px;font-weight:700">11 <span style="font-size:10px;color:#059669">↑ 11 (100%)</span></div></div>
-            <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px"><div style="font-size:10px;color:var(--txt2)">Conversaciones respondidas</div><div style="font-size:18px;font-weight:700">4 <span style="font-size:10px;color:#059669">↑ 4 (100%)</span></div></div>
-            <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px"><div style="font-size:10px;color:var(--txt2)">Leads del fin de semana</div><div style="font-size:18px;font-weight:700">0 <span style="font-size:10px;color:var(--txt3)">—</span></div></div>
-            <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px"><div style="font-size:10px;color:var(--txt2)">Conversaciones del fin de semana</div><div style="font-size:18px;font-weight:700">0 <span style="font-size:10px;color:var(--txt3)">—</span></div></div>
-            <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px"><div style="font-size:10px;color:var(--txt2)">Tasa de derivación ⓘ</div><div style="font-size:18px;font-weight:700">91% <span style="font-size:10px;color:#059669">↑ (91%)</span></div></div>
-            <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px"><div style="font-size:10px;color:var(--txt2)">Tiempo promedio de respuesta</div><div style="font-size:18px;font-weight:700">15s <span style="font-size:10px;color:#059669">↑ 15s (100%)</span></div></div>
-            <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px"><div style="font-size:10px;color:var(--txt2)">Preguntas sin responder</div><div style="font-size:18px;font-weight:700">0 <span style="font-size:10px;color:var(--txt3)">—</span></div></div>
+            <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px"><div style="font-size:10px;color:var(--txt2)">Leads únicos</div><div id="aia-stat-leads" style="font-size:18px;font-weight:700">— <span style="font-size:10px;color:var(--txt3)">cargando…</span></div></div>
+            <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px"><div style="font-size:10px;color:var(--txt2)">Conversaciones respondidas</div><div id="aia-stat-convs" style="font-size:18px;font-weight:700">— <span style="font-size:10px;color:var(--txt3)">cargando…</span></div></div>
+            <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px"><div style="font-size:10px;color:var(--txt2)">Leads del fin de semana</div><div id="aia-stat-wkleads" style="font-size:18px;font-weight:700">—</div></div>
+            <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px"><div style="font-size:10px;color:var(--txt2)">Conversaciones del fin de semana</div><div id="aia-stat-wkconvs" style="font-size:18px;font-weight:700">—</div></div>
+            <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px"><div style="font-size:10px;color:var(--txt2)">Tasa de derivación ⓘ</div><div id="aia-stat-escrate" style="font-size:18px;font-weight:700">—</div></div>
+            <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px"><div style="font-size:10px;color:var(--txt2)">Tiempo promedio de respuesta</div><div id="aia-stat-avgtime" style="font-size:18px;font-weight:700">—</div></div>
+            <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px"><div style="font-size:10px;color:var(--txt2)">Preguntas sin responder</div><div id="aia-stat-unanswered" style="font-size:18px;font-weight:700">—</div></div>
           </div>
           <div style="font-size:12px;font-weight:600;margin-bottom:8px">Conversaciones por canal</div>
-          <div style="display:flex;gap:16px;margin-bottom:8px">
-            <span style="font-size:10px"><span style="color:#25d366">●</span> NewPingus <b>9</b></span>
-            <span style="font-size:10px"><span style="color:#1877f2">●</span> PINGUS HG <b>1</b></span>
-            <span style="font-size:10px"><span style="color:#25d366">●</span> Chats (PINGUS HG S…) <b>1</b></span>
-          </div>
+          <div id="aia-channels" style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:8px"><span style="font-size:10px;color:var(--txt3)">cargando…</span></div>
           <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:14px;height:120px;display:flex;align-items:center;justify-content:center;color:var(--txt3);font-size:11px">📊 Gráfica de actividad por canal</div>
           <div style="font-size:12px;font-weight:600;margin:16px 0 8px">Uso de créditos por tipo de mensaje</div>
           <div class="g2" style="gap:8px">
-            <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px"><div style="font-size:10px;color:var(--txt2)">● Procesamiento de mensajes de texto</div><div style="font-size:18px;font-weight:700">418</div></div>
-            <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px"><div style="font-size:10px;color:var(--txt2)">● Procesamiento de mensajes de voz</div><div style="font-size:18px;font-weight:700">0</div></div>
+            <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px"><div style="font-size:10px;color:var(--txt2)">● Procesamiento de mensajes de texto</div><div id="aia-stat-textcredits" style="font-size:18px;font-weight:700">—</div></div>
+            <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px"><div style="font-size:10px;color:var(--txt2)">● Procesamiento de mensajes de voz</div><div id="aia-stat-voicecredits" style="font-size:18px;font-weight:700">0</div></div>
           </div>
         </div>
         <!-- PERSONALIDAD TAB -->
@@ -1877,6 +1873,7 @@ function switchView(v){
   document.querySelectorAll('.tn-btn[data-view],.bn-btn[data-view],.ls-btn[data-view]').forEach(b=>b.classList.toggle('on',b.dataset.view===v));
   if(v==='pipeline')renderPipeline();
   if(v==='products')renderProducts();
+  if(v==='aiagent')loadAIAgentStats();
 }
 document.querySelectorAll('.tn-btn[data-view],.bn-btn[data-view],.ls-btn[data-view]').forEach(el=>el.addEventListener('click',()=>switchView(el.dataset.view)));
 document.getElementById('bnTplBtn')?.addEventListener('click',()=>{switchView('chat');tplOpen=true;tplTab='browse';renderTpl();});
@@ -1889,6 +1886,77 @@ function updateSidebarUser(){var u=document.getElementById('lsUserAvatar');if(u&
    AI AGENT FUNCTIONS
 ══════════════════════════════════════ */
 var aiAgentActive=true;
+var aiaStatsLoaded=false;
+async function loadAIAgentStats(){
+  if(!sb||demoMode)return;
+  var set=function(id,html){var el=document.getElementById(id);if(el)el.innerHTML=html;};
+  try{
+    var since=new Date(Date.now()-7*24*60*60*1000).toISOString();
+    // Fetch all AI-related messages in last 7 days
+    var{data:msgs,error}=await sb.from('messages')
+      .select('conversation_id,sender,channel,sent_at,extension')
+      .gte('sent_at',since);
+    if(error)throw error;
+    // Unique leads (contacts who sent messages as customer)
+    var custMsgs=msgs.filter(m=>m.sender==='customer');
+    var aiMsgs=msgs.filter(m=>m.sender==='ai');
+    var uniqueLeads=new Set(custMsgs.map(m=>m.conversation_id)).size;
+    var convRespondidas=new Set(aiMsgs.map(m=>m.conversation_id)).size;
+    // Weekend stats (DOW 0=Sun, 6=Sat)
+    var isWeekend=function(d){var dow=new Date(d).getDay();return dow===0||dow===6;};
+    var wkLeads=new Set(custMsgs.filter(m=>isWeekend(m.sent_at)).map(m=>m.conversation_id)).size;
+    var wkConvs=new Set(aiMsgs.filter(m=>isWeekend(m.sent_at)).map(m=>m.conversation_id)).size;
+    // Escalation rate: convs that had 'agent' sender / total AI convs
+    var agentMsgs=msgs.filter(m=>m.sender==='agent'||m.sender==='out');
+    var escalated=new Set(agentMsgs.map(m=>m.conversation_id)).size;
+    var escRate=convRespondidas>0?Math.round((escalated/Math.max(convRespondidas,1))*100):0;
+    // Unanswered: customer convs with no AI reply
+    var aiConvSet=new Set(aiMsgs.map(m=>m.conversation_id));
+    var unanswered=new Set(custMsgs.filter(m=>!aiConvSet.has(m.conversation_id)).map(m=>m.conversation_id)).size;
+    // Avg response time: for each AI msg find nearest prior customer msg in same conv
+    var byConv={};
+    msgs.forEach(m=>{if(!byConv[m.conversation_id])byConv[m.conversation_id]=[];byConv[m.conversation_id].push(m);});
+    var deltas=[];
+    Object.values(byConv).forEach(function(ms){
+      ms.sort(function(a,b){return new Date(a.sent_at)-new Date(b.sent_at);});
+      for(var i=1;i<ms.length;i++){
+        if(ms[i].sender==='ai'){
+          for(var j=i-1;j>=0;j--){
+            if(ms[j].sender==='customer'){
+              deltas.push((new Date(ms[i].sent_at)-new Date(ms[j].sent_at))/1000);
+              break;
+            }
+          }
+        }
+      }
+    });
+    var avgTime=deltas.length>0?Math.round(deltas.reduce(function(a,b){return a+b;},0)/deltas.length):0;
+    var avgTimeFmt=avgTime<60?avgTime+'s':Math.round(avgTime/60)+'m';
+    // Credits by type
+    var textCredits=aiMsgs.filter(m=>!m.extension||m.extension==='text').length;
+    var voiceCredits=aiMsgs.filter(m=>m.extension==='audio'||m.extension==='voice'||m.extension==='ogg').length;
+    // Channels
+    var chanCount={};
+    aiMsgs.forEach(m=>{var c=m.channel||'WA';chanCount[c]=(chanCount[c]||0)+1;});
+    var chanColors={'whatsapp':'#25d366','wa':'#25d366','facebook':'#1877f2','fb':'#1877f2','instagram':'#e1306c','ig':'#e1306c','email':'#6366f1'};
+    var chanHtml=Object.entries(chanCount).map(function(e){
+      var col=chanColors[e[0].toLowerCase()]||'#aaa';
+      return '<span style="font-size:10px"><span style="color:'+col+'">●</span> '+e[0]+' <b>'+e[1]+'</b></span>';
+    }).join('');
+    // Update DOM
+    set('aia-stat-leads',uniqueLeads+' <span style="font-size:10px;color:#059669">↑ '+uniqueLeads+'</span>');
+    set('aia-stat-convs',convRespondidas+' <span style="font-size:10px;color:#059669">↑ '+convRespondidas+'</span>');
+    set('aia-stat-wkleads',wkLeads+' <span style="font-size:10px;color:var(--txt3)">'+( wkLeads===0?'—':'')+'</span>');
+    set('aia-stat-wkconvs',wkConvs+' <span style="font-size:10px;color:var(--txt3)">'+( wkConvs===0?'—':'')+'</span>');
+    set('aia-stat-escrate',escRate+'% <span style="font-size:10px;color:#059669">('+escRate+'%)</span>');
+    set('aia-stat-avgtime',avgTimeFmt+' <span style="font-size:10px;color:#059669">IA</span>');
+    set('aia-stat-unanswered',unanswered+' <span style="font-size:10px;color:var(--txt3)">'+( unanswered===0?'—':'sin resp.')+'</span>');
+    set('aia-stat-textcredits',textCredits);
+    set('aia-stat-voicecredits',voiceCredits);
+    var chanEl=document.getElementById('aia-channels');
+    if(chanEl)chanEl.innerHTML=chanHtml||'<span style="font-size:10px;color:var(--txt3)">Sin actividad</span>';
+  }catch(e){console.error('loadAIAgentStats',e);}
+}
 function switchAITab(tab){
   document.querySelectorAll('.aia-tab').forEach(t=>t.classList.toggle('on',t.dataset.aiatab===tab));
   document.querySelectorAll('.aia-panel').forEach(p=>{p.classList.remove('active');});
