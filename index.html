@@ -2063,7 +2063,15 @@ function renderTools(){
   document.querySelectorAll('[data-ch]').forEach(el=>{
     const ok=el.dataset.ch==='note'||avail.includes(el.dataset.ch);
     if(!ok)return;
-    el.addEventListener('click',()=>{aCh=el.dataset.ch;renderTools();renderMsgs();});
+    el.addEventListener('click',()=>{
+      aCh=el.dataset.ch;
+      // Mostrar/ocultar banner de nota interna
+      var nb=document.getElementById('noteBanner');
+      var inp=document.getElementById('msgInput');
+      if(nb){nb.style.display=aCh==='note'?'flex':'none';}
+      if(inp){inp.placeholder=aCh==='note'?'Escribe una nota interna (solo visible para el equipo)...':'Escribe o usa / para respuestas rápidas...';}
+      renderTools();renderMsgs();
+    });
   });
   document.getElementById('tplChipBtn')?.addEventListener('click',()=>{tplOpen=true;tplTab='browse';renderTpl();});
   document.getElementById('newTplChipBtn')?.addEventListener('click',()=>{tplOpen=true;tplTab='create';renderTpl();});
@@ -2277,11 +2285,19 @@ function toggleNoteMode(){
 function sendMsg(){
   var inp=document.getElementById('msgInput');const txt=inp.value.trim();if(!txt||txt.startsWith('/'))return;
   var ts=now();
-  if(noteMode){
+  if(noteMode||aCh==='note'){
     if(aC){if(!msgs[aC.id])msgs[aC.id]=[];msgs[aC.id].push({t:'note',txt,time:ts,ch:null});}
     inp.value='';renderMsgs();
     if(aC?.dbId)saveMessageToDB(aC.dbId,null,'note',txt);
-    toggleNoteMode();
+    if(noteMode)toggleNoteMode();
+    // Volver a canal principal del contacto tras enviar nota
+    if(aCh==='note'){
+      aCh=aC?.ch||'wa';
+      var nb=document.getElementById('noteBanner');
+      if(nb)nb.style.display='none';
+      inp.placeholder='Escribe o usa / para respuestas rápidas...';
+      renderTools();
+    }
     return;
   }
   if(aC){if(!msgs[aC.id])msgs[aC.id]=[];msgs[aC.id].push({t:'out',txt,time:ts,ch:aCh});}
