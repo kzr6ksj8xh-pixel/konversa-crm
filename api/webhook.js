@@ -161,8 +161,8 @@ async function loadHistory(sb, conversationId) {
       .order('sent_at', { ascending: true }).limit(20);
     if (!data) return [];
     return data
-      .filter(m => m.sender === 'in' || m.sender === 'out' || m.sender === 'ai')
-      .map(m => ({ role: m.sender === 'in' ? 'user' : 'assistant', content: m.content }));
+      .filter(m => m.sender === 'in' || m.sender === 'customer' || m.sender === 'out' || m.sender === 'ai')
+      .map(m => ({ role: (m.sender === 'in' || m.sender === 'customer') ? 'user' : 'assistant', content: m.content }));
 }
 
 // ── Claude API ────────────────────────────────────────────
@@ -210,7 +210,7 @@ async function processIncoming(channel, handle, name, text) {
     if (!convId) return callClaude([], text);
 
   const history = await loadHistory(sb, convId);
-    await persistMessage(sb, convId, channel, 'in', text);
+    await persistMessage(sb, convId, channel, 'customer', text);
 
   const reply = await callClaude(history, text);
     await persistMessage(sb, convId, channel, 'ai', reply);
