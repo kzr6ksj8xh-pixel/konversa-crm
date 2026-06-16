@@ -1974,7 +1974,7 @@ setTimeout(renderActions,500);
 function renderContactList(){
   var q=(document.getElementById('srch')?.value||'').toLowerCase();
   var activeTab=document.querySelector('.itab.on')?.textContent||'Todo';
-  var list=contacts.filter(c=>(chFilt==='all'||c.ch===chFilt)&&(!q||c.name.toLowerCase().includes(q)||c.comp.toLowerCase().includes(q)));
+  var list=contacts.filter(c=>(chFilt==='all'||c.ch===chFilt)&&(!q||c.name.toLowerCase().includes(q)||(c.comp||'').toLowerCase().includes(q)||(c.phone||'').includes(q)||(c.email||'').toLowerCase().includes(q)));
   if(activeTab==='Sin leer') list=list.filter(c=>c.unread>0);
   if(activeTab==='Míos') list=list.filter(c=>c.ag&&currentUser&&c.ag===currentUser.id);
   list=list.slice().sort(function(a,b){return (b.lastMsgAt||0)-(a.lastMsgAt||0);});
