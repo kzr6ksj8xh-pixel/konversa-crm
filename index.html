@@ -2256,11 +2256,12 @@ function renderTpl(){
         if(t.type==='text')p=`<div class="tpi-pv pt">${t.content.substring(0,68)}...</div>`;
         else if(t.type==='photo')p=`<div class="tpi-pv pp"><i class="ti ti-photo" style="font-size:14px"></i>${t.content}</div>`;
         else p=`<div class="tpi-pv pl"><div style="font-size:9px">${t.content}</div><div style="font-size:11px;font-weight:500">${t.linkTitle||''}</div></div>`;
-        return`<div class="tpi">${p}<div class="tpi-ft"><div><div class="tpi-nm">${t.name}</div><div style="font-size:9px;color:var(--txt3)">/${t.shortcut}</div></div><button class="usebtn" data-use="${t.id}">Usar</button></div></div>`;
+        return`<div class="tpi">${p}<div class="tpi-ft"><div><div class="tpi-nm">${t.name}</div><div style="font-size:9px;color:var(--txt3)">/${t.shortcut}</div></div><div style="display:flex;gap:4px"><button class="usebtn" data-use="${t.id}">Usar</button><button class="usebtn" data-del="${t.id}" style="background:#fee2e2;color:#991b1b;border-color:#fca5a5" title="Borrar">✕</button></div></div></div>`;
       }).join(''):`<div style="text-align:center;padding:20px;font-size:11px;color:var(--txt3)">Sin resultados</div>`}</div>`;
     document.querySelectorAll('[data-tc]').forEach(el=>el.addEventListener('click',()=>{tplCat=el.dataset.tc;renderTpl();}));
     const si=document.getElementById('tpSr');if(si)si.addEventListener('input',e=>{tplQ=e.target.value;renderTpl();});
     document.querySelectorAll('[data-use]').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();useTpl(parseInt(b.dataset.use));}));
+    document.querySelectorAll('[data-del]').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();deleteTpl(parseInt(b.dataset.del));}));
   } else {
     body.innerHTML=`<div class="ntf-form">
       <div class="ff"><label>Tipo</label><div class="type-row">
@@ -2295,6 +2296,18 @@ function saveTpl(){
   saveTemplateToDB(t).then(function(saved){if(saved)t.dbId=saved.id;});
 }
 
+async function deleteTpl(id){
+  var t=templates.find(x=>x.id===id);if(!t)return;
+  if(!confirm(`¿Borrar plantilla "${t.name}"?`))return;
+  templates=templates.filter(x=>x.id!==id);
+  if(sb&&!demoMode&&t.dbId){
+    await sb.from('templates').delete().eq('id',t.dbId);
+  } else if(sb&&!demoMode){
+    await sb.from('templates').delete().eq('id',id);
+  }
+  toast(`"${t.name}" eliminada`);
+  renderTpl();
+}
 function useTpl(id){
   var t=templates.find(x=>x.id===id);if(!t)return;
   var ts=now();
