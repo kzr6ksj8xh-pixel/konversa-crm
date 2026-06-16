@@ -150,6 +150,67 @@ export default async function handler(req, res) {
         return res.status(200).json({ status: 'order_synced', id: o.id });
       }
 
+      // ── Carrito abandonado ──
+      case 'checkouts/create':
+      case 'checkouts/update': {
+        const c = body;
+
+        // Solo procesar si hay email o teléfono (cliente identificado)
+        const email = c.email || c.customer?.email;
+        const phone = c.phone || c.billing_address?.phone || c.shipping_address?.phone || c.customer?.phone;
+        if (!email && !phone) return res.status(200).json({ status: 'ignored_anonymous' });
+
+        // Solo si el carrito NO está completado
+        if (c.completed_at) return res.status(200).json({ status: 'ignored_completed' });
+
+        // Evitar duplicados: solo procesar si el carrito lleva >30 min sin cambios
+        const updatedAt = new Date(c.updated_at || c.created_at).getTime();
+        if (Date.now() - updatedAt < 30 * 60 * 1000) {
+          return res.status(200).json({ status: 'ignored_too_recent' });
+        }
+
+        // Buscar contacto en Supabase por teléfono o email
+        let contact = null;
+        if (phone) {
+          const cleanPhone = phone.replace(/\D/g, '');
+          const { data } = await sb.from('contacts').select('id,name').eq('phone', cleanPhone).limit(1).maybeSingle();
+          contact = data;
+        }
+        if (!contact && email) {
+          const { data } = await sb.from('contacts').select('id,name').eq('email', email).limit(1).maybeSingle();
+          contact = data;
+        }
+        if (!contact) return res.status(200).json({ status: 'ignored_no_contact' });
+
+        // Buscar conversación activa del contacto
+        const { data: conv } = await sb.from('conversations')
+          .select('id').eq('contact_id', contact.id).order('created_at', { ascending: false }).limit(1).maybeSingle();
+        if (!conv) return res.status(200).json({ status: 'ignored_no_conversation' });
+
+        // Construir resumen del carrito
+        const items = (c.line_items || []);
+        const total = parseFloat(c.total_price) || 0;
+        const currency = c.currency || 'MXN';
+        const itemList = items.slice(0, 3).map(i => `${i.title} x${i.quantity}`).join(', ');
+        const more = items.length > 3 ? ` y ${items.length - 3} más` : '';
+        const noteText = `🛒 Carrito abandonado en Shopify\n${itemList}${more}\nTotal: $${total.toFixed(2)} ${currency}\n${c.abandoned_checkout_url || ''}`.trim();
+
+        // Guardar como nota interna en la conversación
+        await sb.from('messages').insert({
+          conversation_id: conv.id,
+          sender: 'note',
+          content: noteText,
+          channel: 'wa',
+          sent_at: new Date().toISOString()
+        });
+
+        // Actualizar updated_at del contacto para que suba en la lista
+        await sb.from('contacts').update({ updated_at: new Date().toISOString() }).eq('id', contact.id);
+
+        console.log(`[Shopify] Carrito abandonado registrado para contacto ${contact.id}`);
+        return res.status(200).json({ status: 'abandoned_cart_noted', contact_id: contact.id });
+      }
+
       default:
         console.log(`Topic no manejado: ${topic}`);
         return res.status(200).json({ status: 'ignored', topic });
