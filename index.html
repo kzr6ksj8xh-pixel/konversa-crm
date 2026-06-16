@@ -1139,7 +1139,7 @@ async function loadMessagesFromDB(){
       if(!cid)return;
       if(!msgs[cid])msgs[cid]=[];
       msgs[cid].push({
-        t:m.sender==='in'?'in':m.sender==='note'?'note':m.sender==='tpl'?'tpl':'out',
+        t:(m.sender==='in'||m.sender==='customer')?'in':m.sender==='note'?'note':m.sender==='tpl'?'tpl':'out',
         txt:m.content,
         time:timeOnly(m.sent_at),
         ch:m.channel||m.conversations?.channel||'wa'
@@ -1322,7 +1322,7 @@ async function handleRealtimeMessage(m){
   // Agregar mensaje al cache local
   if(!msgs[contactId])msgs[contactId]=[];
   var newMsg={
-    t: m.sender==='in'?'in':m.sender==='note'?'note':m.sender==='tpl'?'tpl':'out',
+    t: (m.sender==='in'||m.sender==='customer')?'in':m.sender==='note'?'note':m.sender==='tpl'?'tpl':'out',
     txt: m.content,
     time: timeOnly(m.sent_at),
     ch: channel
