@@ -832,9 +832,12 @@ Solo vendemos purificadores de aire a base de ozono.
             <thead><tr style="border-bottom:2px solid var(--accent)"><th style="padding:8px;text-align:left">☐</th><th style="padding:8px;text-align:left">NOMBRE DE LA FUENTE</th><th style="padding:8px;text-align:left">TIPO</th><th style="padding:8px;text-align:left">VECES USADAS</th></tr></thead>
             <tbody>
               <tr style="background:#fff0e8;border-bottom:1px solid var(--border)"><td style="padding:8px">☐</td><td style="padding:8px;font-weight:600;color:var(--accent)">+ Añadir una nueva fuente</td><td></td><td></td></tr>
-              <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px">☐</td><td style="padding:8px"><a href="#" style="color:#2563eb">https://www.grupopingus.com</a></td><td style="padding:8px">URL</td><td style="padding:8px">🟢 Ver fuente &nbsp; 0</td></tr>
-              <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px">☐</td><td style="padding:8px"><a href="#" style="color:#2563eb">Grupo Pingus</a></td><td style="padding:8px">Texto</td><td style="padding:8px">0</td></tr>
-              <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px">☐</td><td style="padding:8px"><a href="#" style="color:#2563eb">Base de Conocimiento PINGUS</a></td><td style="padding:8px">Archivo</td><td style="padding:8px">12</td></tr>
+              <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px">☐</td><td style="padding:8px"><a href="https://www.grupopingus.com" target="_blank" style="color:#2563eb">https://www.grupopingus.com</a></td><td style="padding:8px">URL</td><td style="padding:8px">🟢 Ver fuente &nbsp; 0</td></tr>
+              <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px">☐</td><td style="padding:8px"><a href="https://docs.google.com/document/d/1LbPShBxNgd4qy9vnjh2bGoZq8C7nxxlcBWIsrsUtEUc/edit" target="_blank" style="color:#2563eb">Base de Conocimiento PINGUS</a> <span style="font-size:9px;padding:2px 6px;background:#059669;color:#fff;border-radius:4px">✓ Drive</span></td><td style="padding:8px">Google Doc</td><td style="padding:8px">🟢 Activa</td></tr>
+              <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px">☐</td><td style="padding:8px" colspan="3" style="font-size:10px;color:var(--txt2)">
+                <b>Catálogo:</b> P4 $2,190 (30m²) · ULTRA 150 $1,986 (50m²) · CIR 150 $2,200 (50m²) · AQUA 500 $1,450 (100m²) · AQUA 1000 $1,650 (150m²) · CK30 UVC $3,890 (clínicas)<br>
+                <b>Envío:</b> Gratis, 2 días hábiles · <b>Garantía:</b> 6 meses · <b>Pago:</b> Tarjeta, PayPal, Transferencia · <b>Horario:</b> Lun-Sáb 10:00-19:00
+              </td></tr>
               <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px">☐</td><td style="padding:8px"><a href="#" style="color:#2563eb">Conocimiento general</a></td><td style="padding:8px;display:flex;gap:4px;align-items:center">Texto <span style="font-size:9px;padding:2px 6px;background:#f59e0b;color:#fff;border-radius:4px">Fuente recomendada</span></td><td style="padding:8px">0</td></tr>
             </tbody>
           </table>
@@ -1978,10 +1981,36 @@ function toggleAgentStatus(){
   }
 }
 var aiaResponses={
-  'hola':['¡Hola! 👋 Soy el asistente de Grupo PINGUS. ¿Buscas un purificador de aire o agua?','¡Hola! Soy la IA de Grupo PINGUS – The Health Guardian. ¿En qué te puedo ayudar?'],
-  'precio':['Nuestros purificadores van desde $1,795 MXN. ¿Me dices qué espacio quieres purificar y los m² para recomendarte el ideal?'],
-  'envío':['El envío es GRATIS a toda la República Mexicana. Llega en 2 días hábiles. ¿Te interesa algún modelo en particular?'],
-  'garantía':['Todos nuestros equipos tienen 6 meses de garantía contra defectos de fábrica y soporte directo en México 🇲🇽'],
+  'hola':['¡Hola! Soy el asistente de PINGUS. ¿Qué espacio quieres purificar: aire, agua o ambos?','¡Hola! Soy la IA de Grupo PINGUS – The Health Guardian. ¿En qué te puedo ayudar?'],
+  'precio':['Nuestros equipos van de $1,450 a $3,890 MXN. ¿Quieres que te recomiende uno según tu espacio?'],
+  'precios':['Nuestros equipos van de $1,450 a $3,890 MXN. ¿Quieres que te recomiende uno según tu espacio?'],
+  'lista':['Nuestros equipos van de $1,450 a $3,890 MXN. ¿Quieres que te recomiende uno según tu espacio?'],
+  'catálogo':['Claro, tenemos: P4 ($2,190 / 30m²), ULTRA 150 ($1,986 / 50m²), CIR 150 ($2,200 / 50m²), AQUA 500 ($1,450 / 100m²), AQUA 1000 ($1,650 / 150m²) y CK30 UVC ($3,890 / clínicas). ¿Cuántos m² tiene tu espacio?'],
+  'envío':['El envío es GRATIS a toda la República Mexicana. Llega en 2 días hábiles por DHL, Estafeta, FedEx o UPS con seguimiento incluido.'],
+  'envio':['El envío es GRATIS a toda la República Mexicana. Llega en 2 días hábiles con seguimiento.'],
+  'garantía':['Todos nuestros equipos tienen 6 meses de garantía contra defectos de fábrica y soporte directo en México.'],
+  'garantia':['Todos nuestros equipos tienen 6 meses de garantía contra defectos de fábrica y soporte directo en México.'],
+  'pago':['Puedes pagar con tarjeta de crédito/débito, PayPal o transferencia bancaria. Compra 100% segura.'],
+  'factura':['Para facturación te conecto con un asesor que te apoya con tus datos fiscales. Un momento...'],
+  'p4':['El P4 cuesta $2,190 MXN. Purificador de aire para espacios hasta 30 m² — ideal para dormitorios, oficinas privadas y automóviles. Mira más aquí: https://www.grupopingus.com/products/purificador-de-aire-p4'],
+  'ultra':['El ULTRA 150 es nuestro más vendido: $1,985.99 MXN, cubre 50 m². Ideal para salas, restaurantes y salones. Link: https://www.grupopingus.com/products/generador-de-ozono-ultra-150-mg-h'],
+  'cir':['El CIR 150 cuesta $2,200 MXN, cubre 50 m². Diseño circular para casas, oficinas y consultorios pequeños. Link: https://www.grupopingus.com/products/generador-de-ozono-inteligente-cir-150-mgh'],
+  'aqua 500':['El AQUA 500 cuesta $1,450 MXN. Purifica aire (100 m²) Y agua. Ideal para cocinas, consultorios y hogares con niños. Link: https://www.grupopingus.com/products/purificador-de-agua-aire-aqua-500'],
+  'aqua 1000':['El AQUA 1000 cuesta $1,650 MXN, cubre 150 m² y tiene generador de iones. Ideal para restaurantes y colegios. Link: https://www.grupopingus.com/products/purificador-de-agua-aire-aqua-1000'],
+  'ck30':['El CK30 UVC es nivel profesional/clínico: $3,890 MXN, tecnología UV-C + ozono, para 100 m². Ideal para clínicas y dentistas. Link: https://www.grupopingus.com/products/modulo-de-desinfeccion-air-ck30-uvc'],
+  'dentista':['Para clínicas y dentistas recomendamos el CK30 UVC ($3,890 MXN) — desinfección UV-C + ozono a nivel profesional para 100 m². ¿Cuántos m² tiene tu consultorio?'],
+  'consultorio':['Para consultorios de hasta 50 m² el ULTRA 150 ($1,986) es ideal. Para espacios más grandes el AQUA 500 ($1,450 / 100m²). ¿Cuántos m² tiene tu espacio?'],
+  'dormitorio':['Para dormitorios recomendamos el P4 ($2,190 MXN) — purifica hasta 30 m². ¿Cuántos m² tiene la habitación?'],
+  'restaurante':['Para restaurantes el AQUA 1000 ($1,650 MXN) cubre 150 m² y elimina olores de cocina. ¿Cuántos m² tiene el espacio?'],
+  'm²':['Para recomendarte el equipo exacto necesito saber los m². ¿De qué tamaño es el espacio: pequeño (hasta 30 m²), mediano (50-100 m²) o grande (150+ m²)?'],
+  'metro':['Para recomendarte el equipo exacto necesito saber los m². ¿De qué tamaño es el espacio?'],
+  'seguro':['Sí, en las dosis controladas de nuestros equipos es seguro. La recomendación: no estar en el espacio durante el ciclo y ventilar al terminar.'],
+  'peligro':['Nuestros equipos regulan la concentración de ozono automáticamente. Solo se recomienda no estar en el espacio durante el ciclo y ventilar al terminar.'],
+  'caro':['Nuestros equipos incluyen garantía de 6 meses, soporte directo en México y envío gratis. ¿Quieres que comparemos con lo que necesitas?'],
+  'descuento':['Para descuentos especiales te conecto con un asesor. Un momento... 🔄'],
+  'comprar':['¡Perfecto! Te conecto con un asesor para finalizar tu compra. Un momento... 🔄'],
+  'quiero':['¡Perfecto! Te conecto con un asesor en un momento. ¿Me confirmas tu nombre?'],
+  'ozono':['El ozono se genera de forma controlada, se dispersa en el ambiente, actúa contra bacterias, virus, hongos y olores, y luego se convierte en oxígeno. ¿Te interesa para algún espacio en particular?'],
   'metros':['¡Perfecto! Con esos datos te recomiendo el **Generador ULTRA 150** ($1,795 MXN). Ideal para ese espacio. ¿Te lo muestro?'],
   'oficina':['Para oficinas el modelo ideal depende de los m². ¿Cuántos metros cuadrados tiene tu oficina?'],
   'seguro':['El ozono es 100% seguro cuando se usa correctamente. Nuestros equipos tienen certificaciones y regulan la concentración automáticamente.'],
@@ -2009,16 +2038,18 @@ function resetAIAChat(){
 
 /* ══ ACCIONES EDITABLES ══ */
 var aiaActions=[
-  {id:1,cuando:'El mensaje entrante contiene Catálogo',hacer:'Iniciar Salesbot',mas:''},
-  {id:2,cuando:'El cliente pregunta por primera vez sobre Cómo se instala el CK30\no El mensaje entrante contiene Instalación del CK30\no El mensaje entrante contiene Manual de instalación del CK30',hacer:'Iniciar Salesbot MANUAL CK30',mas:'',disjunctive:true},
-  {id:3,cuando:'El cliente no responde desde hace 23h 59m',hacer:'Utilizar siempre este mismo mensaje ¿Sigues buscando un purificador? Si quieres, te ayudo a elegir el modelo ideal en 1 minuto.',mas:'Si no responde tras este mensaje, NO insistir más. Marcar lead como FRÍO.'},
-  {id:4,cuando:'Cada vez que el cliente pregunta sobre factura',hacer:'Transferir al usuario con permiso del cliente con resumen de conversaciones. Utilizar siempre este mismo mensaje: Para facturación te conecto con un asesor que te apoya con tus datos fiscales.',mas:'Marcar el lead como CALIFICADO'},
-  {id:5,cuando:'El mensaje entrante contiene "lo quiero", "cómo pago", "lo voy a llevar", "cómo lo compro"',hacer:'Hablar siempre sobre este tema: Perfecto. Te conecto con un asesor en un momento.',mas:'Si está fuera de horario (Lunes-Sábado 10:00-19:00), avisar: "Te responde un asesor mañana a partir de las 10:00."'},
-  {id:6,cuando:'El mensaje entrante contiene logística, garantía, formas de pago',hacer:'Responder con info exacta de Fuentes (envío 2 días gratis / garantía 6 meses / tarjeta-PayPal-transferencia)',mas:'Después de responder, retomar la venta: "¿Te recomiendo un modelo?"'},
-  {id:7,cuando:'Cliente dice "está caro", "vi uno más barato", "en Amazon hay de X"',hacer:'Diferenciar por garantía y soporte: "Nuestros equipos tienen garantía oficial de 6 meses y soporte directo en México. Envío gratis en 2 días."',mas:'Si pide descuento, transferir a asesor'},
-  {id:8,cuando:'El cliente proporciona m² + uso (aire/agua/ambos)',hacer:'Recomendar modelo con precio + link, según la tabla de Fuentes. Nombre del equipo · Tipo de espacio m² · Uso principal (aire / agua / ambos)',mas:'Recomendar solo 1 producto principal. Si hay duda, ofrecer 2 opciones máximo.'}
+  {id:1,cuando:'El cliente envía "Hola", "Buenas", "Buenos días" o cualquier saludo de apertura',hacer:'Responder: "¡Hola! Soy el asistente de PINGUS. ¿Qué espacio quieres purificar: aire, agua o ambos?"',mas:'No volver a saludar en mensajes siguientes de la misma conversación'},
+  {id:2,cuando:'El cliente menciona tipo de espacio (casa, consultorio, restaurante, oficina) pero NO da metros cuadrados',hacer:'Pedir m² antes de recomendar: "Para recomendarte el equipo exacto, ¿cuántos m² tiene el espacio?"',mas:'Si no responde, ofrecer rango: pequeño (hasta 30 m²) / mediano (50-100 m²) / grande (150+ m²)'},
+  {id:3,cuando:'El cliente da m² + uso (aire/agua/ambos)',hacer:'Recomendar modelo con precio + link según tabla de Fuentes. Capturar: Nombre del lead, Tipo de espacio, m², Uso principal',mas:'Recomendar solo 1 producto principal. Si hay duda, ofrecer máximo 2 opciones.'},
+  {id:4,cuando:'El cliente pregunta "¿cuánto cuesta?", "precios" o "lista"',hacer:'Dar rango + invitar a personalizar: "Nuestros equipos van de $1,450 a $3,890 MXN. ¿Quieres que te recomiende uno según tu espacio?"',mas:'NO dar la lista completa. Forzar la pregunta del espacio para calificar el lead.'},
+  {id:5,cuando:'El cliente pregunta sobre seguridad, "es peligroso", "afecta la salud"',hacer:'Responder: "Sí, en las dosis controladas de nuestros equipos. La recomendación es no estar en el espacio durante el ciclo y ventilar al terminar."',mas:'Si insiste, transferir a asesor'},
+  {id:6,cuando:'El cliente dice "está caro", "vi uno más barato", "en Amazon hay de X"',hacer:'Diferenciar: "Nuestros equipos tienen garantía oficial de 6 meses y soporte directo en México. Envío gratis en 2 días."',mas:'Si pide descuento, transferir a asesor'},
+  {id:7,cuando:'El cliente pregunta por envío, garantía o formas de pago',hacer:'Responder: envío 2 días hábiles GRATIS / garantía 6 meses / pago con tarjeta, PayPal o transferencia',mas:'Después de responder, retomar la venta: "¿Te recomiendo un modelo?"'},
+  {id:8,cuando:'El cliente dice "lo quiero", "cómo pago", "lo voy a llevar", "cómo lo compro"',hacer:'Confirmar: "Perfecto. Te conecto con un asesor en un momento." → TRANSFERIR EL CHAT al equipo de ventas → Marcar lead como CALIFICADO',mas:'Si está fuera de horario (Lun-Sáb 10:00-19:00): "Te responde un asesor mañana a partir de las 10:00."'},
+  {id:9,cuando:'El cliente pregunta por factura, datos fiscales o RFC',hacer:'Transferir directo a humano: "Para facturación te conecto con un asesor que te apoya con tus datos fiscales." → Marcar lead como CALIFICADO',mas:''},
+  {id:10,cuando:'El cliente no responde en 24 horas',hacer:'Enviar un solo seguimiento: "¿Sigues buscando un purificador? Si quieres, te ayudo a elegir el modelo ideal en 1 minuto."',mas:'Si no responde tras este mensaje, NO insistir más. Marcar lead como FRÍO.'}
 ];
-var aiaNextId=9;
+var aiaNextId=11;
 var aiaEditingId=null;
 
 function renderActions(){
