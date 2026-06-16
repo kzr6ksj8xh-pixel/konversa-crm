@@ -1111,7 +1111,7 @@ var demoTemplates = [
   {id:2,name:'Saludo Facebook',     type:'text',cat:'bienvenida', shortcut:'hifb',   content:'¡Hola {{nombre}}! 👋 Gracias por escribirnos por Facebook Messenger.'},
   {id:3,name:'Saludo Instagram',    type:'text',cat:'bienvenida', shortcut:'hiig',   content:'¡Hola {{nombre}}! 🌟 Gracias por escribirnos por Instagram DM.'},
   {id:4,name:'Seguimiento propuesta',type:'text',cat:'seguimiento',shortcut:'prop',  content:'Hola {{nombre}}, ¿pudiste revisar la propuesta que te enviamos el {{fecha}}?'},
-  {id:5,name:'Catálogo 2025',       type:'photo',cat:'promos',   shortcut:'cat',    content:'catalogo_2025.jpg'},
+  {id:5,name:'Catálogo 2025',       type:'photo',cat:'promos',   shortcut:'catalogo',content:'catalogo_2025.jpg'},
   {id:6,name:'Agendar demo',        type:'link', cat:'seguimiento',shortcut:'demo',  content:'https://cal.konversacrm.mx',linkTitle:'Agenda tu demo gratis'},
   {id:7,name:'Oferta especial',     type:'text',cat:'promos',    shortcut:'oferta', content:'¡Hola {{nombre}}! 🎁 20% OFF en Plan Anual esta semana. ¿Te interesa?'},
   {id:8,name:'Cierre de venta',     type:'text',cat:'cierre',    shortcut:'cierre', content:'¡Felicidades {{nombre}}! 🎉 Ya eres parte de Konversa. Accesos enviados.'},
@@ -2315,9 +2315,11 @@ function useTpl(id){
   else txt=`🔗 ${t.linkTitle||t.content}`;
   if(aC){
     if(!msgs[aC.id])msgs[aC.id]=[];
-    msgs[aC.id].push({t:'tpl',txt:`✅ ${t.name}\n${txt}`,time:ts,ch:aCh});
+    var content=`✅ ${t.name}\n${txt}`;
+    msgs[aC.id].push({t:'tpl',txt:content,time:ts,ch:aCh});
     hist.push({name:t.name,type:t.type,time:ts,ch:aCh});
     renderMsgs();renderRightPanel();
+    if(aC.dbId)saveMessageToDB(aC.dbId,aCh,'tpl',content);
   }
   toast(`"${t.name}" enviada por ${CH[aCh].label} ✓`);
 }
