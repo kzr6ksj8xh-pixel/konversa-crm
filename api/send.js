@@ -14,15 +14,16 @@ async function sendWhatsApp(to, text, imageUrl) {
   } else {
     body = { messaging_product: 'whatsapp', to, type: 'text', text: { body: text } };
   }
-  console.log('WA sending:', JSON.stringify({ to, type: body.type, imageUrl: imageUrl || 'none' }));
+  console.log('WA-TYPE:', body.type);
+  console.log('WA-IMG:', imageUrl || 'NONE');
   const res = await fetch(url, {
     method: 'POST',
     headers: { 'Authorization': `Bearer ${WHATSAPP_TOKEN}`, 'Content-Type': 'application/json' },
     body: JSON.stringify(body)
   });
   const resBody = await res.text();
-  if (!res.ok) console.error('WA send error:', res.status, resBody);
-  else console.log('WA send OK:', resBody);
+  if (!res.ok) console.error('WA-ERR:', res.status, resBody);
+  else console.log('WA-OK:', res.status);
   return res.ok;
 }
 
