@@ -1020,7 +1020,7 @@ Tu función es:
     </div>
     <div class="modal-ft">
       <button class="btn-c" id="ldCancel">Cerrar</button>
-      <button class="btn-s" id="ldSave"><i class="ti ti-device-floppy" style="font-size:12px"></i> Guardar cambios</button>
+      <button class="btn-s" id="ldSave" onclick="saveLeadChanges()"><i class="ti ti-device-floppy" style="font-size:12px"></i> Guardar cambios</button>
     </div>
   </div>
 </div>
@@ -3092,22 +3092,28 @@ document.getElementById('ldHotTog')?.addEventListener('click',function(){
 document.getElementById('ldClose')?.addEventListener('click',()=>document.getElementById('leadDetailModal').classList.remove('open'));
 document.getElementById('ldCancel')?.addEventListener('click',()=>document.getElementById('leadDetailModal').classList.remove('open'));
 document.getElementById('leadDetailModal')?.addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');});
-document.getElementById('ldSave')?.addEventListener('click',()=>{
-  var lead=allLeadsAndContacts().find(l=>String(l.id)===String(currentLeadId));if(!lead)return;
+function saveLeadChanges(){
+  if(!currentLeadId){toast('No hay lead seleccionado');return;}
+  var all=allLeadsAndContacts();
+  var lead=all.find(l=>String(l.id)===String(currentLeadId));
+  if(!lead){
+    lead=leads.find(l=>String(l.id)===String(currentLeadId));
+  }
+  if(!lead){toast('Lead no encontrado');return;}
   if(activeLeadTab==='info'){
     lead.name=document.getElementById('ldName').value.trim()||lead.name;
     lead.company=document.getElementById('ldCompany').value.trim()||lead.company;
     lead.phone=document.getElementById('ldPhone').value.trim()||lead.phone;
-    lead.officePhone=document.getElementById('ldOfficePhone').value.trim()||lead.officePhone;
-    lead.amount=parseInt(document.getElementById('ldAmt').value)||lead.amount;
+    lead.officePhone=document.getElementById('ldOfficePhone').value.trim()||'';
+    lead.amount=parseInt(document.getElementById('ldAmt').value)||0;
     lead.stage=document.getElementById('ldStage').value;
     lead.ch=document.getElementById('ldCh').value;
     lead.ag=document.getElementById('ldAg').value;
-    lead.product=document.getElementById('ldProduct').value||lead.product;
-    lead.productNote=document.getElementById('ldProductNote').value.trim()||lead.productNote;
+    lead.product=document.getElementById('ldProduct').value||'';
+    lead.productNote=document.getElementById('ldProductNote').value.trim()||'';
     lead.hot=document.getElementById('ldHotTog').classList.contains('on2');
     if(lead.isContact){
-      var src=contacts.find(c=>(c.dbId||c.id)===currentLeadId);
+      var src=contacts.find(c=>String(c.dbId||c.id)===String(currentLeadId));
       if(src){src.name=lead.name;src.comp=lead.company;src.phone=lead.phone;src.stage=lead.stage;src.ch=lead.ch;src.amount=lead.amount;}
       if(lead.dbId)updateContactInDB(lead);
     }else{
@@ -3117,17 +3123,17 @@ document.getElementById('ldSave')?.addEventListener('click',()=>{
     }
     renderPipeline();toast('Lead actualizado ✓');
   } else if(activeLeadTab==='notes'){
-    const txt=document.getElementById('ldNote').value.trim();
+    var txt=document.getElementById('ldNote').value.trim();
     if(txt){
       if(!lead.notes)lead.notes=[];
-      const now=new Date();
-      lead.notes.push({text:txt,date:`${now.getDate()}/${now.getMonth()+1}/${now.getFullYear()} ${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`,user:currentUser?.full_name||'Agente'});
+      var now=new Date();
+      lead.notes.push({text:txt,date:now.getDate()+'/'+(now.getMonth()+1)+'/'+now.getFullYear()+' '+now.getHours()+':'+String(now.getMinutes()).padStart(2,'0'),user:currentUser?.full_name||'Agente'});
       document.getElementById('ldNote').value='';renderNoteHistory(lead);toast('Nota guardada ✓');
     }else toast('Escribe una nota primero');
   }else{toast('Archivos guardados ✓');}
   document.getElementById('ldTitle').textContent=lead.name;
-  document.getElementById('ldComp').textContent=lead.company;
-});
+  document.getElementById('ldComp').textContent=lead.company||'';
+}
 
 function renderChatAll(){renderContactList();renderMsgs();renderTools();renderRightPanel();renderTpl();}
 
