@@ -21,6 +21,9 @@ const PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID;
 const META_PAGE_TOKEN = process.env.META_PAGE_TOKEN;
 const CLAUDE_API_KEY = process.env.CLAUDE_API_KEY;
 const CLAUDE_MODEL = process.env.CLAUDE_MODEL || 'claude-haiku-4-5-20251001';
+// Solo se llama a Claude si AI_ENABLED === 'true'. Mientras la API key
+// no esté válida en Vercel, el bot responde con el fallback inteligente.
+const AI_ENABLED = process.env.AI_ENABLED === 'true';
 const META_APP_SECRET = process.env.META_APP_SECRET;
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
@@ -140,10 +143,47 @@ const FALLBACK_RESPONSES = {
   'purificador': 'Tenemos purificadores de aire desde $1,986 MXN y de agua+aire desde $1,450 MXN. ¿Qué espacio necesitas purificar?',
 };
 
-function fallbackReply(text) {
-  const low = text.toLowerCase();
+// Recomienda el equipo ideal según m² y si quiere purificar agua
+function recommendByArea(area, wantsWater) {
+  if (wantsWater) {
+    if (area <= 100) return 'el AQUA 500 ($1,450 MXN), purifica aire (hasta 100 m²) + agua. Link: https://www.grupopingus.com/products/purificador-de-agua-aire-aqua-500';
+    return 'el AQUA 1000 ($1,650 MXN), cubre 150 m² + agua + iones. Link: https://www.grupopingus.com/products/purificador-de-agua-aire-aqua-1000';
+  }
+  if (area <= 30) return 'el P4 ($2,190 MXN), purificador de aire para espacios hasta 30 m². Link: https://www.grupopingus.com/products/purificador-de-aire-p4';
+  if (area <= 50) return 'el CIR 150 ($2,200 MXN) o el ULTRA 150 ($1,985.99 MXN), ideales hasta 50 m². Link: https://www.grupopingus.com/products/generador-de-ozono-inteligente-cir-150-mgh';
+  if (area <= 100) return 'el AQUA 500 ($1,450 MXN), cubre hasta 100 m² y purifica aire + agua. Link: https://www.grupopingus.com/products/purificador-de-agua-aire-aqua-500';
+  return 'el AQUA 1000 ($1,650 MXN), cubre hasta 150 m² + iones. Link: https://www.grupopingus.com/products/purificador-de-agua-aire-aqua-1000';
+}
+
+// Fallback inteligente: usa el mensaje actual + historial para detectar
+// m², intención de agua y contexto médico, y recomendar directamente.
+function fallbackReply(text, history = []) {
+  const cur = (text || '').toLowerCase();
+  const ctx = (history.filter(m => m.role === 'user').map(m => m.content).join(' ') + ' ' + text).toLowerCase();
+
+  // ── Detectar metros cuadrados ──
+  let area = null;
+  const dim = cur.match(/(\d{1,4})\s*[x×]\s*(\d{1,4})/); // "5x6", "4 x 5"
+  if (dim) {
+    area = parseInt(dim[1], 10) * parseInt(dim[2], 10);
+  } else {
+    const nums = cur.match(/\d{1,4}/g);
+    if (nums) area = parseInt(nums[0], 10);
+  }
+
+  const wantsWater = /agua/.test(ctx);
+  const medical = /(dental|dentista|cl[ií]nica|hospital|consultorio|desinfecci|uv-?c|quir[oó]fano|m[eé]dic)/.test(ctx);
+
+  if (area && area > 0 && area < 2000) {
+    if (medical) {
+      return `Para ${area} m² en un espacio de salud te recomiendo el Klair UV ($3,890 MXN) con desinfección UV-C profesional. Link: https://www.grupopingus.com/products/klair-uv`;
+    }
+    return `Para ${area} m² te recomiendo ${recommendByArea(area, wantsWater)}`;
+  }
+
+  // ── Respuesta por keyword ──
   for (const key in FALLBACK_RESPONSES) {
-    if (low.includes(key)) return FALLBACK_RESPONSES[key];
+    if (cur.includes(key)) return FALLBACK_RESPONSES[key];
   }
   return 'Gracias por tu mensaje. Para recomendarte el equipo ideal, cuéntame: ¿qué espacio quieres purificar (aire, agua o ambos) y cuántos m² tiene?';
 }
@@ -218,6 +258,10 @@ async function loadHistory(sb, conversationId) {
 
 // ── Claude API ────────────────────────────────────────────
 async function callClaude(history, userMessage) {
+    if (!AI_ENABLED) {
+        console.log('[CLAUDE] Deshabilitado (AI_ENABLED!=true) — usando fallback inteligente');
+        return null;
+    }
     if (!CLAUDE_API_KEY) {
         console.error('[CLAUDE] API_KEY no configurada — usando fallback');
         return null;
@@ -283,7 +327,7 @@ async function processIncoming(channel, handle, name, text) {
     await sb.from('contacts').update({updated_at:new Date().toISOString()}).eq('id',contact.id);
 
   const reply = await callClaude(history, text);
-    const finalReply = reply || fallbackReply(text);
+    const finalReply = reply || fallbackReply(text, history);
     await persistMessage(sb, convId, channel, 'ai', finalReply);
     return finalReply;
 }
