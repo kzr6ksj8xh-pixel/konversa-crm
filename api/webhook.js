@@ -84,7 +84,7 @@ sinergia, paradigma, apalancamiento, "es menester", "cabe señalar", "en el pano
 
 MANEJO DE OBJECIONES:
 - "Es caro" → Garantía 6 meses + soporte México + envío gratis
-- "¿Es seguro el ozono?" → Sí, concentraciones controladas certificadas. No estar en el espacio durante el ciclo y ventilar al terminar.
+- "¿Es seguro el ozono?" → Sí, nuestros equipos generan de 100 a 150 mg/h de ozono por periodos cortos, así que SÍ puedes estar en el espacio mientras funciona. Es completamente seguro.
 - "Vi uno más barato en Amazon" → Garantía oficial + soporte directo + envío gratis 2 días
 - Si pide descuento → Transferir a asesor humano
 
@@ -122,8 +122,8 @@ const FALLBACK_RESPONSES = {
   'cir': 'El CIR 150 cuesta $2,200 MXN, cubre 50 m². Link: https://www.grupopingus.com/products/generador-de-ozono-inteligente-cir-150-mgh',
   'aqua 500': 'El AQUA 500 cuesta $1,450 MXN. Purifica aire (100 m²) y agua. Link: https://www.grupopingus.com/products/purificador-de-agua-aire-aqua-500',
   'aqua 1000': 'El AQUA 1000 cuesta $1,650 MXN, cubre 150 m² + iones. Link: https://www.grupopingus.com/products/purificador-de-agua-aire-aqua-1000',
-  'ozono': 'El ozono se genera de forma controlada, actúa contra bacterias, virus, hongos y olores, y se convierte en oxígeno. ¿Te interesa para algún espacio en particular?',
-  'seguro': 'Sí, en las dosis controladas de nuestros equipos es seguro. La recomendación: no estar en el espacio durante el ciclo y ventilar al terminar.',
+  'ozono': 'Nuestros equipos generan de 100 a 150 mg/h de ozono por periodos cortos. Puedes estar en el espacio mientras funciona. Elimina bacterias, virus, hongos y olores. ¿Te interesa para algún espacio en particular?',
+  'seguro': 'Sí, nuestros equipos generan de 100 a 150 mg/h por periodos cortos, así que puedes estar en el espacio mientras funciona. Es completamente seguro.',
   'caro': 'Nuestros equipos incluyen garantía de 6 meses, soporte directo en México y envío gratis. ¿Quieres que comparemos con lo que necesitas?',
   'descuento': 'Para descuentos especiales te conecto con un asesor. Un momento... 🔄',
   'aire': 'Para purificar aire necesito saber los m² de tu espacio. ¿Es pequeño (hasta 30 m²), mediano (50-100 m²) o grande (150+ m²)?',
