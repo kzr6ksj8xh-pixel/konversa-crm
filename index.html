@@ -1104,7 +1104,9 @@ var demoLeads = [
   {id:9,name:'Patricia Luna', company:'MedSalud Corp',          amount:91000, stage:'venta',      ch:'em',ag:'jm',date:'Hoy',  hot:true},
   {id:10,name:'Andrés Campos',company:'FinTech MX',             amount:48000, stage:'interes',    ch:'ig',ag:'lr',date:'Mar',  hot:false},
 ];
-var demoTemplates = [];
+var demoTemplates = [
+  {id:1,name:'Catálogo',type:'text',cat:'bienvenida',shortcut:'catalogo',content:'¡Hola {{nombre}}! Te comparto nuestro catálogo de purificadores PINGUS:\n\n🌬️ *Aire*\n• P4 — $2,190 MXN (hasta 30 m²)\n• ULTRA 150 — $1,985.99 MXN (hasta 50 m²)\n• CIR 150 — $2,200 MXN (hasta 50 m²)\n\n💧 *Aire + Agua*\n• AQUA 500 — $1,450 MXN (hasta 100 m²)\n• AQUA 1000 — $1,650 MXN (hasta 150 m²)\n\n🔬 *UV-C Profesional*\n• Klair UV — $3,890 MXN (clínicas y consultorios)\n\n✅ Envío GRATIS a toda la República · Garantía 6 meses\n🛒 www.grupopingus.com\n\n¿Te interesa algún modelo? Con gusto te asesoro.'}
+];
 var demoAutoList = [
   {id:1,icon:'ti-brand-whatsapp',iconBg:'#d1fae5',iconColor:'#059669',title:'Bot de bienvenida WA',subtitle:'WhatsApp · Activo',on:true,channels:['wa'],trigger:'Cuando llega un mensaje nuevo de un contacto desconocido',actions:['Enviar mensaje de bienvenida','Asignar etiqueta "Nuevo lead"','Notificar al equipo'],executions:342},
   {id:2,icon:'ti-brand-facebook',iconBg:'#dbeafe',iconColor:'#1877f2',title:'Bot Facebook Messenger',subtitle:'Facebook · Activo',on:true,channels:['fb'],trigger:'Cuando llega un mensaje nuevo desde Facebook Messenger',actions:['Responder saludo automático','Preguntar nombre y empresa','Crear lead en pipeline'],executions:178},
@@ -1220,6 +1222,7 @@ async function loadTemplatesFromDB(){
         content:t.content,linkTitle:t.link_title
       };
     });
+    if(!templates.find(function(t){return t.shortcut==='catalogo';})) templates.unshift(demoTemplates[0]);
   }catch(e){console.warn('loadTemplates error:',e);}
 }
 
