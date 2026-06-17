@@ -123,6 +123,21 @@ const FALLBACK_RESPONSES = {
   'seguro': 'Sí, en las dosis controladas de nuestros equipos es seguro. La recomendación: no estar en el espacio durante el ciclo y ventilar al terminar.',
   'caro': 'Nuestros equipos incluyen garantía de 6 meses, soporte directo en México y envío gratis. ¿Quieres que comparemos con lo que necesitas?',
   'descuento': 'Para descuentos especiales te conecto con un asesor. Un momento... 🔄',
+  'aire': 'Para purificar aire necesito saber los m² de tu espacio. ¿Es pequeño (hasta 30 m²), mediano (50-100 m²) o grande (150+ m²)?',
+  'agua': 'Para purificar agua tenemos: AQUA 500 ($1,450 MXN / aire 100m² + agua) y AQUA 1000 ($1,650 MXN / aire 150m² + agua + iones). ¿Cuántos m² tiene tu espacio?',
+  'ambos': 'Para purificar aire y agua tenemos: AQUA 500 ($1,450 MXN / 100m²) y AQUA 1000 ($1,650 MXN / 150m²). ¿Cuántos m² tiene tu espacio?',
+  'casa': 'Para casa te recomiendo el CIR 150 ($2,200 MXN) si es hasta 50 m², o el AQUA 500 ($1,450 MXN) si también quieres purificar agua. ¿Cuántos m² tiene tu espacio?',
+  'oficina': 'Para oficinas el modelo ideal depende de los m². ¿Cuántos metros cuadrados tiene tu oficina?',
+  'restaurante': 'Para restaurantes recomiendo el AQUA 1000 ($1,650 MXN) que cubre 150 m² y purifica aire + agua. ¿Cuántos m² tiene el local?',
+  'consultorio': 'Para consultorios tenemos el CIR 150 ($2,200 MXN / 50m²) o el Klair UV ($3,890 MXN) para desinfección UV-C profesional. ¿Cuántos m² tiene?',
+  'hospital': 'Para hospitales y clínicas el modelo ideal es el Klair UV ($3,890 MXN) con desinfección UV-C profesional.',
+  'gracias': 'Con gusto. Si necesitas más información, aquí estoy. Equipo PINGUS – The Health Guardian.',
+  'sí': 'Perfecto, cuéntame más sobre tu espacio y te recomiendo el equipo ideal.',
+  'si': 'Perfecto, cuéntame más sobre tu espacio y te recomiendo el equipo ideal.',
+  'no': 'Entendido. Si cambias de opinión o tienes alguna duda, aquí estoy para ayudarte.',
+  'información': 'Con gusto te ayudo. ¿Qué espacio quieres purificar: aire, agua o ambos? ¿Cuántos m² tiene?',
+  'info': 'Con gusto te ayudo. ¿Qué espacio quieres purificar: aire, agua o ambos? ¿Cuántos m² tiene?',
+  'purificador': 'Tenemos purificadores de aire desde $1,986 MXN y de agua+aire desde $1,450 MXN. ¿Qué espacio necesitas purificar?',
 };
 
 function fallbackReply(text) {
@@ -130,7 +145,7 @@ function fallbackReply(text) {
   for (const key in FALLBACK_RESPONSES) {
     if (low.includes(key)) return FALLBACK_RESPONSES[key];
   }
-  return '¡Hola! Soy el asistente de PINGUS. En este momento estoy teniendo dificultades técnicas, pero un asesor te atenderá pronto. Horario: Lunes a Viernes, 9:00 – 19:00 (hora México).';
+  return 'Gracias por tu mensaje. Para recomendarte el equipo ideal, cuéntame: ¿qué espacio quieres purificar (aire, agua o ambos) y cuántos m² tiene?';
 }
 
 // ── Supabase (service_role) ───────────────────────────────
@@ -204,36 +219,44 @@ async function loadHistory(sb, conversationId) {
 // ── Claude API ────────────────────────────────────────────
 async function callClaude(history, userMessage) {
     if (!CLAUDE_API_KEY) {
-        console.error('CLAUDE_API_KEY no configurada');
+        console.error('[CLAUDE] API_KEY no configurada — usando fallback');
         return null;
     }
+    console.log('[CLAUDE] Llamando API con modelo:', CLAUDE_MODEL, '| key prefix:', CLAUDE_API_KEY.substring(0, 12) + '...');
 
     const messages = [...history, { role: 'user', content: userMessage }];
     while (messages.length && messages[0].role !== 'user') messages.shift();
 
-  const response = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: {
-                'Content-Type': 'application/json',
-                'x-api-key': CLAUDE_API_KEY,
-                'anthropic-version': '2023-06-01'
-        },
-        body: JSON.stringify({
-                model: CLAUDE_MODEL,
-                max_tokens: 300,
-                system: SYSTEM_PROMPT,
-                messages
-        })
-  });
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+                  'Content-Type': 'application/json',
+                  'x-api-key': CLAUDE_API_KEY,
+                  'anthropic-version': '2023-06-01'
+          },
+          body: JSON.stringify({
+                  model: CLAUDE_MODEL,
+                  max_tokens: 300,
+                  system: SYSTEM_PROMPT,
+                  messages
+          })
+    });
 
-  if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Claude API error:', response.status, errorText);
-        return null;
+    if (!response.ok) {
+          const errorText = await response.text();
+          console.error('[CLAUDE] API error:', response.status, errorText.substring(0, 500));
+          return null;
+    }
+
+    const data = await response.json();
+    const reply = data.content[0]?.text || null;
+    console.log('[CLAUDE] Respuesta OK:', reply ? reply.substring(0, 80) + '...' : 'null');
+    return reply;
+  } catch (err) {
+    console.error('[CLAUDE] Fetch exception:', err.message);
+    return null;
   }
-
-  const data = await response.json();
-    return data.content[0]?.text || null;
 }
 
 // ── Orquestador: persiste entrante, llama IA, persiste salida ──
