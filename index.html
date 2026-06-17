@@ -2632,7 +2632,7 @@ function renderProducts(){
       if(!prod)return;
       if(!aC){toast('Selecciona un contacto primero');return;}
       var txt=`¡Hola ${aC.name.split(' ')[0]}! Te comparto info de este producto:\n\n*${prod.name}* — ${prod.precio}\n${prod.desc||''}\n\n🔗 ${prod.url}\n\n✅ Envío GRATIS · Garantía 6 meses\n¿Te interesa? Con gusto te ayudo.`;
-      var imgUrl=prod.img||prod.image||'';
+      var imgUrl=(prod.img||prod.image||'').split('?')[0];
       var ch=aC.ch||'wa';
       var handle=aC.phone||(aC.channels||[]).find(c=>c.ch===ch)?.handle;
       if(!handle){toast('Este contacto no tiene canal asignado');return;}
