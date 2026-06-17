@@ -19,6 +19,13 @@ const VERIFY_TOKEN = process.env.WHATSAPP_VERIFY_TOKEN;
 const WHATSAPP_TOKEN = process.env.WHATSAPP_ACCESS_TOKEN;
 const PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID;
 const META_PAGE_TOKEN = process.env.META_PAGE_TOKEN;
+// ID de la página de Facebook. Si se define, los envíos de Messenger/Instagram
+// usan {PAGE_ID}/messages en vez de me/messages. Esto es necesario cuando
+// META_PAGE_TOKEN es un token de System User (con 'me' resolvería al system
+// user, no a la página). Con un Page Access Token clásico, 'me' también sirve,
+// por eso el fallback mantiene compatibilidad hacia atrás.
+const META_PAGE_ID = process.env.META_PAGE_ID;
+const MSG_TARGET = META_PAGE_ID || 'me';
 const CLAUDE_API_KEY = process.env.CLAUDE_API_KEY;
 const CLAUDE_MODEL = process.env.CLAUDE_MODEL || 'claude-haiku-4-5-20251001';
 // Solo se llama a Claude si AI_ENABLED === 'true'. Mientras la API key
@@ -391,7 +398,7 @@ async function sendFBMessage(recipientId, text) {
     const token = META_PAGE_TOKEN;
     if (!token) { console.error('META_PAGE_TOKEN no configurado'); return false; }
 
-  const url = `https://graph.facebook.com/v21.0/me/messages`;
+  const url = `https://graph.facebook.com/v21.0/${MSG_TARGET}/messages`;
     const response = await fetch(url, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -427,7 +434,7 @@ async function handleMessenger(body) {
 
   console.log(`[FB] ${senderId}: "${text}"`);
 
-  await fetch(`https://graph.facebook.com/v21.0/me/messages`, {
+  await fetch(`https://graph.facebook.com/v21.0/${MSG_TARGET}/messages`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -449,7 +456,7 @@ async function sendIGMessage(recipientId, text) {
     const token = META_PAGE_TOKEN;
     if (!token) { console.error('META_PAGE_TOKEN no configurado'); return false; }
 
-  const url = `https://graph.facebook.com/v21.0/me/messages`;
+  const url = `https://graph.facebook.com/v21.0/${MSG_TARGET}/messages`;
     const response = await fetch(url, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
