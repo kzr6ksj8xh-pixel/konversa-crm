@@ -1297,6 +1297,18 @@ async function deleteLeadFromDB(leadId){
   catch(e){console.warn('deleteLeadFromDB error:',e);}
 }
 
+async function sendToChannel(channel, text){
+  if(!aC||channel==='note')return;
+  var handle=aC.phone||(aC.channels||[]).find(c=>c.ch===channel)?.handle;
+  if(!handle)return;
+  handle=handle.replace(/[\s\-\+\(\)]/g,'');
+  try{
+    var res=await fetch('/api/send',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({channel,to:handle,text})});
+    if(!res.ok)console.warn('sendToChannel error:',res.status);
+    else console.log('sendToChannel OK:',channel,handle);
+  }catch(e){console.warn('sendToChannel fetch error:',e);}
+}
+
 async function saveMessageToDB(contactId,channel,sender,content){
   if(!sb||demoMode||!contactId)return;
   try{
@@ -2471,6 +2483,7 @@ function useTpl(id){
     hist.push({name:t.name,type:t.type,time:ts,ch:aCh});
     renderMsgs();renderRightPanel();
     if(aC.dbId)saveMessageToDB(aC.dbId,aCh,'tpl',content);
+    sendToChannel(aCh,txt);
   }
   toast(`"${t.name}" enviada por ${CH[aCh].label} ✓`);
 }
@@ -2540,6 +2553,7 @@ function sendMsg(){
   if(aC){if(!msgs[aC.id])msgs[aC.id]=[];msgs[aC.id].push({t:'out',txt,time:ts,ch:aCh});}
   inp.value='';renderMsgs();
   if(aC?.dbId)saveMessageToDB(aC.dbId,aCh,'agent',txt);
+  sendToChannel(aCh,txt);
   if(aiOn){
     setTimeout(()=>{document.getElementById('typingInd').style.display='inline';
       setTimeout(()=>{document.getElementById('typingInd').style.display='none';
