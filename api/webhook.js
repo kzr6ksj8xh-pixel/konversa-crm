@@ -13,8 +13,6 @@
 
 import crypto from 'crypto';
 
-// Desactivar el body-parser para acceder a los bytes crudos y validar
-// la firma HMAC contra el payload exacto que envió Meta.
 export const config = { api: { bodyParser: false } };
 
 const VERIFY_TOKEN = process.env.WHATSAPP_VERIFY_TOKEN;
@@ -29,16 +27,15 @@ const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABAS
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 // ── System Prompt del Agente IA ───────────────────────────
-const SYSTEM_PROMPT = `Eres PINGUS ASISTENTE, el chatbot de ventas de Grupo PINGUS, una empresa mexicana especializada en purificadores de aire y agua con tecnología de ozono avanzada.
+const SYSTEM_PROMPT = `Eres PINGUS ASISTENTE, el chatbot de ventas de Grupo PINGUS – The Health Guardian, empresa mexicana especializada en purificadores de aire y agua con tecnología de ozono y UV-C.
 
 DATOS CLAVE DE LA EMPRESA:
-- Nombre: Grupo PINGUS
-- Eslogan: "The Health Guardian"
+- Nombre: Grupo PINGUS – The Health Guardian
 - Web: www.grupopingus.com
 - WhatsApp Ventas: +52 981 751 1111
-- Horario: Lunes a sábado, 10:00 a 19:00 (hora México)
-- Envío: 2 días hábiles, GRATIS en toda la República Mexicana
-- Garantía: 6 meses contra defectos de fábrica
+- Horario de atención humana: Lunes a Viernes, 9:00 – 19:00 (hora México)
+- Envío: GRATIS a toda la República Mexicana, 2 días hábiles (DHL, Estafeta, FedEx o UPS con seguimiento)
+- Garantía: 6 meses contra defectos de fábrica + soporte directo en México
 - Pagos: Tarjeta crédito/débito, PayPal, Transferencia bancaria
 
 TU FUNCIÓN PRINCIPAL (en orden de prioridad):
@@ -49,52 +46,92 @@ TU FUNCIÓN PRINCIPAL (en orden de prioridad):
 5. ESCALAR: Si hay intención de compra, solicitud de factura o pregunta compleja → transferir a asesor humano
 
 CATÁLOGO DE PRODUCTOS:
-1. Generador OZONO CIR - $1,995 MXN - Inteligente con ciclos automáticos. Ideal 20-50 m²
-2. Generador ULTRA 150 - $1,795 MXN - Portátil alta eficiencia. Ideal 50-100 m²
-3. Generador ULTRA 200 - $2,495 MXN - Mayor capacidad. Ideal 100-200 m²
-4. Módulo Air CK30 UVC - $8,500 MXN - Desinfección UV-C para clínicas. Ideal para espacios médicos
-5. AQUA 1000 - $3,200 MXN - Purificador agua+aire. Ideal restaurantes y negocios
-6. AQUA HOME - $1,495 MXN - Purificador de agua doméstico
+1. Purificador de Aire P4 - $2,190 MXN - Espacios hasta 30 m² (dormitorios, oficinas, autos) - https://www.grupopingus.com/products/purificador-de-aire-p4
+2. Generador ULTRA 150 - $1,985.99 MXN - Espacios hasta 50 m² (salas, restaurantes, salones) - https://www.grupopingus.com/products/generador-de-ozono-ultra-150-mg-h
+3. Generador CIR 150 - $2,200 MXN - Espacios hasta 50 m² (casas, oficinas, consultorios) - https://www.grupopingus.com/products/generador-de-ozono-inteligente-cir-150-mgh
+4. Purificador AQUA 500 - $1,450 MXN - Aire (100 m²) + Agua, ideal cocinas, consultorios, hogares - https://www.grupopingus.com/products/purificador-de-agua-aire-aqua-500
+5. Purificador AQUA 1000 - $1,650 MXN - Aire (150 m²) + Agua + Iones, ideal restaurantes, colegios - https://www.grupopingus.com/products/purificador-de-agua-aire-aqua-1000
+6. Klair UV - $3,890 MXN - Desinfección UV-C profesional para clínicas, consultorios y hospitales - https://www.grupopingus.com/products/klair-uv
 
 TABLA DE RECOMENDACIÓN:
-- Casa/habitación 20-50 m² (aire): OZONO CIR
-- Oficina/local 50-100 m² (aire): ULTRA 150
-- Restaurante/negocio 100-200 m² (aire): ULTRA 200
-- Clínica/hospital (desinfección): Módulo Air CK30 UVC
-- Restaurante/negocio (agua+aire): AQUA 1000
-- Casa (agua): AQUA HOME
+- Dormitorio/oficina pequeña hasta 30 m² (aire): P4
+- Casa/sala/consultorio hasta 50 m² (aire): CIR 150 o ULTRA 150
+- Cocina/consultorio (aire+agua): AQUA 500
+- Restaurante/colegio (aire+agua): AQUA 1000
+- Clínica/hospital/consultorio dental (desinfección UV-C): Klair UV
 
 REGLAS CRÍTICAS SOBRE METROS CUADRADOS (m²):
 - Pregunta los m² UNA SOLA VEZ por conversación. Si ya los preguntaste antes, NO repitas la pregunta.
-- Si el cliente ya respondió con un número (ej: "36", "20"), ESE ES el área en m². Recomienda directamente sin pedir más aclaraciones.
-- Si el cliente escribe DOS números seguidos (ej: "5 6", "20 30", "4x5"), son las dimensiones del espacio (largo × ancho). Multiplícalos para obtener el área y recomienda directamente.
-- NUNCA vuelvas a preguntar los m² si el cliente ya los proporcionó en mensajes anteriores del historial.
+- Si el cliente ya respondió con un número (ej: "36", "20"), ESE ES el área en m². Recomienda directamente.
+- Si el cliente escribe DOS números seguidos (ej: "5 6", "20 30", "4x5"), son las dimensiones (largo × ancho). Multiplícalos y recomienda directamente.
+- NUNCA vuelvas a preguntar los m² si el cliente ya los proporcionó en mensajes anteriores.
 
 PAUTAS DE COMUNICACIÓN (OBLIGATORIAS):
 - Máximo 3 líneas por mensaje. NUNCA bloques de texto largos.
-- NUNCA repitas el saludo si ya saludaste en la conversación. Un solo saludo por conversación.
+- NUNCA repitas el saludo si ya saludaste en la conversación.
 - Habla siempre de "tú". NUNCA digas "usted".
-- Cada recomendación de producto debe tener: NOMBRE + PRECIO + LINK.
-- Si el cliente pregunta por un espacio, pide m² ANTES de cualquier sugerencia (solo si aún no los tienes).
+- Cada recomendación debe incluir: NOMBRE + PRECIO + LINK.
+- Si el cliente pregunta por un espacio, pide m² ANTES de sugerir (solo si aún no los tienes).
 - Si no tienes la información, di: "Te conecto con un asesor para darte el dato exacto" y transfiere.
 - No uses emojis en más de 1 de cada 3 mensajes.
-- Cierra firmando "Equipo PINGUS – The Health Guardian" SOLO cuando entregues información clave.
+- Cierra firmando "Equipo PINGUS – The Health Guardian" SOLO cuando entregues info clave.
 
 PALABRAS PROHIBIDAS (NUNCA las uses):
 sinergia, paradigma, apalancamiento, "es menester", "cabe señalar", "en el panorama actual"
 
 MANEJO DE OBJECIONES:
-- "Es caro" → Diferenciar por garantía 6 meses + soporte México + envío gratis
-- "¿Es seguro el ozono?" → Sí, concentraciones controladas certificadas
+- "Es caro" → Garantía 6 meses + soporte México + envío gratis
+- "¿Es seguro el ozono?" → Sí, concentraciones controladas certificadas. No estar en el espacio durante el ciclo y ventilar al terminar.
 - "Vi uno más barato en Amazon" → Garantía oficial + soporte directo + envío gratis 2 días
 - Si pide descuento → Transferir a asesor humano
 
 TRANSFERIR A HUMANO cuando:
 - El cliente dice "lo quiero", "cómo pago", "lo compro"
-- Pide factura
+- Pide factura o datos fiscales
 - Pide descuento
 - Pregunta compleja fuera de tus fuentes
-En estos casos responde: "¡Perfecto! Te conecto con un asesor de Grupo PINGUS para ayudarte. Un momento 🔄"`;
+En estos casos responde: "¡Perfecto! Te conecto con un asesor de Grupo PINGUS para ayudarte. Un momento 🔄"
+Si está fuera de horario (Lun-Vie 9:00-19:00): "Te responde un asesor en horario hábil a partir de las 9:00."`;
+
+// ── Respuestas de fallback por keyword (cuando Claude API no responde) ──
+const FALLBACK_RESPONSES = {
+  'hola': '¡Hola! Soy el asistente de PINGUS – The Health Guardian. ¿Qué espacio quieres purificar: aire, agua o ambos?',
+  'buenos': '¡Hola! Soy el asistente de PINGUS. ¿En qué te puedo ayudar?',
+  'buenas': '¡Hola! Soy el asistente de PINGUS. ¿En qué te puedo ayudar?',
+  'precio': 'Nuestros equipos van de $1,450 a $3,890 MXN. ¿Quieres que te recomiende uno según tu espacio?',
+  'catálogo': 'Tenemos: P4 ($2,190 / 30m²), ULTRA 150 ($1,986 / 50m²), CIR 150 ($2,200 / 50m²), AQUA 500 ($1,450 / 100m²), AQUA 1000 ($1,650 / 150m²) y Klair UV ($3,890 / clínicas). ¿Cuántos m² tiene tu espacio?',
+  'catalogo': 'Tenemos: P4 ($2,190 / 30m²), ULTRA 150 ($1,986 / 50m²), CIR 150 ($2,200 / 50m²), AQUA 500 ($1,450 / 100m²), AQUA 1000 ($1,650 / 150m²) y Klair UV ($3,890 / clínicas). ¿Cuántos m² tiene tu espacio?',
+  'klair': 'El Klair UV cuesta $3,890 MXN. Desinfección UV-C profesional para clínicas, consultorios y hospitales. Link: https://www.grupopingus.com/products/klair-uv',
+  'uv': 'El Klair UV cuesta $3,890 MXN. Desinfección UV-C profesional para clínicas, consultorios y hospitales.',
+  'dentista': 'Para consultorios dentales te recomiendo el Klair UV ($3,890 MXN) — desinfección UV-C de grado médico. ¿Te envío más info?',
+  'clínica': 'Para clínicas el modelo ideal es el Klair UV ($3,890 MXN) con tecnología UV-C profesional.',
+  'clinica': 'Para clínicas el modelo ideal es el Klair UV ($3,890 MXN) con tecnología UV-C profesional.',
+  'envío': 'El envío es GRATIS a toda la República Mexicana. Llega en 2 días hábiles por DHL, Estafeta, FedEx o UPS con seguimiento incluido.',
+  'envio': 'El envío es GRATIS a toda la República Mexicana. Llega en 2 días hábiles con seguimiento.',
+  'garantía': 'Todos nuestros equipos tienen 6 meses de garantía contra defectos de fábrica y soporte directo en México.',
+  'garantia': 'Todos nuestros equipos tienen 6 meses de garantía contra defectos de fábrica y soporte directo en México.',
+  'pago': 'Puedes pagar con tarjeta de crédito/débito, PayPal o transferencia bancaria. Compra 100% segura.',
+  'factura': 'Para facturación te conecto con un asesor que te apoya con tus datos fiscales. Un momento... 🔄',
+  'comprar': '¡Perfecto! Te conecto con un asesor para finalizar tu compra. Un momento... 🔄',
+  'quiero': '¡Perfecto! Te conecto con un asesor en un momento. ¿Me confirmas tu nombre?',
+  'p4': 'El P4 cuesta $2,190 MXN. Purificador de aire para espacios hasta 30 m². Link: https://www.grupopingus.com/products/purificador-de-aire-p4',
+  'ultra': 'El ULTRA 150 cuesta $1,985.99 MXN, cubre 50 m². Link: https://www.grupopingus.com/products/generador-de-ozono-ultra-150-mg-h',
+  'cir': 'El CIR 150 cuesta $2,200 MXN, cubre 50 m². Link: https://www.grupopingus.com/products/generador-de-ozono-inteligente-cir-150-mgh',
+  'aqua 500': 'El AQUA 500 cuesta $1,450 MXN. Purifica aire (100 m²) y agua. Link: https://www.grupopingus.com/products/purificador-de-agua-aire-aqua-500',
+  'aqua 1000': 'El AQUA 1000 cuesta $1,650 MXN, cubre 150 m² + iones. Link: https://www.grupopingus.com/products/purificador-de-agua-aire-aqua-1000',
+  'ozono': 'El ozono se genera de forma controlada, actúa contra bacterias, virus, hongos y olores, y se convierte en oxígeno. ¿Te interesa para algún espacio en particular?',
+  'seguro': 'Sí, en las dosis controladas de nuestros equipos es seguro. La recomendación: no estar en el espacio durante el ciclo y ventilar al terminar.',
+  'caro': 'Nuestros equipos incluyen garantía de 6 meses, soporte directo en México y envío gratis. ¿Quieres que comparemos con lo que necesitas?',
+  'descuento': 'Para descuentos especiales te conecto con un asesor. Un momento... 🔄',
+};
+
+function fallbackReply(text) {
+  const low = text.toLowerCase();
+  for (const key in FALLBACK_RESPONSES) {
+    if (low.includes(key)) return FALLBACK_RESPONSES[key];
+  }
+  return '¡Hola! Soy el asistente de PINGUS. En este momento estoy teniendo dificultades técnicas, pero un asesor te atenderá pronto. Horario: Lunes a Viernes, 9:00 – 19:00 (hora México).';
+}
 
 // ── Supabase (service_role) ───────────────────────────────
 let _sb = null;
@@ -109,7 +146,6 @@ async function getSupabase() {
 }
 
 // ── Resolver / crear contacto por canal+handle ────────────
-// handle = teléfono (wa) o PSID (fb/ig)
 async function resolveContact(sb, channel, handle, name) {
     if (channel === 'wa') {
           const { data } = await sb.from('contacts').select('id,channels')
@@ -167,9 +203,13 @@ async function loadHistory(sb, conversationId) {
 
 // ── Claude API ────────────────────────────────────────────
 async function callClaude(history, userMessage) {
+    if (!CLAUDE_API_KEY) {
+        console.error('CLAUDE_API_KEY no configurada');
+        return null;
+    }
+
     const messages = [...history, { role: 'user', content: userMessage }];
-    // Anthropic exige que la conversación empiece con 'user'
-  while (messages.length && messages[0].role !== 'user') messages.shift();
+    while (messages.length && messages[0].role !== 'user') messages.shift();
 
   const response = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
@@ -189,34 +229,40 @@ async function callClaude(history, userMessage) {
   if (!response.ok) {
         const errorText = await response.text();
         console.error('Claude API error:', response.status, errorText);
-        return 'Disculpa, tengo un problema técnico. Te conecto con un asesor. Un momento 🔄';
+        return null;
   }
 
   const data = await response.json();
-    return data.content[0]?.text || 'Disculpa, no pude procesar tu mensaje.';
+    return data.content[0]?.text || null;
 }
 
 // ── Orquestador: persiste entrante, llama IA, persiste salida ──
 async function processIncoming(channel, handle, name, text) {
     const sb = await getSupabase();
     if (!sb) {
-          // Sin Supabase configurado: responder sin contexto persistente
-      return callClaude([], text);
+        const aiReply = await callClaude([], text);
+        return aiReply || fallbackReply(text);
     }
     const contact = await resolveContact(sb, channel, handle, name);
-    if (!contact) return callClaude([], text);
+    if (!contact) {
+        const aiReply = await callClaude([], text);
+        return aiReply || fallbackReply(text);
+    }
 
   const convId = await resolveConversation(sb, contact.id, channel);
-    if (!convId) return callClaude([], text);
+    if (!convId) {
+        const aiReply = await callClaude([], text);
+        return aiReply || fallbackReply(text);
+    }
 
   const history = await loadHistory(sb, convId);
     await persistMessage(sb, convId, channel, 'customer', text);
-    // Actualizar updated_at del contacto para mantener orden por mensaje reciente
     await sb.from('contacts').update({updated_at:new Date().toISOString()}).eq('id',contact.id);
 
   const reply = await callClaude(history, text);
-    await persistMessage(sb, convId, channel, 'ai', reply);
-    return reply;
+    const finalReply = reply || fallbackReply(text);
+    await persistMessage(sb, convId, channel, 'ai', finalReply);
+    return finalReply;
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -300,7 +346,6 @@ async function handleMessenger(body) {
     const messaging = entry?.messaging?.[0];
     if (!messaging) return { status: 'no_messaging' };
 
-  // Ignorar echoes (mensajes enviados por la página)
   if (messaging.message?.is_echo) return { status: 'echo_ignored' };
 
   const senderId = messaging.sender?.id;
@@ -315,7 +360,6 @@ async function handleMessenger(body) {
 
   console.log(`[FB] ${senderId}: "${text}"`);
 
-  // Indicador de typing
   await fetch(`https://graph.facebook.com/v21.0/me/messages`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -414,8 +458,7 @@ async function readRawBody(req) {
 // HANDLER PRINCIPAL
 // ══════════════════════════════════════════════════════════════
 export default async function handler(req, res) {
-    // ── GET: Verificación del Webhook de Meta ──
-  if (req.method === 'GET') {
+    if (req.method === 'GET') {
         const mode = req.query['hub.mode'];
         const token = req.query['hub.verify_token'];
         const challenge = req.query['hub.challenge'];
@@ -433,7 +476,6 @@ export default async function handler(req, res) {
       return res.status(403).json({ error: 'Verificación fallida' });
   }
 
-  // ── POST: Mensaje entrante ──
   if (req.method === 'POST') {
         try {
                 let raw = await readRawBody(req);
