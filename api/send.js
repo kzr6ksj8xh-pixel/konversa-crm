@@ -5,7 +5,9 @@ const INTERNAL_API_KEY = process.env.INTERNAL_API_KEY;
 
 async function sendWhatsApp(to, text, imageUrl) {
   const url = `https://graph.facebook.com/v21.0/${PHONE_NUMBER_ID}/messages`;
-  if (imageUrl) imageUrl = imageUrl.split('?')[0];
+  if (imageUrl) {
+    try { const u = new URL(imageUrl); u.searchParams.delete('width'); imageUrl = u.toString(); } catch(e) { imageUrl = imageUrl.split('?')[0]; }
+  }
   let body;
   if (imageUrl) {
     body = { messaging_product: 'whatsapp', to, type: 'image', image: { link: imageUrl, caption: text } };

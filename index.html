@@ -2628,7 +2628,7 @@ function renderProducts(){
   grid.innerHTML = h;
   document.querySelectorAll('[data-prod]').forEach(btn=>{
     btn.addEventListener('click',()=>{
-      var allP = PINGUS_PRODUCTS.concat(shopifyProducts.map(function(sp){return{id:'sp-'+sp.shopify_id,name:sp.title,precio:sp.price?'$'+sp.price+' MXN':'',url:'https://www.grupopingus.com/products/'+sp.handle};}));
+      var allP = PINGUS_PRODUCTS.concat(shopifyProducts.map(function(sp){return{id:'sp-'+sp.shopify_id,name:sp.title,precio:sp.price?'$'+sp.price+' MXN':'',img:(sp.images&&sp.images[0])?sp.images[0].src:'',url:'https://www.grupopingus.com/products/'+sp.handle};}));
       const prod=allP.find(p=>p.id===btn.dataset.prod);
       if(!prod)return;
       if(!aC){toast('Selecciona un contacto primero');return;}
