@@ -3,6 +3,29 @@ const PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID;
 const META_PAGE_TOKEN = process.env.META_PAGE_TOKEN;
 const INTERNAL_API_KEY = process.env.INTERNAL_API_KEY;
 
+async function uploadImageToWhatsApp(imageUrl) {
+  try {
+    const imgRes = await fetch(imageUrl, { headers: { 'User-Agent': 'Mozilla/5.0' } });
+    if (!imgRes.ok) { console.log('WA-FETCH-ERR:', imgRes.status); return null; }
+    const buffer = await imgRes.arrayBuffer();
+    const contentType = imgRes.headers.get('content-type') || 'image/jpeg';
+    // FormData and Blob are available globally in Node 18+ (Vercel)
+    const form = new FormData();
+    form.append('messaging_product', 'whatsapp');
+    form.append('file', new Blob([buffer], { type: contentType }), 'product.jpg');
+    const upRes = await fetch(`https://graph.facebook.com/v21.0/${PHONE_NUMBER_ID}/media`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${WHATSAPP_TOKEN}` },
+      body: form
+    });
+    const upBody = await upRes.text();
+    if (!upRes.ok) { console.log('WA-UPLOAD-ERR:', upBody); return null; }
+    const { id } = JSON.parse(upBody);
+    console.log('WA-UPLOAD-OK:', id);
+    return id;
+  } catch(e) { console.log('WA-UPLOAD-EX:', e.message); return null; }
+}
+
 async function sendWhatsApp(to, text, imageUrl) {
   const url = `https://graph.facebook.com/v21.0/${PHONE_NUMBER_ID}/messages`;
   if (imageUrl) {
@@ -10,12 +33,16 @@ async function sendWhatsApp(to, text, imageUrl) {
   }
   let body;
   if (imageUrl) {
-    body = { messaging_product: 'whatsapp', to, type: 'image', image: { link: imageUrl, caption: text } };
+    const mediaId = await uploadImageToWhatsApp(imageUrl);
+    if (mediaId) {
+      body = { messaging_product: 'whatsapp', to, type: 'image', image: { id: mediaId, caption: text } };
+    } else {
+      body = { messaging_product: 'whatsapp', to, type: 'text', text: { body: text } };
+    }
   } else {
     body = { messaging_product: 'whatsapp', to, type: 'text', text: { body: text } };
   }
   console.log('WA-TYPE:', body.type);
-  console.log('WA-IMG:', imageUrl || 'NONE');
   const res = await fetch(url, {
     method: 'POST',
     headers: { 'Authorization': `Bearer ${WHATSAPP_TOKEN}`, 'Content-Type': 'application/json' },
@@ -62,5 +89,5 @@ export default async function handler(req, res) {
   else if (channel === 'fb' || channel === 'ig') ok = await sendFBIG(to, text);
   else return res.status(400).json({ error: 'Unknown channel' });
 
-  return res.status(ok ? 200 : 502).json({ sent: ok, channel, imageUrl: imageUrl || null });
+  return res.status(ok ? 200 : 502).json({ sent: ok });
 }
