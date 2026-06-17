@@ -1121,7 +1121,7 @@ var notifList = [];
 /* ─── STATE ─── */
 var contacts = demoContacts, leads = demoLeads, templates = demoTemplates;
 var msgs = {...demoMsgs};
-var aC = null, aCh = 'wa', tplOpen=false, tplTab='browse', tplCat='all', tplQ='', nType='text';
+var aC = null, aCh = 'wa', tplOpen=false, tplTab='browse', tplCat='all', tplQ='', nType='text', editingTpl=null;
 var hist=[], aiOn=true, chFilt='all', slashMode=false, slashQ='', slashIdx=0;
 var dragId=null, dragOverCol=null, agFilt='all', notifIdx=0, selRole='admin', aRange=7;
 var demoMode = true;
@@ -2285,7 +2285,7 @@ function renderTools(){
     el.addEventListener('click',()=>{aCh=el.dataset.ch;setNoteMode(aCh==='note');renderTools();renderMsgs();});
   });
   document.getElementById('tplChipBtn')?.addEventListener('click',()=>{tplOpen=true;tplTab='browse';renderTpl();});
-  document.getElementById('newTplChipBtn')?.addEventListener('click',()=>{tplOpen=true;tplTab='create';renderTpl();});
+  document.getElementById('newTplChipBtn')?.addEventListener('click',()=>{editingTpl=null;tplOpen=true;tplTab='create';renderTpl();});
 }
 
 /* ══════════════════════════════════════
@@ -2368,7 +2368,7 @@ function renderTpl(){
   var pan=document.getElementById('tplPanel');
   pan.classList.toggle('open',tplOpen);
   document.getElementById('tplToggle').classList.toggle('on',tplOpen);
-  document.getElementById('tpTitle').textContent=tplTab==='create'?'Nueva plantilla':'Plantillas';
+  document.getElementById('tpTitle').textContent=tplTab==='create'?(editingTpl?'Editar plantilla':'Nueva plantilla'):'Plantillas';
   document.querySelectorAll('.tp-tab').forEach(t=>t.classList.toggle('on',t.dataset.tt===tplTab));
   var body=document.getElementById('tpBody');
   if(!tplOpen){body.innerHTML='';return;}
@@ -2382,12 +2382,13 @@ function renderTpl(){
         if(t.type==='text')p=`<div class="tpi-pv pt">${t.content.substring(0,68)}...</div>`;
         else if(t.type==='photo')p=`<div class="tpi-pv pp"><i class="ti ti-photo" style="font-size:14px"></i>${t.content}</div>`;
         else p=`<div class="tpi-pv pl"><div style="font-size:9px">${t.content}</div><div style="font-size:11px;font-weight:500">${t.linkTitle||''}</div></div>`;
-        return`<div class="tpi">${p}<div class="tpi-ft"><div><div class="tpi-nm">${t.name}</div><div style="font-size:9px;color:var(--txt3)">/${t.shortcut}</div></div><div style="display:flex;gap:4px"><button class="usebtn" data-use="${t.id}">Usar</button><button class="usebtn" data-del="${t.id}" style="background:#fee2e2;color:#991b1b;border-color:#fca5a5" title="Borrar">✕</button></div></div></div>`;
+        return`<div class="tpi">${p}<div class="tpi-ft"><div><div class="tpi-nm">${t.name}</div><div style="font-size:9px;color:var(--txt3)">/${t.shortcut}</div></div><div style="display:flex;gap:4px"><button class="usebtn" data-use="${t.id}">Usar</button><button class="usebtn" data-edit="${t.id}" style="background:#dbeafe;color:#1e3a8a;border-color:#93c5fd" title="Editar"><i class="ti ti-pencil" style="font-size:10px"></i></button><button class="usebtn" data-del="${t.id}" style="background:#fee2e2;color:#991b1b;border-color:#fca5a5" title="Borrar">✕</button></div></div></div>`;
       }).join(''):`<div style="text-align:center;padding:20px;font-size:11px;color:var(--txt3)">Sin resultados</div>`}</div>`;
     document.querySelectorAll('[data-tc]').forEach(el=>el.addEventListener('click',()=>{tplCat=el.dataset.tc;renderTpl();}));
     const si=document.getElementById('tpSr');if(si)si.addEventListener('input',e=>{tplQ=e.target.value;renderTpl();});
     document.querySelectorAll('[data-use]').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();useTpl(b.dataset.use);}));
     document.querySelectorAll('[data-del]').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();deleteTpl(b.dataset.del);}));
+    document.querySelectorAll('[data-edit]').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();editTpl(b.dataset.edit);}));
   } else {
     body.innerHTML=`<div class="ntf-form">
       <div class="ff"><label>Tipo</label><div class="type-row">
@@ -2401,7 +2402,7 @@ function renderTpl(){
       ${nType==='text'?`<div class="ff"><label>Contenido</label><textarea id="nCont" placeholder="Hola {{nombre}}, gracias por escribirnos..."></textarea></div><div class="vh">Variables: <span data-v="{{nombre}}">{{nombre}}</span> · <span data-v="{{agente}}">{{agente}}</span> · <span data-v="{{fecha}}">{{fecha}}</span> · <span data-v="{{hora}}">{{hora}}</span></div>`:''}
       ${nType==='photo'?`<div class="ff"><label>Nombre archivo</label><input id="nFile" type="text" placeholder="imagen.jpg"></div><div style="border:1.5px dashed var(--border2);border-radius:var(--r);padding:14px;text-align:center;cursor:pointer;color:var(--txt3)"><i class="ti ti-upload" style="font-size:18px;display:block;margin-bottom:4px"></i><span style="font-size:10px">Clic o arrastra imagen</span></div>`:''}
       ${nType==='link'?`<div class="ff"><label>URL</label><input id="nUrl" type="text" placeholder="https://..."></div><div class="ff"><label>Título</label><input id="nLT" type="text" placeholder="Ver más información"></div>`:''}
-      <button class="svbtn" id="saveTplBtn"><i class="ti ti-device-floppy" style="font-size:12px"></i> Guardar plantilla</button>
+      <button class="svbtn" id="saveTplBtn"><i class="ti ti-device-floppy" style="font-size:12px"></i> ${editingTpl?'Guardar cambios':'Guardar plantilla'}</button>
     </div>`;
     document.querySelectorAll('[data-nt]').forEach(b=>b.addEventListener('click',()=>{nType=b.dataset.nt;renderTpl();}));
     document.querySelectorAll('[data-v]').forEach(v=>v.addEventListener('click',()=>{const ta=document.getElementById('nCont');if(ta){ta.value+=v.dataset.v;ta.focus();}}));
@@ -2409,10 +2410,31 @@ function renderTpl(){
   }
 }
 
+function editTpl(id){
+  var sid=String(id);
+  var t=templates.find(x=>String(x.id)===sid||String(x.dbId)===sid);if(!t)return;
+  editingTpl=t;nType=t.type||'text';tplTab='create';renderTpl();
+  var ni=document.getElementById('nNm');if(ni)ni.value=t.name||'';
+  var si=document.getElementById('nSc');if(si)si.value=t.shortcut||'';
+  var ci=document.getElementById('nCat');if(ci)ci.value=t.cat||'bienvenida';
+  if(nType==='text'){var ta=document.getElementById('nCont');if(ta)ta.value=t.content||'';}
+  else if(nType==='photo'){var fi=document.getElementById('nFile');if(fi)fi.value=t.content||'';}
+  else{var ui=document.getElementById('nUrl');if(ui)ui.value=t.content||'';var li=document.getElementById('nLT');if(li)li.value=t.linkTitle||'';}
+}
+
 function saveTpl(){
   var nm=document.getElementById('nNm')?.value.trim();if(!nm){toast('Escribe un nombre');return;}
   var sc=(document.getElementById('nSc')?.value||nm).replace(/\s/g,'').toLowerCase();
   var cat=document.getElementById('nCat')?.value||'bienvenida';
+  if(editingTpl){
+    editingTpl.name=nm;editingTpl.type=nType;editingTpl.cat=cat;editingTpl.shortcut=sc;
+    if(nType==='text')editingTpl.content=document.getElementById('nCont')?.value||'Mensaje';
+    else if(nType==='photo')editingTpl.content=document.getElementById('nFile')?.value||'imagen.jpg';
+    else{editingTpl.content=document.getElementById('nUrl')?.value||'https://';editingTpl.linkTitle=document.getElementById('nLT')?.value||'Ver más';}
+    toast(`"${nm}" actualizada`);
+    if(sb&&!demoMode){var dbId=editingTpl.dbId||editingTpl.id;sb.from('templates').update({name:nm,type:nType,category:cat,shortcut:sc,content:editingTpl.content,link_title:editingTpl.linkTitle||null}).eq('id',dbId);}
+    editingTpl=null;tplTab='browse';tplQ='';renderTpl();return;
+  }
   var t={id:Date.now(),name:nm,type:nType,cat,shortcut:sc};
   if(nType==='text')t.content=document.getElementById('nCont')?.value||'Mensaje';
   else if(nType==='photo')t.content=document.getElementById('nFile')?.value||'imagen.jpg';
@@ -2455,7 +2477,7 @@ function useTpl(id){
 
 document.getElementById('tplToggle')?.addEventListener('click',()=>{tplOpen=!tplOpen;if(tplOpen)tplTab='browse';renderTpl();});
 document.getElementById('closeTpl')?.addEventListener('click',()=>{tplOpen=false;renderTpl();});
-document.querySelectorAll('.tp-tab').forEach(t=>t.addEventListener('click',()=>{tplTab=t.dataset.tt;renderTpl();}));
+document.querySelectorAll('.tp-tab').forEach(t=>t.addEventListener('click',()=>{tplTab=t.dataset.tt;if(tplTab==='browse')editingTpl=null;renderTpl();}));
 
 /* ══════════════════════════════════════
    SLASH POPUP
