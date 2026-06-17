@@ -2228,6 +2228,7 @@ function renderMsgs(){
     return`<div class="mrow ${m.t}">
       ${!isClient?`<div class="av" style="width:24px;height:24px;font-size:9px;background:var(--accent);color:#fff">K</div>`:''}
       <div class="${isClient?'mb-in':'mb-out'}">
+        ${m.img?`<img src="${escHtml(m.img)}" style="max-width:180px;border-radius:8px;margin-bottom:4px;display:block">`:''}
         <div class="mb ${m.t}">${escHtml(m.txt)}</div>
         ${ch?`<div class="mch" style="justify-content:${isClient?'flex-end':'flex-start'}">${cI(m.ch,9)}<span style="font-size:9px">${ch.label}</span></div>`:''}
         <div class="mtime" style="text-align:${isClient?'right':'left'}">${m.time}</div>
@@ -2638,7 +2639,7 @@ function renderProducts(){
       var handle=aC.phone||(aC.channels||[]).find(c=>c.ch===ch)?.handle;
       if(!handle){toast('Este contacto no tiene canal asignado');return;}
       if(!msgs[aC.id])msgs[aC.id]=[];
-      msgs[aC.id].push({t:'out',txt:(imgUrl?'📷 ':'')+ txt,time:now(),ch:ch});
+      msgs[aC.id].push({t:'out',txt:txt,time:now(),ch:ch,img:imgUrl||null});
       renderMsgs();
       if(aC.dbId)saveMessageToDB(aC.dbId,ch,'agent',txt);
       sendToChannel(ch,txt,imgUrl);
