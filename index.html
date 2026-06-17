@@ -1285,6 +1285,18 @@ async function saveLeadToDB(l){
   }catch(e){console.warn('saveLead error:',e);return null;}
 }
 
+async function updateLeadInDB(l){
+  if(!sb||demoMode||!l.dbId)return;
+  try{await sb.from('leads').update({name:l.name,company:l.company||null,whatsapp:l.phone||null,office_phone:l.officePhone||null,amount:l.amount||0,stage:l.stage||'entrada',channel:l.ch||'wa',hot:l.hot||false,product:l.product||null,product_note:l.productNote||null,updated_at:new Date().toISOString()}).eq('id',l.dbId);}
+  catch(e){console.warn('updateLeadInDB error:',e);}
+}
+
+async function updateContactInDB(c){
+  if(!sb||demoMode||!c.dbId)return;
+  try{await sb.from('contacts').update({name:c.name,company:c.company||null,phone:c.phone||null,stage:c.stage||'entrada',deal_amount:c.amount||null,updated_at:new Date().toISOString()}).eq('id',c.dbId);}
+  catch(e){console.warn('updateContactInDB error:',e);}
+}
+
 async function updateLeadStageToDB(leadId,stage){
   if(!sb||demoMode||!leadId)return;
   try{await sb.from('leads').update({stage,updated_at:new Date().toISOString()}).eq('id',leadId);}
@@ -2871,7 +2883,7 @@ function getDateFolder(){
 }
 
 function handleFilesWithFolder(list){
-  var lead=leads.find(l=>l.id===currentLeadId);if(!lead)return;
+  var lead=allLeadsAndContacts().find(l=>String(l.id)===String(currentLeadId));if(!lead)return;
   if(!lead.files)lead.files=[];
   var folder=getDateFolder();
   var now=new Date();
@@ -3062,7 +3074,7 @@ function initDropZone(){
 }
 
 function handleFiles(list){
-  var lead=leads.find(l=>l.id===currentLeadId);if(!lead)return;
+  var lead=allLeadsAndContacts().find(l=>String(l.id)===String(currentLeadId));if(!lead)return;
   if(!lead.files)lead.files=[];
   var now=new Date();const d=`${now.getDate()}/${now.getMonth()+1}/${now.getFullYear()}`;
   Array.from(list).forEach(f=>{
@@ -3074,14 +3086,14 @@ function handleFiles(list){
 }
 
 document.getElementById('ldHotTog')?.addEventListener('click',function(){
-  var lead=leads.find(l=>l.id===currentLeadId);if(!lead)return;
+  var lead=allLeadsAndContacts().find(l=>String(l.id)===String(currentLeadId));if(!lead)return;
   lead.hot=!lead.hot;this.className='tog '+(lead.hot?'on2':'off');
 });
 document.getElementById('ldClose')?.addEventListener('click',()=>document.getElementById('leadDetailModal').classList.remove('open'));
 document.getElementById('ldCancel')?.addEventListener('click',()=>document.getElementById('leadDetailModal').classList.remove('open'));
 document.getElementById('leadDetailModal')?.addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');});
 document.getElementById('ldSave')?.addEventListener('click',()=>{
-  var lead=leads.find(l=>l.id===currentLeadId);if(!lead)return;
+  var lead=allLeadsAndContacts().find(l=>String(l.id)===String(currentLeadId));if(!lead)return;
   if(activeLeadTab==='info'){
     lead.name=document.getElementById('ldName').value.trim()||lead.name;
     lead.company=document.getElementById('ldCompany').value.trim()||lead.company;
@@ -3093,6 +3105,16 @@ document.getElementById('ldSave')?.addEventListener('click',()=>{
     lead.ag=document.getElementById('ldAg').value;
     lead.product=document.getElementById('ldProduct').value||lead.product;
     lead.productNote=document.getElementById('ldProductNote').value.trim()||lead.productNote;
+    lead.hot=document.getElementById('ldHotTog').classList.contains('on2');
+    if(lead.isContact){
+      var src=contacts.find(c=>(c.dbId||c.id)===currentLeadId);
+      if(src){src.name=lead.name;src.comp=lead.company;src.phone=lead.phone;src.stage=lead.stage;src.ch=lead.ch;src.amount=lead.amount;}
+      if(lead.dbId)updateContactInDB(lead);
+    }else{
+      var src2=leads.find(l=>String(l.id)===String(currentLeadId));
+      if(src2)Object.assign(src2,lead);
+      if(lead.dbId)updateLeadInDB(lead);
+    }
     renderPipeline();toast('Lead actualizado ✓');
   } else if(activeLeadTab==='notes'){
     const txt=document.getElementById('ldNote').value.trim();
