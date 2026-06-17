@@ -1306,8 +1306,9 @@ async function sendToChannel(channel, text, imageUrl){
     var payload={channel,to:handle,text};
     if(imageUrl)payload.imageUrl=imageUrl;
     var res=await fetch('/api/send',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
-    if(!res.ok)console.warn('sendToChannel error:',res.status);
-    else console.log('sendToChannel OK:',channel,handle);
+    var rj=await res.json().catch(()=>({}));
+    if(!res.ok)console.warn('sendToChannel error:',res.status,rj);
+    else console.log('sendToChannel OK:',channel,handle,'resp:',rj);
   }catch(e){console.warn('sendToChannel fetch error:',e);}
 }
 

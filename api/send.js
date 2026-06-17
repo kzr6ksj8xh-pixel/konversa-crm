@@ -5,18 +5,22 @@ const INTERNAL_API_KEY = process.env.INTERNAL_API_KEY;
 
 async function sendWhatsApp(to, text, imageUrl) {
   const url = `https://graph.facebook.com/v21.0/${PHONE_NUMBER_ID}/messages`;
+  if (imageUrl) imageUrl = imageUrl.split('?')[0];
   let body;
   if (imageUrl) {
     body = { messaging_product: 'whatsapp', to, type: 'image', image: { link: imageUrl, caption: text } };
   } else {
     body = { messaging_product: 'whatsapp', to, type: 'text', text: { body: text } };
   }
+  console.log('WA sending:', JSON.stringify({ to, type: body.type, imageUrl: imageUrl || 'none' }));
   const res = await fetch(url, {
     method: 'POST',
     headers: { 'Authorization': `Bearer ${WHATSAPP_TOKEN}`, 'Content-Type': 'application/json' },
     body: JSON.stringify(body)
   });
-  if (!res.ok) console.error('WA send error:', res.status, await res.text());
+  const resBody = await res.text();
+  if (!res.ok) console.error('WA send error:', res.status, resBody);
+  else console.log('WA send OK:', resBody);
   return res.ok;
 }
 
@@ -55,5 +59,5 @@ export default async function handler(req, res) {
   else if (channel === 'fb' || channel === 'ig') ok = await sendFBIG(to, text);
   else return res.status(400).json({ error: 'Unknown channel' });
 
-  return res.status(ok ? 200 : 502).json({ sent: ok });
+  return res.status(ok ? 200 : 502).json({ sent: ok, channel, imageUrl: imageUrl || null });
 }
