@@ -2625,9 +2625,21 @@ function renderProducts(){
   grid.innerHTML = h;
   document.querySelectorAll('[data-prod]').forEach(btn=>{
     btn.addEventListener('click',()=>{
-      var allP = PINGUS_PRODUCTS.concat(shopifyProducts.map(function(sp){return{id:'sp-'+sp.shopify_id,name:sp.title};}));
+      var allP = PINGUS_PRODUCTS.concat(shopifyProducts.map(function(sp){return{id:'sp-'+sp.shopify_id,name:sp.title,precio:sp.price?'$'+sp.price+' MXN':'',url:'https://www.grupopingus.com/products/'+sp.handle};}));
       const prod=allP.find(p=>p.id===btn.dataset.prod);
-      if(prod) toast(`"${prod.name}" — selecciona un lead en el pipeline para asignarlo`);
+      if(!prod)return;
+      if(!aC){toast('Selecciona un contacto primero');return;}
+      var txt=`¡Hola ${aC.name.split(' ')[0]}! Te comparto info de este producto:\n\n*${prod.name}* — ${prod.precio}\n${prod.desc||''}\n\n🔗 ${prod.url}\n\n✅ Envío GRATIS · Garantía 6 meses\n¿Te interesa? Con gusto te ayudo.`;
+      var ch=aC.ch||'wa';
+      var handle=aC.phone||(aC.channels||[]).find(c=>c.ch===ch)?.handle;
+      if(!handle){toast('Este contacto no tiene canal asignado');return;}
+      if(!msgs[aC.id])msgs[aC.id]=[];
+      msgs[aC.id].push({t:'out',txt,time:now(),ch:ch});
+      renderMsgs();
+      if(aC.dbId)saveMessageToDB(aC.dbId,ch,'agent',txt);
+      sendToChannel(ch,txt);
+      toast(`"${prod.name}" enviado a ${aC.name} por ${CH[ch]?.label||ch} ✓`);
+      switchView('chat');
     });
   });
 }
