@@ -7,6 +7,7 @@
 // Rules
 //  1. Lead estancado en Cotización 24 hrs → WhatsApp message + internal note + bump updated_at
 //  2. Lead estancado en cualquier etapa 48 hrs → internal note (skip if note already added in last 48 hrs)
+//  3. Bot de descuento — 24 hrs sin respuesta del cliente → mensaje "15% de descuento en 48 hrs"
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -121,7 +122,7 @@ async function findWhatsAppConversation(
     .from("conversations")
     .select("id, contact_id, channel")
     .eq("contact_id", contactId)
-    .eq("channel", "whatsapp")
+    .eq("channel", "wa")
     .order("id", { ascending: false })
     .limit(1)
     .maybeSingle();
@@ -199,6 +200,36 @@ async function noteExistsRecently(
 
   if (error || !data) return false;
   return true;
+}
+
+// ---------------------------------------------------------------------------
+// Rule 3 helpers — FB/IG sending
+// ---------------------------------------------------------------------------
+
+async function sendFBIGMessage(
+  pageToken: string,
+  recipientId: string,
+  text: string,
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const resp = await fetch("https://graph.facebook.com/v21.0/me/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        recipient: { id: recipientId },
+        message: { text },
+        messaging_type: "RESPONSE",
+        access_token: pageToken,
+      }),
+    });
+    if (!resp.ok) {
+      const err = await resp.text();
+      return { success: false, error: err };
+    }
+    return { success: true };
+  } catch (e) {
+    return { success: false, error: String(e) };
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -456,6 +487,192 @@ async function runRule2(
 }
 
 // ---------------------------------------------------------------------------
+// Rule 3 — Bot de descuento 24 hrs sin respuesta del cliente
+// ---------------------------------------------------------------------------
+
+const DISCOUNT_MESSAGE =
+  "¡Hola! 🎉 Aprovecha *15% de descuento* en todos los productos que compres *EN LAS PRÓXIMAS 48 HORAS*. ¡No dejes pasar esta oportunidad! 🛍️";
+
+const DISCOUNT_NOTE_MARKER = "🤖 Bot descuento 15%";
+
+async function runRule3(
+  supabase: ReturnType<typeof createClient>,
+  accessToken: string,
+  phoneNumberId: string,
+  metaPageToken: string,
+): Promise<ActionResult[]> {
+  const results: ActionResult[] = [];
+
+  const now = Date.now();
+  // Window: inbound messages that arrived between 24h and 25h ago
+  const cutoff24h = new Date(now - 24 * 60 * 60 * 1000).toISOString();
+  const cutoff25h = new Date(now - 25 * 60 * 60 * 1000).toISOString();
+
+  // Find conversations that had at least one inbound message in the 24-25h window
+  const { data: candidateMessages, error: msgError } = await supabase
+    .from("messages")
+    .select("conversation_id")
+    .in("sender", ["in", "customer"])
+    .gte("sent_at", cutoff25h)
+    .lt("sent_at", cutoff24h);
+
+  if (msgError) {
+    console.error("[Rule3] Error fetching candidate messages:", msgError.message);
+    return results;
+  }
+
+  if (!candidateMessages || candidateMessages.length === 0) {
+    console.log("[Rule3] No inbound messages in the 24-25h window");
+    return results;
+  }
+
+  const uniqueConvIds = [
+    ...new Set(candidateMessages.map((m: { conversation_id: string }) => m.conversation_id)),
+  ];
+
+  for (const convId of uniqueConvIds) {
+    try {
+      // Confirm the LATEST inbound in this conversation is exactly in the 24-25h window.
+      // If the customer sent a more recent message we skip (still active).
+      const { data: latestInbound, error: latestErr } = await supabase
+        .from("messages")
+        .select("sent_at")
+        .eq("conversation_id", convId)
+        .in("sender", ["in", "customer"])
+        .order("sent_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (latestErr || !latestInbound) continue;
+
+      const latestMs = new Date(latestInbound.sent_at).getTime();
+      if (latestMs > now - 24 * 60 * 60 * 1000) continue; // still active
+      if (latestMs < now - 25 * 60 * 60 * 1000) continue; // already handled
+
+      // Skip if discount note already exists in this conversation (last 7 days)
+      const alreadySent = await noteExistsRecently(
+        supabase,
+        convId,
+        DISCOUNT_NOTE_MARKER,
+        7 * 24,
+      );
+      if (alreadySent) {
+        results.push({
+          rule: "rule3",
+          leadId: convId,
+          success: true,
+          detail: "Discount already sent — skipped",
+        });
+        continue;
+      }
+
+      // Fetch conversation + contact
+      const { data: conv, error: convErr } = await supabase
+        .from("conversations")
+        .select("id, contact_id, channel")
+        .eq("id", convId)
+        .maybeSingle();
+
+      if (convErr || !conv) continue;
+
+      const { data: contact, error: contactErr } = await supabase
+        .from("contacts")
+        .select("id, name, phone, channels")
+        .eq("id", (conv as Conversation & { channel: string }).contact_id)
+        .maybeSingle();
+
+      if (contactErr || !contact) continue;
+
+      const channel = (conv as unknown as { channel: string }).channel;
+      let messageSent = false;
+
+      // Send via WhatsApp
+      if (channel === "wa") {
+        const phone =
+          (contact as unknown as { phone: string | null }).phone ??
+          // Fallback: look in channels JSONB
+          (
+            (contact as unknown as { channels: Array<{ ch: string; handle: string }> | null })
+              .channels ?? []
+          ).find((c) => c.ch === "wa")?.handle ?? null;
+
+        if (phone && accessToken && phoneNumberId) {
+          const waResult = await sendWhatsAppMessage(
+            accessToken,
+            phoneNumberId,
+            phone,
+            DISCOUNT_MESSAGE,
+          );
+          messageSent = waResult.success;
+          if (!waResult.success) {
+            console.warn(
+              `[Rule3] WhatsApp failed for conv ${convId}:`,
+              waResult.error,
+            );
+          }
+        }
+      } else if (channel === "fb" || channel === "ig") {
+        // Resolve recipient handle from contacts.channels JSONB
+        const contactChannels = (
+          contact as unknown as {
+            channels: Array<{ ch: string; handle: string }> | null;
+          }
+        ).channels ?? [];
+        const channelEntry = contactChannels.find((c) => c.ch === channel);
+        const recipientId = channelEntry?.handle;
+
+        if (recipientId && metaPageToken) {
+          const fbResult = await sendFBIGMessage(
+            metaPageToken,
+            recipientId,
+            DISCOUNT_MESSAGE,
+          );
+          messageSent = fbResult.success;
+          if (!fbResult.success) {
+            console.warn(
+              `[Rule3] FB/IG failed for conv ${convId}:`,
+              fbResult.error,
+            );
+          }
+        }
+      }
+
+      // Save outbound message in DB so it shows in the chat
+      if (messageSent) {
+        await supabase.from("messages").insert({
+          conversation_id: convId,
+          sender: "out",
+          content: DISCOUNT_MESSAGE,
+          channel,
+          sent_at: new Date().toISOString(),
+        });
+      }
+
+      // Always add internal note as audit trail
+      const noteContent = `${DISCOUNT_NOTE_MARKER} enviado automáticamente — 24h sin respuesta del cliente. Entregado=${messageSent}.`;
+      await addInternalNote(supabase, convId, noteContent);
+
+      results.push({
+        rule: "rule3",
+        leadId: convId,
+        success: true,
+        detail: `channel=${channel}, messageSent=${messageSent}`,
+      });
+    } catch (e) {
+      console.error(`[Rule3] Unexpected error for conv ${convId}:`, e);
+      results.push({
+        rule: "rule3",
+        leadId: convId,
+        success: false,
+        detail: String(e),
+      });
+    }
+  }
+
+  return results;
+}
+
+// ---------------------------------------------------------------------------
 // Main handler
 // ---------------------------------------------------------------------------
 
@@ -482,9 +699,10 @@ Deno.serve(async (req: Request): Promise<Response> => {
     auth: { persistSession: false },
   });
 
-  // ── WhatsApp credentials ─────────────────────────────────────────────────
+  // ── WhatsApp / Meta credentials ──────────────────────────────────────────
   const accessToken = Deno.env.get("WHATSAPP_ACCESS_TOKEN") ?? "";
   const phoneNumberId = Deno.env.get("WHATSAPP_PHONE_NUMBER_ID") ?? "";
+  const metaPageToken = Deno.env.get("META_PAGE_TOKEN") ?? "";
 
   const missingWa = !accessToken || !phoneNumberId;
   if (missingWa) {
@@ -496,12 +714,13 @@ Deno.serve(async (req: Request): Promise<Response> => {
   // ── Run rules ────────────────────────────────────────────────────────────
   const startedAt = new Date().toISOString();
 
-  const [rule1Results, rule2Results] = await Promise.all([
+  const [rule1Results, rule2Results, rule3Results] = await Promise.all([
     runRule1(supabase, accessToken, phoneNumberId),
     runRule2(supabase),
+    runRule3(supabase, accessToken, phoneNumberId, metaPageToken),
   ]);
 
-  const allResults = [...rule1Results, ...rule2Results];
+  const allResults = [...rule1Results, ...rule2Results, ...rule3Results];
 
   const summary = {
     ranAt: startedAt,
@@ -514,6 +733,11 @@ Deno.serve(async (req: Request): Promise<Response> => {
       total: rule2Results.length,
       success: rule2Results.filter((r) => r.success).length,
       failed: rule2Results.filter((r) => !r.success).length,
+    },
+    rule3: {
+      total: rule3Results.length,
+      success: rule3Results.filter((r) => r.success).length,
+      failed: rule3Results.filter((r) => !r.success).length,
     },
     details: allResults,
   };
