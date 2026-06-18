@@ -1,4 +1,4 @@
-const VERSION = 'v11';
+const VERSION = 'v12';
 const CACHE = 'konversa-' + VERSION;
 
 self.addEventListener('install', e => {
@@ -41,8 +41,8 @@ self.addEventListener('push', e => {
   let data;
   try { data = e.data.json(); } catch { data = { title: 'Konversa', body: e.data.text() }; }
 
-  e.waitUntil(
-    self.registration.showNotification(data.title || 'Konversa', {
+  e.waitUntil((async () => {
+    await self.registration.showNotification(data.title || 'Konversa', {
       body: data.body || '',
       icon: data.icon || '/logo_konversa.png',
       badge: data.badge || '/icon-192.png',
@@ -50,27 +50,40 @@ self.addEventListener('push', e => {
       tag: 'konversa-msg-' + (data.contactId || 'general'),
       renotify: true,
       vibrate: [200, 100, 200]
-    })
-  );
+    });
+    // Globo en el ícono: número de notificaciones abiertas en la bandeja.
+    await updateBadge();
+  })());
 });
+
+// Pone el globo del ícono con el número de notificaciones pendientes (o lo quita).
+async function updateBadge() {
+  if (!self.navigator.setAppBadge) return;
+  try {
+    const notes = await self.registration.getNotifications();
+    if (notes.length) await self.navigator.setAppBadge(notes.length);
+    else await self.navigator.clearAppBadge();
+  } catch (e) { /* no soportado */ }
+}
 
 self.addEventListener('notificationclick', e => {
   e.notification.close();
   const { url, contactId } = e.notification.data || {};
-  e.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
-      // Si ya hay una ventana abierta, enfocarla y mandar el contactId
-      for (const client of list) {
-        if (client.url.includes(self.location.origin)) {
-          client.focus();
-          if (contactId) client.postMessage({ type: 'OPEN_CONTACT', contactId });
-          return;
-        }
+  e.waitUntil((async () => {
+    // Recalcula el globo del ícono tras cerrar esta notificación.
+    await updateBadge();
+    const list = await clients.matchAll({ type: 'window', includeUncontrolled: true });
+    // Si ya hay una ventana abierta, enfocarla y mandar el contactId
+    for (const client of list) {
+      if (client.url.includes(self.location.origin)) {
+        client.focus();
+        if (contactId) client.postMessage({ type: 'OPEN_CONTACT', contactId });
+        return;
       }
-      // Si no hay ventana abierta, abrir una nueva
-      return clients.openWindow((url || '/') + (contactId ? '#contact=' + contactId : ''));
-    })
-  );
+    }
+    // Si no hay ventana abierta, abrir una nueva
+    return clients.openWindow((url || '/') + (contactId ? '#contact=' + contactId : ''));
+  })());
 });
 
 // Renovar suscripción si el navegador la invalida y la regenera.

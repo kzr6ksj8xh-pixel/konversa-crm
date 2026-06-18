@@ -2233,6 +2233,10 @@ function renderContactList(){
 function updateNavBadges(){
   var total=contacts.reduce((a,c)=>a+(c.unread||0),0);
   document.querySelectorAll('[data-view="chat"] .nb').forEach(function(d){d.style.display=total>0?'block':'none';});
+  // Globo en el ícono de la app (iOS 16.4+ / PWA instalada). Refleja los no leídos.
+  if(navigator.setAppBadge){
+    try{ total>0 ? navigator.setAppBadge(total) : navigator.clearAppBadge(); }catch(e){}
+  }
 }
 
 document.querySelectorAll('[data-f]').forEach(el=>el.addEventListener('click',()=>{
