@@ -12,8 +12,12 @@
 // ============================================================
 
 import crypto from 'crypto';
+import { sendPushToAgents } from '../lib/push.js';
 
 export const config = { api: { bodyParser: false } };
+
+// Etiqueta legible del canal para las notificaciones push
+const CHANNEL_LABEL = { wa: 'WhatsApp', fb: 'Messenger', ig: 'Instagram' };
 
 const VERIFY_TOKEN = process.env.WHATSAPP_VERIFY_TOKEN;
 const WHATSAPP_TOKEN = process.env.WHATSAPP_ACCESS_TOKEN;
@@ -326,9 +330,19 @@ async function processIncoming(channel, handle, name, text) {
     await persistMessage(sb, convId, channel, 'customer', text);
     await sb.from('contacts').update({updated_at:new Date().toISOString()}).eq('id',contact.id);
 
+  // Notificar a los agentes (push real, incluso con la app cerrada).
+  // Corre en paralelo con Claude; se espera al final para que termine
+  // antes de que el serverless se congele.
+    const pushPromise = sendPushToAgents(sb, {
+        title: `${name} · ${CHANNEL_LABEL[channel] || 'Mensaje'}`,
+        body: text.length > 120 ? text.slice(0, 120) + '…' : text,
+        contactId: contact.id
+    }).catch(e => console.warn('[PUSH]', e?.message));
+
   const reply = await callClaude(history, text);
     const finalReply = reply || fallbackReply(text, history);
     await persistMessage(sb, convId, channel, 'ai', finalReply);
+    await pushPromise;
     return finalReply;
 }
 

@@ -1542,7 +1542,8 @@ function showRealtimeNotif(name, text, channel, contactId){
 }
 
 // Nivel 2: suscripción Web Push con VAPID
-var VAPID_PUBLIC_KEY='BADsEvVgFMK9OwVdJzbxzmE90IzccuTUlEoXJkLGojMkqkYhzp4oREW7y1BLKEF6XRqXTKCBi2DhkNecyTv2EcM';
+// La clave pública VAPID se obtiene del servidor (/api/push-public-key)
+// para que las claves vivan solo en variables de entorno de Vercel.
 
 function urlBase64ToUint8Array(base64String){
   var padding='='.repeat((4-base64String.length%4)%4);
@@ -1561,10 +1562,14 @@ async function subscribeToPush(){
       if(perm!=='granted')return;
     }
     if(Notification.permission!=='granted')return;
+    // Obtener la clave pública VAPID del servidor
+    var keyRes=await fetch('/api/push-public-key');
+    var keyJson=await keyRes.json();
+    if(!keyJson||!keyJson.publicKey){console.warn('VAPID no configurado en el servidor');return;}
     // Suscribir al push
     var sub=await reg.pushManager.subscribe({
       userVisibleOnly:true,
-      applicationServerKey:urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+      applicationServerKey:urlBase64ToUint8Array(keyJson.publicKey)
     });
     // Guardar en Supabase
     if(sb&&currentUser){
