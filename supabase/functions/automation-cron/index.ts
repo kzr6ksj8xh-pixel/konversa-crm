@@ -491,7 +491,7 @@ async function runRule2(
 // ---------------------------------------------------------------------------
 
 const DISCOUNT_MESSAGE =
-  "¡Hola! 🎉 Aprovecha *15% de descuento* en todos los productos que compres *EN LAS PRÓXIMAS 48 HORAS*. ¡No dejes pasar esta oportunidad! 🛍️";
+  "¡Hola! 🎉 Aprovecha *15% de descuento* en todos los productos que compres *EN LAS PRÓXIMAS 48 HORAS*. ¡No dejes pasar esta oportunidad! 🛍️\n\n🌐 www.grupopingus.com";
 
 const DISCOUNT_NOTE_MARKER = "🤖 Bot descuento 15%";
 
@@ -500,35 +500,43 @@ async function runRule3(
   accessToken: string,
   phoneNumberId: string,
   metaPageToken: string,
+  force = false,
+  minHours = 24,
 ): Promise<ActionResult[]> {
   const results: ActionResult[] = [];
 
-  // Only send between 09:00 and 21:00 Mexico City time
-  const nowDate = new Date();
-  const hourMX = Number(
-    nowDate.toLocaleString("en-US", {
-      timeZone: "America/Mexico_City",
-      hour: "numeric",
-      hour12: false,
-    }),
-  );
-  if (hourMX < 9 || hourMX >= 21) {
-    console.log(`[Rule3] Outside allowed hours (${hourMX}h MX) — skipping`);
-    return results;
+  // Only send between 09:00 and 21:00 Mexico City time (skipped in force mode)
+  if (!force) {
+    const nowDate = new Date();
+    const hourMX = Number(
+      nowDate.toLocaleString("en-US", {
+        timeZone: "America/Mexico_City",
+        hour: "numeric",
+        hour12: false,
+      }),
+    );
+    if (hourMX < 9 || hourMX >= 21) {
+      console.log(`[Rule3] Outside allowed hours (${hourMX}h MX) — skipping`);
+      return results;
+    }
   }
 
   const now = Date.now();
-  // Window: inbound messages that arrived between 24h and 25h ago
-  const cutoff24h = new Date(now - 24 * 60 * 60 * 1000).toISOString();
-  const cutoff25h = new Date(now - 25 * 60 * 60 * 1000).toISOString();
 
-  // Find conversations that had at least one inbound message in the 24-25h window
-  const { data: candidateMessages, error: msgError } = await supabase
+  // In force mode: any conversation silent >= minHours (no upper bound)
+  // In cron mode: exact 24-25h window to avoid re-sending every hour
+  const cutoffMin = new Date(now - (force ? minHours : 24) * 60 * 60 * 1000).toISOString();
+  const cutoffMax = force ? undefined : new Date(now - 25 * 60 * 60 * 1000).toISOString();
+
+  let query = supabase
     .from("messages")
     .select("conversation_id")
     .in("sender", ["in", "customer"])
-    .gte("sent_at", cutoff25h)
-    .lt("sent_at", cutoff24h);
+    .lt("sent_at", cutoffMin);
+
+  if (cutoffMax) query = query.gte("sent_at", cutoffMax);
+
+  const { data: candidateMessages, error: msgError } = await query;
 
   if (msgError) {
     console.error("[Rule3] Error fetching candidate messages:", msgError.message);
@@ -560,8 +568,8 @@ async function runRule3(
       if (latestErr || !latestInbound) continue;
 
       const latestMs = new Date(latestInbound.sent_at).getTime();
-      if (latestMs > now - 24 * 60 * 60 * 1000) continue; // still active
-      if (latestMs < now - 25 * 60 * 60 * 1000) continue; // already handled
+      if (latestMs > now - minHours * 60 * 60 * 1000) continue; // still active
+      if (!force && latestMs < now - 25 * 60 * 60 * 1000) continue; // cron: already handled
 
       // Skip if discount note already exists in this conversation (last 7 days)
       const alreadySent = await noteExistsRecently(
@@ -725,13 +733,18 @@ Deno.serve(async (req: Request): Promise<Response> => {
     );
   }
 
+  // ── Parámetros opcionales para disparo manual ────────────────────────────
+  const url = new URL(req.url);
+  const force = url.searchParams.get("force") === "true";
+  const minHours = parseInt(url.searchParams.get("minHours") ?? "24", 10);
+
   // ── Run rules ────────────────────────────────────────────────────────────
   const startedAt = new Date().toISOString();
 
   const [rule1Results, rule2Results, rule3Results] = await Promise.all([
     runRule1(supabase, accessToken, phoneNumberId),
     runRule2(supabase),
-    runRule3(supabase, accessToken, phoneNumberId, metaPageToken),
+    runRule3(supabase, accessToken, phoneNumberId, metaPageToken, force, minHours),
   ]);
 
   const allResults = [...rule1Results, ...rule2Results, ...rule3Results];
