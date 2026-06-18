@@ -120,7 +120,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
 /* ─── CHAT VIEW ─── */
 .inbox-p{width:200px;background:var(--bg);border-right:.5px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;}
-@media(max-width:600px){.inbox-p{display:none;}.inbox-p.show{display:flex;position:absolute;z-index:30;height:100%;width:80%;box-shadow:4px 0 20px rgba(0,0,0,.15);}}
+@media(max-width:640px){.inbox-p{display:none;}.inbox-p.show{display:flex;position:absolute;z-index:30;height:100%;width:80%;box-shadow:4px 0 20px rgba(0,0,0,.15);}}
 .ip-head{padding:10px 11px;border-bottom:.5px solid var(--border);}
 .ip-head h3{font-size:12px;font-weight:500;margin-bottom:7px;}
 .chf-row{display:flex;gap:5px;margin-bottom:7px;}
@@ -146,7 +146,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .chat-main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
 .chat-hd{display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--bg);border-bottom:.5px solid var(--border);}
 .back-btn{display:none;font-size:18px;color:var(--txt2);cursor:pointer;margin-right:4px;}
-@media(max-width:600px){.back-btn{display:block;}}
+@media(max-width:640px){.back-btn{display:block;}}
 .ch-nm{font-size:13px;font-weight:500;}
 .ch-sub{font-size:10px;display:flex;align-items:center;gap:5px;margin-top:2px;}
 .chbdg{font-size:9px;padding:2px 7px;border-radius:10px;font-weight:500;display:inline-flex;align-items:center;gap:3px;}
@@ -1123,7 +1123,7 @@ var contacts = demoContacts, leads = demoLeads, templates = demoTemplates;
 var msgs = {...demoMsgs};
 var aC = null, aCh = 'wa', tplOpen=false, tplTab='browse', tplCat='all', tplQ='', nType='text', editingTpl=null;
 var hist=[], aiOn=true, chFilt='all', slashMode=false, slashQ='', slashIdx=0;
-var dragId=null, dragOverCol=null, agFilt='all', notifIdx=0, selRole='admin', aRange=7;
+var dragId=null, dragOverCol=null, touchDragId=null, touchDragZone=null, agFilt='all', notifIdx=0, selRole='admin', aRange=7;
 var demoMode = true;
 var shopifyProducts = [];
 
@@ -1915,13 +1915,17 @@ function switchView(v){
     else{el.style.display='block';}
   }
   document.querySelectorAll('.tn-btn[data-view],.bn-btn[data-view],.ls-btn[data-view]').forEach(b=>b.classList.toggle('on',b.dataset.view===v));
+  // En móvil, al abrir Chats sin conversación activa, mostrar la lista por defecto
+  if(v==='chat'&&!aC&&window.matchMedia('(max-width:640px)').matches){
+    document.getElementById('inboxPanel')?.classList.add('show');
+  }
   if(v==='pipeline')renderPipeline();
   if(v==='products')renderProducts();
   if(v==='aiagent')loadAIAgentStats();
 }
 document.querySelectorAll('.tn-btn[data-view],.bn-btn[data-view],.ls-btn[data-view]').forEach(el=>el.addEventListener('click',()=>switchView(el.dataset.view)));
 document.getElementById('bnTplBtn')?.addEventListener('click',()=>{switchView('chat');tplOpen=true;tplTab='browse';renderTpl();});
-document.getElementById('bnNewLeadBtn')?.addEventListener('click',()=>{document.getElementById('leadModal').classList.add('open');setTimeout(()=>{var f=document.getElementById('fName');if(f)f.focus();},50);});
+document.getElementById('bnNewLeadBtn')?.addEventListener('click',()=>openLeadModal('entrada'));
 document.getElementById('lsIntegrationsBtn')?.addEventListener('click',()=>{renderIntegrations();document.getElementById('integrationsModal')?.classList.add('open');});
 // Sync sidebar user avatar with logged-in user initials
 function updateSidebarUser(){var u=document.getElementById('lsUserAvatar');if(u&&currentUser){var nm=currentUser.user_metadata?.name||currentUser.email||'K';u.textContent=nm.split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();}}
@@ -2217,6 +2221,13 @@ function renderContactList(){
     renderChatAll();
     renderContactList();
   }));
+  updateNavBadges();
+}
+
+// Enciende/apaga el punto rojo de "Chats" según mensajes sin leer
+function updateNavBadges(){
+  var total=contacts.reduce((a,c)=>a+(c.unread||0),0);
+  document.querySelectorAll('[data-view="chat"] .nb').forEach(function(d){d.style.display=total>0?'block':'none';});
 }
 
 document.querySelectorAll('[data-f]').forEach(el=>el.addEventListener('click',()=>{
@@ -3232,6 +3243,24 @@ function updatePipeStats(){
   document.getElementById('pTotalDeals').textContent=`${fl.length} negocios`;
 }
 
+// Mueve un lead/contacto a una etapa (usado por drag de mouse y de táctil)
+function moveLeadToStage(id,zoneId){
+  if(id===null||id===undefined||!zoneId)return;
+  const lead=allLeadsAndContacts().find(l=>String(l.id)===String(id));
+  if(!lead||lead.stage===zoneId)return;
+  const to=STAGE_MAP[zoneId]?.label;
+  lead.stage=zoneId;
+  const realLead=leads.find(l=>String(l.id)===String(id));
+  if(realLead) realLead.stage=zoneId;
+  const contact=contacts.find(c=>c.name===lead.name||c.dbId===lead.contactId);
+  if(contact){
+    contact.stage=zoneId;
+    if(sb&&!demoMode&&contact.dbId) sb.from('contacts').update({stage:zoneId,updated_at:new Date().toISOString()}).eq('id',contact.dbId);
+  }
+  renderPipeline();toast(`${lead.name.split(' ')[0]} → "${to}"`);
+  if(lead.dbId) updateLeadStageToDB(lead.dbId,zoneId);
+}
+
 function bindDrag(){
   document.querySelectorAll('.kcard-drag').forEach(handle=>{
     const card=handle.closest('.kcard');
@@ -3245,30 +3274,31 @@ function bindDrag(){
       document.querySelectorAll('.czone').forEach(z=>z.classList.remove('drag-over'));
       dragId=null;dragOverCol=null;
     });
+    // ── Soporte táctil (móvil/tableta): HTML5 DnD no funciona con el dedo ──
+    handle.addEventListener('touchstart',()=>{touchDragId=handle.dataset.drag;card.classList.add('dragging');},{passive:true});
+    handle.addEventListener('touchmove',e=>{
+      if(touchDragId===null)return;
+      e.preventDefault();
+      const t=e.touches[0];
+      const el=document.elementFromPoint(t.clientX,t.clientY);
+      const zone=el?el.closest('.czone[data-zone]'):null;
+      document.querySelectorAll('.czone').forEach(z=>z.classList.remove('drag-over'));
+      if(zone)zone.classList.add('drag-over');
+      touchDragZone=zone?zone.dataset.zone:null;
+    },{passive:false});
+    handle.addEventListener('touchend',()=>{
+      card.classList.remove('dragging');
+      document.querySelectorAll('.czone').forEach(z=>z.classList.remove('drag-over'));
+      if(touchDragId!==null&&touchDragZone)moveLeadToStage(touchDragId,touchDragZone);
+      touchDragId=null;touchDragZone=null;
+    });
   });
   document.querySelectorAll('.czone[data-zone]').forEach(zone=>{
     zone.addEventListener('dragover',e=>{e.preventDefault();e.dataTransfer.dropEffect='move';if(dragOverCol!==zone.dataset.zone){document.querySelectorAll('.czone').forEach(z=>z.classList.remove('drag-over'));zone.classList.add('drag-over');dragOverCol=zone.dataset.zone;}});
     zone.addEventListener('dragleave',e=>{if(!zone.contains(e.relatedTarget)){zone.classList.remove('drag-over');if(dragOverCol===zone.dataset.zone)dragOverCol=null;}});
     zone.addEventListener('drop',e=>{
       e.preventDefault();zone.classList.remove('drag-over');
-      if(dragId!==null&&zone.dataset.zone){
-        const lead=allLeadsAndContacts().find(l=>String(l.id)===String(dragId));
-        if(lead&&lead.stage!==zone.dataset.zone){
-          const to=STAGE_MAP[zone.dataset.zone]?.label;
-          lead.stage=zone.dataset.zone;
-          // Actualizar en array leads si existe
-          const realLead=leads.find(l=>String(l.id)===String(dragId));
-          if(realLead) realLead.stage=zone.dataset.zone;
-          // Actualizar contacto en memoria y DB
-          const contact=contacts.find(c=>c.name===lead.name||c.dbId===lead.contactId);
-          if(contact){
-            contact.stage=zone.dataset.zone;
-            if(sb&&!demoMode&&contact.dbId) sb.from('contacts').update({stage:zone.dataset.zone,updated_at:new Date().toISOString()}).eq('id',contact.dbId);
-          }
-          renderPipeline();toast(`${lead.name.split(' ')[0]} → "${to}"`);
-          if(lead.dbId) updateLeadStageToDB(lead.dbId,zone.dataset.zone);
-        }
-      }
+      moveLeadToStage(dragId,zone.dataset.zone);
       dragId=null;dragOverCol=null;
     });
   });
