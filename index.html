@@ -1309,6 +1309,19 @@ async function deleteLeadFromDB(leadId){
   catch(e){console.warn('deleteLeadFromDB error:',e);}
 }
 
+// Borra un contacto y todo su rastro en cascada: messages → conversations → leads → contacts
+async function deleteContactFromDB(contactId){
+  if(!sb||demoMode||!contactId)return;
+  try{
+    var {data:convs}=await sb.from('conversations').select('id').eq('contact_id',contactId);
+    var convIds=(convs||[]).map(c=>c.id);
+    if(convIds.length)await sb.from('messages').delete().in('conversation_id',convIds);
+    await sb.from('conversations').delete().eq('contact_id',contactId);
+    await sb.from('leads').delete().eq('contact_id',contactId);
+    await sb.from('contacts').delete().eq('id',contactId);
+  }catch(e){console.warn('deleteContactFromDB error:',e);}
+}
+
 async function sendToChannel(channel, text, imageUrl){
   if(!aC||channel==='note')return;
   var handle=aC.phone||(aC.channels||[]).find(c=>c.ch===channel)?.handle;
@@ -2375,9 +2388,11 @@ document.getElementById('deleteContactBtn')?.addEventListener('click',()=>{
     '¿Eliminar contacto?',
     `Se eliminará ${aC.name} y todos sus datos. Esta acción no se puede deshacer.`,
     ()=>{
+      var delId=aC.dbId||aC.id;
       contacts=contacts.filter(c=>c.id!==aC.id);
       leads=leads.filter(l=>l.name!==aC.name);
       delete msgs[aC.id];
+      deleteContactFromDB(delId);
       aC=null;
       renderContactList();renderTools();
       document.getElementById('msgsArea').innerHTML='<div class="dsep">Contacto eliminado</div>';
@@ -3264,11 +3279,20 @@ function bindKActions(){
     btn.addEventListener('click',e=>{
       e.stopPropagation();const id=String(btn.dataset.del);
       guardAction('delete_lead',()=>{
-        const lead=leads.find(l=>String(l.id)===id);
-        if(lead) confirmDialog('¿Eliminar venta?',`Se eliminará "${lead.name}" del pipeline. Esta acción no se puede deshacer.`,()=>{
+        const lead=allLeadsAndContacts().find(l=>String(l.id)===id);
+        if(!lead)return;
+        confirmDialog('¿Eliminar venta?',`Se eliminará "${lead.name}" del pipeline. Esta acción no se puede deshacer.`,()=>{
           var delId=lead.dbId||lead.id;
-          leads=leads.filter(l=>l.id!==id);renderPipeline();toast(`"${lead.name}" eliminado del pipeline`);
-          deleteLeadFromDB(delId);
+          if(lead.isContact){
+            contacts=contacts.filter(c=>String(c.dbId||c.id)!==String(delId));
+            leads=leads.filter(l=>l.contactId!==delId);
+            if(aC&&(aC.id===delId||aC.dbId===delId))aC=null;
+            deleteContactFromDB(delId);
+          }else{
+            leads=leads.filter(l=>String(l.id)!==id);
+            deleteLeadFromDB(delId);
+          }
+          renderPipeline();renderContactList&&renderContactList();toast(`"${lead.name}" eliminado del pipeline`);
         });
       });
     });
