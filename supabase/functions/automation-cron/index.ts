@@ -493,7 +493,7 @@ async function runRule2(
 const DISCOUNT_MESSAGE =
   "¡Hola! 🎉 Aprovecha *15% de descuento* en todos los productos que compres *EN LAS PRÓXIMAS 48 HORAS*. ¡No dejes pasar esta oportunidad! 🛍️\n\n🌐 www.grupopingus.com";
 
-const DISCOUNT_NOTE_MARKER = "🤖 Bot descuento 15%";
+const DISCOUNT_NOTE_MARKER = "Bot descuento 15 enviado";
 
 async function runRule3(
   supabase: ReturnType<typeof createClient>,
