@@ -503,6 +503,20 @@ async function runRule3(
 ): Promise<ActionResult[]> {
   const results: ActionResult[] = [];
 
+  // Only send between 09:00 and 21:00 Mexico City time
+  const nowDate = new Date();
+  const hourMX = Number(
+    nowDate.toLocaleString("en-US", {
+      timeZone: "America/Mexico_City",
+      hour: "numeric",
+      hour12: false,
+    }),
+  );
+  if (hourMX < 9 || hourMX >= 21) {
+    console.log(`[Rule3] Outside allowed hours (${hourMX}h MX) — skipping`);
+    return results;
+  }
+
   const now = Date.now();
   // Window: inbound messages that arrived between 24h and 25h ago
   const cutoff24h = new Date(now - 24 * 60 * 60 * 1000).toISOString();
