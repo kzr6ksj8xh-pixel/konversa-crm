@@ -1,4 +1,4 @@
-const VERSION = 'v10';
+const VERSION = 'v11';
 const CACHE = 'konversa-' + VERSION;
 
 self.addEventListener('install', e => {
@@ -73,16 +73,19 @@ self.addEventListener('notificationclick', e => {
   );
 });
 
-// Renovar suscripción si el servidor la invalida
+// Renovar suscripción si el navegador la invalida y la regenera.
+// Enviamos el endpoint viejo para que el servidor preserve el user_id.
 self.addEventListener('pushsubscriptionchange', e => {
+  const old = e.oldSubscription;
+  const opts = old?.options || e.newSubscription?.options;
+  if (!opts) return;
   e.waitUntil(
-    self.registration.pushManager.subscribe(e.oldSubscription.options)
-      .then(sub => {
-        return fetch('/api/push-subscribe', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(sub)
-        });
-      })
+    self.registration.pushManager.subscribe(opts)
+      .then(sub => fetch('/api/push-subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ oldEndpoint: old?.endpoint || null, subscription: sub.toJSON() })
+      }))
+      .catch(err => console.warn('pushsubscriptionchange:', err))
   );
 });
