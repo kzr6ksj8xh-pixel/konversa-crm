@@ -682,12 +682,7 @@ async function runRule3(
       });
     } catch (e) {
       console.error(`[Rule3] Unexpected error for conv ${convId}:`, e);
-      results.push({
-        rule: "rule3",
-        leadId: convId,
-        success: false,
-        detail: String(e),
-      });
+      results.push({ rule: "rule3", leadId: convId, success: false, detail: String(e) });
     }
   }
 
