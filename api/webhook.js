@@ -207,37 +207,30 @@ async function getSupabase() {
     return _sb;
 }
 
-// ── Resolver / crear contacto por canal+handle ────────────
+// ── Resolver / crear contacto por canal+handle (atómico vía RPC) ──
 async function resolveContact(sb, channel, handle, name) {
-    if (channel === 'wa') {
-          const { data } = await sb.from('contacts').select('id,channels')
-            .eq('phone', handle).limit(1).maybeSingle();
-          if (data) return data;
+    const phone = channel === 'wa' ? handle : null;
+    const { data, error } = await sb.rpc('resolve_contact_atomic', {
+          p_channel: channel, p_handle: handle, p_name: name || 'Cliente', p_phone: phone
+    }).maybeSingle();
+    if (error) {
+          console.error('resolveContact RPC error:', error);
+          return null;
     }
-    const { data: byChannel } = await sb.from('contacts').select('id,channels')
-      .contains('channels', [{ ch: channel, handle }]).limit(1).maybeSingle();
-    if (byChannel) return byChannel;
-
-  const row = {
-        name: name || 'Cliente',
-        phone: channel === 'wa' ? handle : null,
-        channels: [{ ch: channel, handle }],
-        stage: 'entrada'
-  };
-    const { data: created, error } = await sb.from('contacts').insert(row).select('id,channels').single();
-    if (error) { console.error('resolveContact insert:', error); return null; }
-    return created;
+    if (!data) return null;
+    return { id: data.contact_id, channels: data.contact_channels };
 }
 
-// ── Resolver / crear conversación por contacto+canal ──────
+// ── Resolver / crear conversación por contacto+canal (atómico vía RPC) ──
 async function resolveConversation(sb, contactId, channel) {
-    const { data } = await sb.from('conversations').select('id')
-      .eq('contact_id', contactId).eq('channel', channel).limit(1).maybeSingle();
-    if (data) return data.id;
-    const { data: created, error } = await sb.from('conversations')
-      .insert({ contact_id: contactId, channel }).select('id').single();
-    if (error) { console.error('resolveConversation insert:', error); return null; }
-    return created.id;
+    const { data, error } = await sb.rpc('resolve_conversation_atomic', {
+          p_contact_id: contactId, p_channel: channel
+    });
+    if (error) {
+          console.error('resolveConversation RPC error:', error);
+          return null;
+    }
+    return data;
 }
 
 // ── Guardar mensaje. sender: 'in' | 'out' | 'ai' ──────────
