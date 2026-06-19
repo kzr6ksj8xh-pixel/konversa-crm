@@ -1566,7 +1566,19 @@ async function subscribeToPush(){
     var keyRes=await fetch('/api/push-public-key');
     var keyJson=await keyRes.json();
     if(!keyJson||!keyJson.publicKey){console.warn('VAPID no configurado en el servidor');return;}
-    // Suscribir al push
+    // Si ya hay una suscripción activa, verificar que el endpoint esté en DB.
+    // Apple invalida los endpoints con el tiempo (sin disparar pushsubscriptionchange),
+    // y el servidor los borra cuando devuelven 404/410. Si no está en DB, forzar renovación.
+    if(sb&&currentUser){
+      var existing=await reg.pushManager.getSubscription();
+      if(existing){
+        var chk=await sb.from('push_subscriptions').select('id').eq('endpoint',existing.endpoint).maybeSingle();
+        if(!chk.data){
+          await existing.unsubscribe();
+        }
+      }
+    }
+    // Suscribir al push (fresco si se desuscribió, o el existente si sigue en DB)
     var sub=await reg.pushManager.subscribe({
       userVisibleOnly:true,
       applicationServerKey:urlBase64ToUint8Array(keyJson.publicKey)
