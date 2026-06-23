@@ -409,6 +409,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   #agFilter{grid-row:2;grid-column:1/-1;overflow-x:auto;white-space:nowrap;flex-wrap:nowrap!important;scrollbar-width:none;-webkit-overflow-scrolling:touch;}
   #agFilter::-webkit-scrollbar{display:none;}
   .pipe-top .stat-pill{display:none!important;}
+  /* En móvil: ocultar botones individuales del header y mostrar menú de tres puntos */
+  #deleteChatBtn{display:none!important;}
+  #hdMenuBtn{display:flex!important;}
   /* Templates panel: full width on mobile */
   .tpl-panel.open{width:100%!important;position:absolute;top:0;bottom:0;right:0;z-index:20;}
   /* AI Agent: tabs scroll, phone simulator hidden */
@@ -614,6 +617,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
         <div class="ib" id="hdEditBtn" title="Editar contacto" onclick="openContactEditor()" style="display:none"><i class="ti ti-edit"></i></div>
         <div class="ib" id="tplToggle" title="Plantillas"><i class="ti ti-template"></i></div>
         <div class="ib danger" id="deleteChatBtn" title="Eliminar chat"><i class="ti ti-trash"></i></div>
+        <div class="ib" id="hdMenuBtn" title="Más opciones" style="display:none"><i class="ti ti-dots-vertical"></i></div>
+      </div>
+      <div id="hdMenu" style="display:none;position:absolute;top:52px;right:8px;z-index:300;background:var(--bg);border:.5px solid var(--border);border-radius:10px;box-shadow:0 4px 20px #0004;padding:4px;min-width:180px">
+        <div id="hdMenuEdit" style="display:flex;align-items:center;gap:8px;padding:8px 12px;cursor:pointer;border-radius:7px;font-size:13px;color:var(--txt)" onclick="openContactEditor();document.getElementById('hdMenu').style.display='none'"><i class="ti ti-edit" style="font-size:15px;color:var(--txt2)"></i> Editar contacto</div>
+        <div id="hdMenuDeleteChat" style="display:flex;align-items:center;gap:8px;padding:8px 12px;cursor:pointer;border-radius:7px;font-size:13px;color:#ef4444"><i class="ti ti-trash" style="font-size:15px"></i> Eliminar chat</div>
+        <div id="hdMenuDeleteContact" style="display:flex;align-items:center;gap:8px;padding:8px 12px;cursor:pointer;border-radius:7px;font-size:13px;color:#ef4444"><i class="ti ti-user-minus" style="font-size:15px"></i> Eliminar contacto</div>
       </div>
     </div>
     <div id="agentDrop" style="display:none;position:absolute;z-index:200;background:var(--bg);border:.5px solid var(--border);border-radius:10px;box-shadow:0 4px 16px #0002;padding:4px;min-width:140px"></div>
@@ -1943,16 +1952,17 @@ async function bootApp(){
 }
 
 function applyPermissions(){
-  // Delete chat btn
+  var isAdmin=currentRole==='admin';
+  // Desktop: botones en header y panel derecho
   var dChatBtn=document.getElementById('deleteChatBtn');
   var dContactBtn=document.getElementById('deleteContactBtn');
-  if(currentRole==='operator'){
-    dChatBtn.style.display='none';
-    dContactBtn.style.display='none';
-  } else {
-    dChatBtn.style.display='flex';
-    dContactBtn.style.display='flex';
-  }
+  if(dChatBtn) dChatBtn.style.display=isAdmin?'flex':'none';
+  if(dContactBtn) dContactBtn.style.display=isAdmin?'flex':'none';
+  // Móvil: items del menú tres puntos
+  var mDelChat=document.getElementById('hdMenuDeleteChat');
+  var mDelContact=document.getElementById('hdMenuDeleteContact');
+  if(mDelChat) mDelChat.style.display=isAdmin?'flex':'none';
+  if(mDelContact) mDelContact.style.display=isAdmin?'flex':'none';
 }
 
 document.getElementById('loginBtn')?.addEventListener('click',doLogin);
@@ -2496,16 +2506,15 @@ document.getElementById('stageSelect')?.addEventListener('change',function(){
 });
 
 /* DELETE ACTIONS (role-guarded) */
-document.getElementById('deleteChatBtn')?.addEventListener('click',()=>{
+function doDeleteChat(){
   if(!aC)return;
   guardAction('delete_chat',()=>confirmDialog(
     '¿Eliminar chat?',
     `Se eliminarán todos los mensajes con ${aC.name}. Esta acción no se puede deshacer.`,
     ()=>{msgs[aC.id]=[];renderMsgs();toast(`Chat con ${aC.name} eliminado`);}
   ));
-});
-
-document.getElementById('deleteContactBtn')?.addEventListener('click',()=>{
+}
+function doDeleteContact(){
   if(!aC)return;
   guardAction('delete_contact',()=>confirmDialog(
     '¿Eliminar contacto?',
@@ -2523,7 +2532,30 @@ document.getElementById('deleteContactBtn')?.addEventListener('click',()=>{
       toast('Contacto eliminado');
     }
   ));
-});
+}
+
+document.getElementById('deleteChatBtn')?.addEventListener('click',doDeleteChat);
+document.getElementById('deleteContactBtn')?.addEventListener('click',doDeleteContact);
+
+// Menú tres puntos del header (móvil)
+(function(){
+  var menuBtn=document.getElementById('hdMenuBtn');
+  var menu=document.getElementById('hdMenu');
+  if(!menuBtn||!menu)return;
+  menuBtn.addEventListener('click',function(e){
+    e.stopPropagation();
+    menu.style.display=menu.style.display==='none'?'block':'none';
+  });
+  document.getElementById('hdMenuDeleteChat')?.addEventListener('click',function(){
+    menu.style.display='none';doDeleteChat();
+  });
+  document.getElementById('hdMenuDeleteContact')?.addEventListener('click',function(){
+    menu.style.display='none';doDeleteContact();
+  });
+  document.addEventListener('click',function(e){
+    if(!menu.contains(e.target)&&e.target!==menuBtn) menu.style.display='none';
+  });
+})();
 
 /* ══════════════════════════════════════
    TEMPLATE PANEL
