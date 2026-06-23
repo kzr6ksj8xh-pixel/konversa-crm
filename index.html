@@ -1402,9 +1402,15 @@ async function syncShopifyNow(){
 
 /* ── SUPABASE REALTIME ── */
 var realtimeChannel = null;
+var realtimeReconnectTimer = null;
+var realtimePollTimer = null;
+var realtimeResyncing = false;
 
 function startRealtime(){
   if(!sb||demoMode)return;
+
+  // Idempotente: cerrar canal previo antes de crear uno nuevo
+  stopRealtime();
 
   // Suscribir a nuevos mensajes
   realtimeChannel = sb.channel('crm-realtime')
@@ -1420,8 +1426,46 @@ function startRealtime(){
       handleRealtimeLead(payload.new);
     })
     .subscribe(function(status){
-      if(status==='SUBSCRIBED') console.log('Realtime conectado');
+      if(status==='SUBSCRIBED'){
+        console.log('Realtime conectado');
+      }else if(status==='CHANNEL_ERROR'||status==='TIMED_OUT'||status==='CLOSED'){
+        // El socket cayó (típico en PWA móvil suspendido) → reintentar
+        console.warn('Realtime estado:',status,'— reintentando');
+        scheduleRealtimeReconnect();
+      }
     });
+}
+
+// Reconexión con debounce para no abrir múltiples canales a la vez
+function scheduleRealtimeReconnect(){
+  if(realtimeReconnectTimer)return;
+  realtimeReconnectTimer=setTimeout(function(){
+    realtimeReconnectTimer=null;
+    if(document.visibilityState==='visible') resyncRealtime();
+  },2000);
+}
+
+// Reabrir socket + recuperar mensajes perdidos durante la desconexión
+async function resyncRealtime(){
+  if(!sb||demoMode||realtimeResyncing)return;
+  realtimeResyncing=true;
+  try{
+    // 1) Recuperar mensajes que llegaron mientras el socket estaba muerto
+    await loadMessagesFromDB();
+    // 2) Re-renderizar lo que esté a la vista
+    if(aC){
+      renderMsgs();
+      var area=document.getElementById('msgsArea');
+      if(area)area.scrollTop=area.scrollHeight;
+    }
+    renderContactList();
+    // 3) Reabrir el canal de realtime
+    startRealtime();
+  }catch(e){
+    console.warn('resyncRealtime error:',e);
+  }finally{
+    realtimeResyncing=false;
+  }
 }
 
 async function handleRealtimeMessage(m){
@@ -1618,9 +1662,37 @@ function requestPushPermission(){subscribeToPush();}
 
 function stopRealtime(){
   if(realtimeChannel){
-    sb.removeChannel(realtimeChannel);
+    try{sb.removeChannel(realtimeChannel);}catch(e){}
     realtimeChannel=null;
   }
+}
+
+// ── Reconexión al volver a primer plano (clave para PWA móvil) ──
+// Cuando el sistema suspende la app, el WebSocket muere; al reabrir hay que
+// recuperar mensajes perdidos y reabrir el socket.
+document.addEventListener('visibilitychange',function(){
+  if(document.visibilityState==='visible' && !demoMode && sb) resyncRealtime();
+});
+window.addEventListener('online',function(){
+  if(!demoMode && sb) resyncRealtime();
+});
+window.addEventListener('focus',function(){
+  if(!demoMode && sb && !realtimeChannel) resyncRealtime();
+});
+
+// Polling de respaldo: en algunos WebViews móviles el socket queda "vivo"
+// pero sin entregar eventos. Cada 25s, si la app está visible, re-sincroniza
+// mensajes desde la BD como red de seguridad.
+function startRealtimePoll(){
+  if(realtimePollTimer)return;
+  realtimePollTimer=setInterval(async function(){
+    if(document.visibilityState!=='visible'||demoMode||!sb||realtimeResyncing)return;
+    try{
+      await loadMessagesFromDB();
+      if(aC) renderMsgs();
+      renderContactList();
+    }catch(e){}
+  },25000);
 }
 
 function timeSince(dateStr){
@@ -1856,8 +1928,8 @@ async function bootApp(){
   // Pedir permiso de notificaciones
   requestPushPermission();
 
-  // Iniciar realtime
-  if(!demoMode && sb) startRealtime();
+  // Iniciar realtime + polling de respaldo
+  if(!demoMode && sb){ startRealtime(); startRealtimePoll(); }
 
   // Actualizar UI de Shopify si hay productos
   if(shopifyProducts.length){
