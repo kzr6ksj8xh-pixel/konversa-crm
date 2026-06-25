@@ -3449,8 +3449,15 @@ function bindKActions(){
             if(aC&&(aC.id===delId||aC.dbId===delId))aC=null;
             deleteContactFromDB(delId);
           }else{
+            var cId=lead.contactId;
             leads=leads.filter(l=>String(l.id)!==id);
-            deleteLeadFromDB(delId);
+            if(cId){
+              contacts=contacts.filter(c=>String(c.dbId||c.id)!==String(cId));
+              if(aC&&(aC.id===cId||aC.dbId===cId))aC=null;
+              deleteContactFromDB(cId);
+            }else{
+              deleteLeadFromDB(delId);
+            }
           }
           renderPipeline();renderContactList&&renderContactList();toast(`"${lead.name}" eliminado del pipeline`);
         });
