@@ -1332,23 +1332,30 @@ async function updateLeadStageToDB(leadId,stage){
   catch(e){console.warn('updateLeadStage error:',e);}
 }
 
+// Devuelve {ok:boolean, error?}. Verifica filas realmente borradas con .select():
+// Supabase NO devuelve error cuando RLS filtra todas las filas (borra 0 sin avisar).
 async function deleteLeadFromDB(leadId){
-  if(!sb||demoMode||!leadId)return;
-  try{await sb.from('leads').delete().eq('id',leadId);}
-  catch(e){console.warn('deleteLeadFromDB error:',e);}
+  if(!sb||demoMode||!leadId)return {ok:true};
+  try{
+    var {data,error}=await sb.from('leads').delete().eq('id',leadId).select('id');
+    if(error){console.warn('deleteLeadFromDB error:',error);return {ok:false,error};}
+    if(!data||!data.length)return {ok:false,error:{message:'sin permisos o ya no existe'}};
+    return {ok:true};
+  }catch(e){console.warn('deleteLeadFromDB error:',e);return {ok:false,error:e};}
 }
 
-// Borra un contacto y todo su rastro en cascada: messages → conversations → leads → contacts
+// Borra un contacto. Las FKs hacia contacts son ON DELETE CASCADE (conversations,
+// leads, automation_log, marketing_sends; y messages vía conversations), así que un
+// único DELETE elimina todo el rastro en una sola petición. Se espera el resultado
+// (await) y se verifica que realmente borró una fila antes de actualizar la UI.
 async function deleteContactFromDB(contactId){
-  if(!sb||demoMode||!contactId)return;
+  if(!sb||demoMode||!contactId)return {ok:true};
   try{
-    var {data:convs}=await sb.from('conversations').select('id').eq('contact_id',contactId);
-    var convIds=(convs||[]).map(c=>c.id);
-    if(convIds.length)await sb.from('messages').delete().in('conversation_id',convIds);
-    await sb.from('conversations').delete().eq('contact_id',contactId);
-    await sb.from('leads').delete().eq('contact_id',contactId);
-    await sb.from('contacts').delete().eq('id',contactId);
-  }catch(e){console.warn('deleteContactFromDB error:',e);}
+    var {data,error}=await sb.from('contacts').delete().eq('id',contactId).select('id');
+    if(error){console.warn('deleteContactFromDB error:',error);return {ok:false,error};}
+    if(!data||!data.length)return {ok:false,error:{message:'sin permisos o ya no existe'}};
+    return {ok:true};
+  }catch(e){console.warn('deleteContactFromDB error:',e);return {ok:false,error:e};}
 }
 
 async function sendToChannel(channel, text, imageUrl){
@@ -2519,13 +2526,15 @@ function doDeleteContact(){
   guardAction('delete_contact',()=>confirmDialog(
     '¿Eliminar contacto?',
     `Se eliminará ${aC.name} y todos sus datos. Esta acción no se puede deshacer.`,
-    ()=>{
-      var delId=aC.dbId||aC.id;
-      contacts=contacts.filter(c=>c.id!==aC.id);
-      leads=leads.filter(l=>l.name!==aC.name);
-      delete msgs[aC.id];
-      deleteContactFromDB(delId);
-      aC=null;
+    async ()=>{
+      var c=aC; if(!c)return;
+      var delId=c.dbId||c.id;
+      var r=await deleteContactFromDB(delId);
+      if(!r.ok){toast('⚠️ No se pudo eliminar: '+(r.error?.message||'error'));return;}
+      contacts=contacts.filter(x=>x.id!==c.id);
+      leads=leads.filter(l=>l.name!==c.name);
+      delete msgs[c.id];
+      if(aC===c)aC=null;
       renderContactList();renderTools();
       document.getElementById('msgsArea').innerHTML='<div class="dsep">Contacto eliminado</div>';
       document.getElementById('chNm').textContent='Selecciona un contacto';
@@ -3455,16 +3464,18 @@ function bindKActions(){
       guardAction('delete_lead',()=>{
         const lead=allLeadsAndContacts().find(l=>String(l.id)===id);
         if(!lead)return;
-        confirmDialog('¿Eliminar venta?',`Se eliminará "${lead.name}" del pipeline. Esta acción no se puede deshacer.`,()=>{
+        confirmDialog('¿Eliminar venta?',`Se eliminará "${lead.name}" del pipeline. Esta acción no se puede deshacer.`,async ()=>{
           var delId=lead.dbId||lead.id;
           if(lead.isContact){
+            var r=await deleteContactFromDB(delId);
+            if(!r.ok){toast('⚠️ No se pudo eliminar: '+(r.error?.message||'error'));return;}
             contacts=contacts.filter(c=>String(c.dbId||c.id)!==String(delId));
             leads=leads.filter(l=>l.contactId!==delId);
             if(aC&&(aC.id===delId||aC.dbId===delId))aC=null;
-            deleteContactFromDB(delId);
           }else{
+            var r2=await deleteLeadFromDB(delId);
+            if(!r2.ok){toast('⚠️ No se pudo eliminar: '+(r2.error?.message||'error'));return;}
             leads=leads.filter(l=>String(l.id)!==id);
-            deleteLeadFromDB(delId);
           }
           renderPipeline();renderContactList&&renderContactList();toast(`"${lead.name}" eliminado del pipeline`);
         });
