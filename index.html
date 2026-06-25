@@ -595,7 +595,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <div class="sbox"><i class="ti ti-search" style="font-size:12px;color:var(--txt3)"></i><input type="text" id="srch" placeholder="Buscar..."></div>
     </div>
     <div class="i-tabs">
-      <div class="itab">Sin leer</div><div class="itab on">Todo</div><div class="itab">Míos</div><div class="itab">Bot</div>
+      <div class="itab on">Sin leer</div><div class="itab">Todo</div><div class="itab">Míos</div><div class="itab">Bot</div>
     </div>
     <div class="clist" id="contactList"></div>
   </div>
@@ -1252,6 +1252,35 @@ async function loadMessagesFromDB(){
   }catch(e){console.warn('loadMessages error:',e);}
 }
 
+/* ── Persistencia de "no leídos" en el dispositivo (localStorage) ──
+   La base de datos no guarda estado leído/no leído. Guardamos por contacto la
+   marca de tiempo de última lectura EN ESTE DISPOSITIVO; así la pestaña
+   "Sin leer" funciona de verdad y persiste entre recargas, sin tocar la BD ni
+   chocar con las políticas RLS. (Es por dispositivo: no se sincroniza entre
+   equipos; para eso haría falta una columna en la BD.) */
+function readStateKey(){return 'konversa_read_'+((currentUser&&currentUser.id)?currentUser.id:'anon');}
+function loadReadState(){try{return JSON.parse(localStorage.getItem(readStateKey())||'{}')||{};}catch(e){return {};}}
+function saveReadState(s){try{localStorage.setItem(readStateKey(),JSON.stringify(s));}catch(e){}}
+function markContactRead(cid){if(!cid)return;var s=loadReadState();s[cid]=Date.now();saveReadState(s);}
+
+// Recalcula c.unread: nº de mensajes entrantes posteriores a la última lectura.
+function recomputeUnread(){
+  if(demoMode)return;   // en demo se conservan los badges de ejemplo
+  var s=loadReadState(),changed=false;
+  contacts.forEach(function(c){
+    var cid=c.dbId||c.id;
+    // La conversación abierta se considera leída (y se persiste).
+    if(aC && (aC.id===cid||aC.dbId===cid)){c.unread=0;s[cid]=Date.now();changed=true;return;}
+    var lr=s[cid]||0,list=msgs[cid]||[],n=0;
+    for(var i=0;i<list.length;i++){
+      var m=list[i];
+      if(m.t==='in'){var t=m.sentAt?new Date(m.sentAt).getTime():0;if(t>lr)n++;}
+    }
+    c.unread=n;
+  });
+  if(changed)saveReadState(s);
+}
+
 async function loadTemplatesFromDB(){
   if(!sb||demoMode)return;
   try{
@@ -1521,7 +1550,8 @@ async function handleRealtimeMessage(m){
     t: (m.sender==='in'||m.sender==='customer')?'in':m.sender==='note'?'note':m.sender==='tpl'?'tpl':'out',
     txt: m.content,
     time: timeOnly(m.sent_at),
-    ch: channel
+    ch: channel,
+    sentAt: m.sent_at
   };
 
   // Evitar duplicados (si el mensaje ya fue agregado localmente)
@@ -1530,8 +1560,9 @@ async function handleRealtimeMessage(m){
 
   msgs[contactId].push(newMsg);
 
-  // Si es el contacto actualmente abierto, renderizar
+  // Si es el contacto actualmente abierto, renderizar y marcar como leído
   if(aC && (aC.id===contactId || aC.dbId===contactId)){
+    markContactRead(contactId);
     renderMsgs();
     // Scroll al fondo
     var area=document.getElementById('msgsArea');
@@ -1627,7 +1658,7 @@ function showRealtimeNotif(name, text, channel, contactId){
       window.focus();
       if(contactId){
         var c=contacts.find(function(x){return x.id===contactId||x.dbId===contactId;});
-        if(c){aC=c;aCh=c.ch;renderChatAll();}
+        if(c){aC=c;aCh=c.ch;markContactRead(c.dbId||c.id);c.unread=0;renderChatAll();}
       }
       notif.close();
     };
@@ -1720,6 +1751,7 @@ function startRealtimePoll(){
     if(document.visibilityState!=='visible'||demoMode||!sb||realtimeResyncing)return;
     try{
       await loadMessagesFromDB();
+      recomputeUnread();
       if(aC) renderMsgs();
       renderContactList();
     }catch(e){}
@@ -1951,6 +1983,7 @@ async function bootApp(){
     }
   }
 
+  recomputeUnread();
   if(aC)renderChatAll();else{renderContactList();renderTools();}
   renderPipeline();
   renderProducts();
@@ -2004,7 +2037,7 @@ function togglePw(id,btn){var inp=document.getElementById(id);var ic=btn.querySe
 navigator.serviceWorker?.addEventListener('message',e=>{
   if(e.data?.type==='OPEN_CONTACT'&&e.data.contactId){
     var c=contacts.find(function(x){return x.id===e.data.contactId||x.dbId===e.data.contactId;});
-    if(c){aC=c;aCh=c.ch;renderChatAll();}
+    if(c){aC=c;aCh=c.ch;markContactRead(c.dbId||c.id);c.unread=0;renderChatAll();}
   }
 });
 
@@ -2351,7 +2384,8 @@ function renderContactList(){
     </div>`).join('');
   document.querySelectorAll('.ci[data-cid]').forEach(el=>el.addEventListener('click',()=>{
     aC=contacts.find(c=>c.id==el.dataset.cid);
-    if(aC&&aC.unread>0){
+    if(aC){
+      markContactRead(aC.dbId||aC.id);
       aC.unread=0;
     }
     aCh=aC.ch;
