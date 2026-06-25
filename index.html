@@ -1252,50 +1252,6 @@ async function loadMessagesFromDB(){
   }catch(e){console.warn('loadMessages error:',e);}
 }
 
-// Firma del estado visible para evitar re-render (y parpadeo) si nada cambió
-function liveSignature(){
-  var s='';
-  contacts.forEach(function(c){var k=c.dbId||c.id;s+=k+'|'+(c.unread||0)+'|'+(c.pre||'')+'|'+(c.lastMsgAt||0)+';';});
-  return s;
-}
-function inCount(cid){var l=msgs[cid];if(!l)return 0;var n=0;for(var i=0;i<l.length;i++){if(l[i].t==='in')n++;}return n;}
-
-// Refresco completo (contactos + mensajes) preservando no-leídos y detectando
-// mensajes entrantes nuevos. Es la red de seguridad cuando el WebSocket no
-// entrega eventos. Sólo re-renderiza si algo cambió.
-async function applyLiveRefresh(){
-  if(!sb||demoMode)return;
-  // Snapshot previo: no-leídos y nº de entrantes por contacto
-  var prevUnread={},prevIn={};
-  contacts.forEach(function(c){prevUnread[c.dbId||c.id]=c.unread||0;});
-  Object.keys(msgs).forEach(function(cid){prevIn[cid]=inCount(cid);});
-  var prevSig=liveSignature();
-  var prevMsgLen=aC?((msgs[aC.dbId||aC.id]||[]).length):0;
-
-  await loadContactsFromDB();   // reemplaza contactos (unread queda en 0)
-  await loadMessagesFromDB();   // reconstruye msgs y previews
-
-  // Restaurar no-leídos y sumar los entrantes nuevos detectados
-  contacts.forEach(function(c){
-    var k=c.dbId||c.id;
-    if(aC && (aC.id===k||aC.dbId===k)){c.unread=0;return;}   // conversación abierta = leída
-    var base=prevUnread[k]||0;
-    var delta=Math.max(0,inCount(k)-(prevIn[k]||0));
-    c.unread=base+delta;
-  });
-
-  // Re-render sólo si cambió algo visible
-  if(liveSignature()!==prevSig) renderContactList();
-  if(aC){
-    var newLen=(msgs[aC.dbId||aC.id]||[]).length;
-    if(newLen!==prevMsgLen){
-      renderMsgs();
-      var area=document.getElementById('msgsArea');
-      if(area)area.scrollTop=area.scrollHeight;
-    }
-  }
-}
-
 async function loadTemplatesFromDB(){
   if(!sb||demoMode)return;
   try{
@@ -1525,10 +1481,16 @@ async function resyncRealtime(){
   if(!sb||demoMode||realtimeResyncing)return;
   realtimeResyncing=true;
   try{
-    // 1) Recuperar contactos + mensajes perdidos mientras el socket estuvo muerto
-    //    (incluye conversaciones nuevas y recálculo de no-leídos)
-    await applyLiveRefresh();
-    // 2) Reabrir el canal de realtime
+    // 1) Recuperar mensajes que llegaron mientras el socket estaba muerto
+    await loadMessagesFromDB();
+    // 2) Re-renderizar lo que esté a la vista
+    if(aC){
+      renderMsgs();
+      var area=document.getElementById('msgsArea');
+      if(area)area.scrollTop=area.scrollHeight;
+    }
+    renderContactList();
+    // 3) Reabrir el canal de realtime
     startRealtime();
   }catch(e){
     console.warn('resyncRealtime error:',e);
@@ -1757,9 +1719,11 @@ function startRealtimePoll(){
   realtimePollTimer=setInterval(async function(){
     if(document.visibilityState!=='visible'||demoMode||!sb||realtimeResyncing)return;
     try{
-      await applyLiveRefresh();
+      await loadMessagesFromDB();
+      if(aC) renderMsgs();
+      renderContactList();
     }catch(e){}
-  },12000);
+  },25000);
 }
 
 function timeSince(dateStr){
