@@ -1975,11 +1975,16 @@ async function bootApp(){
 
   // Cargar datos reales si Supabase está conectado
   if(!demoMode && sb){
+    // En sesión real NUNCA mostrar datos de ejemplo: arrancamos vacío para que,
+    // si la carga falla, se vea vacío (la verdad) en vez de contactos demo.
+    contacts=[];leads=[];msgs={};
     try{
       await loadAllData();
-      console.log('Datos cargados desde Supabase');
+      console.log('Datos cargados desde Supabase — contactos:',contacts.length);
+      if(!contacts.length){toast('Sesión real: 0 contactos en la base de datos');}
     }catch(e){
-      console.warn('Error cargando datos, usando demo:',e);
+      console.warn('Error cargando datos:',e);
+      toast('No se pudieron cargar tus datos. Revisa tu conexión/sesión.');
     }
   }
 
