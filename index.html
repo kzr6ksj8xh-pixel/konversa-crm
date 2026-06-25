@@ -1155,8 +1155,8 @@ async function loadContactsFromDB(){
   if(!sb||demoMode)return;
   try{
     var{data,error}=await sb.from('contacts').select('*').order('updated_at',{ascending:false});
-    if(error||!data||!data.length)return;
-    contacts=data.map(function(c){
+    if(error)return;
+    contacts=(data||[]).map(function(c){
       var col=contactColor(c.name);
       var chs=c.channels||[];
       var mainCh=chs[0]?.ch||'wa';
@@ -1320,15 +1320,19 @@ async function updateLeadStageToDB(leadId,stage){
 
 async function deleteLeadFromDB(leadId){
   if(demoMode||!leadId)return;
-  try{await fetch('/api/delete-contact',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({leadId})});}
-  catch(e){console.warn('deleteLeadFromDB error:',e);}
+  try{
+    var r=await fetch('/api/delete-contact',{method:'POST',keepalive:true,headers:{'Content-Type':'application/json'},body:JSON.stringify({leadId})});
+    if(!r.ok)console.warn('deleteLeadFromDB api error:',r.status);
+  }catch(e){console.warn('deleteLeadFromDB error:',e);}
 }
 
 // Borra un contacto y todo su rastro en cascada: messages → conversations → leads → contacts
 async function deleteContactFromDB(contactId){
   if(demoMode||!contactId)return;
-  try{await fetch('/api/delete-contact',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contactId})});}
-  catch(e){console.warn('deleteContactFromDB error:',e);}
+  try{
+    var r=await fetch('/api/delete-contact',{method:'POST',keepalive:true,headers:{'Content-Type':'application/json'},body:JSON.stringify({contactId})});
+    if(!r.ok)console.warn('deleteContactFromDB api error:',r.status);
+  }catch(e){console.warn('deleteContactFromDB error:',e);}
 }
 
 async function sendToChannel(channel, text, imageUrl){
