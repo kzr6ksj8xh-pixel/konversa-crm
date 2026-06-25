@@ -731,7 +731,12 @@ Deno.serve(async (req: Request): Promise<Response> => {
   // ── Parámetros opcionales para disparo manual ────────────────────────────
   const url = new URL(req.url);
   const force = url.searchParams.get("force") === "true";
-  const minHours = parseInt(url.searchParams.get("minHours") ?? "24", 10);
+  const parsedMinHours = parseInt(url.searchParams.get("minHours") ?? "24", 10);
+  // Fallback a 24 si el parámetro es inválido (NaN) o no positivo, para evitar
+  // que un disparo manual malformado produzca fechas inválidas y aborte la corrida.
+  const minHours = Number.isFinite(parsedMinHours) && parsedMinHours > 0
+    ? parsedMinHours
+    : 24;
 
   // ── Run rules ────────────────────────────────────────────────────────────
   const startedAt = new Date().toISOString();

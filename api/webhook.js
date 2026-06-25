@@ -298,7 +298,7 @@ async function callClaude(history, userMessage) {
     }
 
     const data = await response.json();
-    const reply = data.content[0]?.text || null;
+    const reply = (data.content || []).find(b => b.type === 'text')?.text || null;
     console.log('[CLAUDE] Respuesta OK:', reply ? reply.substring(0, 80) + '...' : 'null');
     return reply;
   } catch (err) {
