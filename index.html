@@ -1531,7 +1531,7 @@ async function handleRealtimeMessage(m){
   }
 
   // Notificación visual si es mensaje entrante
-  if(m.sender==='in'){
+  if(m.sender==='in'||m.sender==='customer'){
     var name=contact?contact.name:'Nuevo mensaje';
     showRealtimeNotif(name, m.content, channel, contactId);
   }
