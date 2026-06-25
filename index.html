@@ -1169,8 +1169,10 @@ async function loadContactsFromDB(){
   if(!sb||demoMode)return;
   try{
     var{data,error}=await sb.from('contacts').select('*').order('updated_at',{ascending:false});
-    if(error||!data||!data.length)return;
-    contacts=data.map(function(c){
+    // Igual que los leads: si la consulta fue OK reemplazamos siempre (incluso vacío)
+    // para no dejar pegados los contactos demo de ejemplo.
+    if(error){console.warn('loadContacts error:',error);return;}
+    contacts=(data||[]).map(function(c){
       var col=contactColor(c.name);
       var chs=c.channels||[];
       var mainCh=chs[0]?.ch||'wa';
@@ -1193,8 +1195,10 @@ async function loadLeadsFromDB(){
   if(!sb||demoMode)return;
   try{
     var{data,error}=await sb.from('leads').select('*').order('updated_at',{ascending:false});
-    if(error||!data||!data.length)return;
-    leads=data.map(function(l){
+    // En error de red mantenemos lo que haya; si la consulta fue OK reemplazamos
+    // SIEMPRE (incluso con 0 filas) para no dejar pegados los leads demo de ejemplo.
+    if(error){console.warn('loadLeads error:',error);return;}
+    leads=(data||[]).map(function(l){
       return{
         id:l.id,name:l.name,company:l.company||'Sin empresa',
         amount:parseFloat(l.amount)||0,stage:l.stage||'entrada',
