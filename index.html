@@ -1174,13 +1174,15 @@ function contactColor(name){
   return colors[Math.abs(hash)%colors.length];
 }
 
+var lastDataError='';
 async function loadContactsFromDB(){
   if(!sb||demoMode)return;
   try{
     var{data,error}=await sb.from('contacts').select('*').order('updated_at',{ascending:false});
     // Igual que los leads: si la consulta fue OK reemplazamos siempre (incluso vacío)
     // para no dejar pegados los contactos demo de ejemplo.
-    if(error){console.warn('loadContacts error:',error);return;}
+    if(error){console.warn('loadContacts error:',error);lastDataError='Error al leer contactos: '+(error.message||error.code||JSON.stringify(error));return;}
+    lastDataError='';
     contacts=(data||[]).map(function(c){
       var col=contactColor(c.name);
       var chs=c.channels||[];
@@ -2372,6 +2374,20 @@ function renderContactList(){
   if(activeTab==='Sin leer') list=list.filter(c=>c.unread>0);
   if(activeTab==='Míos') list=list.filter(c=>c.ag&&currentUser&&c.ag===currentUser.id);
   list=list.slice().sort(function(a,b){return (b.lastMsgAt||0)-(a.lastMsgAt||0);});
+  // Estado vacío informativo (solo en sesión real) para diagnosticar de un vistazo
+  if(!list.length && !demoMode){
+    var diag = lastDataError
+      ? '<b style="color:#dc2626">'+escHtml(lastDataError)+'</b>'
+      : (contacts.length
+          ? 'Sin resultados en esta pestaña/filtro.'
+          : 'Conectado a Supabase, pero la base devolvió <b>0 contactos</b>.');
+    document.getElementById('contactList').innerHTML=
+      '<div style="padding:24px 16px;font-size:12px;color:var(--txt2);line-height:1.6;text-align:center">'+
+      diag+'<br><span style="font-size:11px;color:var(--txt3)">Total cargados: '+contacts.length+
+      ' · Usuario: '+escHtml((currentUser&&(currentUser.email||currentUser.id))||'?')+'</span></div>';
+    updateNavBadges();
+    return;
+  }
   document.getElementById('contactList').innerHTML=list.map(c=>`
     <div class="ci${aC&&c.id===aC.id?' on':''}" data-cid="${c.id}" style="border-left:3px solid ${CH[c.ch].color};background:${aC&&c.id===aC.id?CH[c.ch].bg:''}">
       <div class="avw">
