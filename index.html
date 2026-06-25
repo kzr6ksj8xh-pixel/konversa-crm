@@ -1338,17 +1338,19 @@ async function deleteLeadFromDB(leadId){
   catch(e){console.warn('deleteLeadFromDB error:',e);}
 }
 
-// Borra un contacto y todo su rastro en cascada: messages → conversations → leads → contacts
+// Borra un contacto. Las FK tienen ON DELETE CASCADE, así que al borrar el
+// contacto se eliminan en cascada conversaciones, mensajes, leads, etc.
+// Devuelve {ok:true} solo si la fila se borró realmente. Usamos .select()
+// para detectar el caso en que RLS impide el borrado (devuelve 0 filas sin
+// lanzar error): así la UI no finge que se eliminó cuando no fue así.
 async function deleteContactFromDB(contactId){
-  if(!sb||demoMode||!contactId)return;
+  if(!sb||demoMode||!contactId)return{ok:false,reason:'no-db'};
   try{
-    var {data:convs}=await sb.from('conversations').select('id').eq('contact_id',contactId);
-    var convIds=(convs||[]).map(c=>c.id);
-    if(convIds.length)await sb.from('messages').delete().in('conversation_id',convIds);
-    await sb.from('conversations').delete().eq('contact_id',contactId);
-    await sb.from('leads').delete().eq('contact_id',contactId);
-    await sb.from('contacts').delete().eq('id',contactId);
-  }catch(e){console.warn('deleteContactFromDB error:',e);}
+    var{data,error}=await sb.from('contacts').delete().eq('id',contactId).select('id');
+    if(error)return{ok:false,error:error};
+    if(!data||!data.length)return{ok:false,error:{message:'Sin permisos para eliminar (se requiere rol admin)'}};
+    return{ok:true};
+  }catch(e){console.warn('deleteContactFromDB error:',e);return{ok:false,error:e};}
 }
 
 async function sendToChannel(channel, text, imageUrl){
@@ -2519,17 +2521,24 @@ function doDeleteContact(){
   guardAction('delete_contact',()=>confirmDialog(
     '¿Eliminar contacto?',
     `Se eliminará ${aC.name} y todos sus datos. Esta acción no se puede deshacer.`,
-    ()=>{
-      var delId=aC.dbId||aC.id;
-      contacts=contacts.filter(c=>c.id!==aC.id);
-      leads=leads.filter(l=>l.name!==aC.name);
-      delete msgs[aC.id];
-      deleteContactFromDB(delId);
-      aC=null;
-      renderContactList();renderTools();
-      document.getElementById('msgsArea').innerHTML='<div class="dsep">Contacto eliminado</div>';
-      document.getElementById('chNm').textContent='Selecciona un contacto';
-      toast('Contacto eliminado');
+    async ()=>{
+      var target=aC;
+      var delId=target.dbId||target.id;
+      var commit=function(){
+        contacts=contacts.filter(c=>c.id!==target.id);
+        leads=leads.filter(l=>l.name!==target.name);
+        delete msgs[target.id];
+        if(aC===target)aC=null;
+        renderContactList();renderTools();
+        document.getElementById('msgsArea').innerHTML='<div class="dsep">Contacto eliminado</div>';
+        document.getElementById('chNm').textContent='Selecciona un contacto';
+        toast('Contacto eliminado');
+      };
+      if(demoMode){commit();return;}
+      toast('Eliminando…');
+      var res=await deleteContactFromDB(delId);
+      if(!res.ok){toast('⛔ No se pudo eliminar: '+((res.error&&res.error.message)||'intenta de nuevo'));return;}
+      commit();
     }
   ));
 }
@@ -3455,13 +3464,16 @@ function bindKActions(){
       guardAction('delete_lead',()=>{
         const lead=allLeadsAndContacts().find(l=>String(l.id)===id);
         if(!lead)return;
-        confirmDialog('¿Eliminar venta?',`Se eliminará "${lead.name}" del pipeline. Esta acción no se puede deshacer.`,()=>{
+        confirmDialog('¿Eliminar venta?',`Se eliminará "${lead.name}" del pipeline. Esta acción no se puede deshacer.`,async ()=>{
           var delId=lead.dbId||lead.id;
           if(lead.isContact){
+            if(!demoMode){
+              var res=await deleteContactFromDB(delId);
+              if(!res.ok){toast('⛔ No se pudo eliminar: '+((res.error&&res.error.message)||'intenta de nuevo'));return;}
+            }
             contacts=contacts.filter(c=>String(c.dbId||c.id)!==String(delId));
             leads=leads.filter(l=>l.contactId!==delId);
             if(aC&&(aC.id===delId||aC.dbId===delId))aC=null;
-            deleteContactFromDB(delId);
           }else{
             leads=leads.filter(l=>String(l.id)!==id);
             deleteLeadFromDB(delId);
