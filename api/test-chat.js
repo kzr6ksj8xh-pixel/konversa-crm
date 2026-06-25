@@ -90,7 +90,7 @@ export default async function handler(req, res) {
     });
     if (!response.ok) { const e = await response.text(); return res.status(500).json({ error: 'Claude API error', details: e }); }
     const data = await response.json();
-    const reply = data.content[0]?.text || 'No pude generar respuesta';
+    const reply = (data.content || []).find(b => b.type === 'text')?.text || 'No pude generar respuesta';
     messages.push({ role: 'assistant', content: reply });
     return res.status(200).json({ reply, sessionId: sid, model: CLAUDE_MODEL, tokens: { input: data.usage?.input_tokens || 0, output: data.usage?.output_tokens || 0 } });
   } catch (error) { return res.status(500).json({ error: error.message }); }

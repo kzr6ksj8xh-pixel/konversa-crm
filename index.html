@@ -1498,15 +1498,24 @@ async function handleRealtimeMessage(m){
   // Agregar mensaje al cache local
   if(!msgs[contactId])msgs[contactId]=[];
   var newMsg={
+    id: m.id,
     t: (m.sender==='in'||m.sender==='customer')?'in':m.sender==='note'?'note':m.sender==='tpl'?'tpl':'out',
     txt: m.content,
     time: timeOnly(m.sent_at),
     ch: channel
   };
 
-  // Evitar duplicados (si el mensaje ya fue agregado localmente)
+  // Dedup por id de DB: si esta fila ya está en cache, es entrega repetida del
+  // mismo evento realtime — ignorar (no descarta mensajes distintos con igual texto).
+  if(m.id && msgs[contactId].some(function(x){return x.id===m.id;})) return;
+
+  // Eco de un mensaje optimista local (enviado por el agente, aún sin id): mismo
+  // texto y minuto → adoptamos su id real en vez de duplicar la burbuja.
   var lastMsg = msgs[contactId][msgs[contactId].length-1];
-  if(lastMsg && lastMsg.txt===newMsg.txt && lastMsg.time===newMsg.time) return;
+  if(lastMsg && !lastMsg.id && lastMsg.txt===newMsg.txt && lastMsg.time===newMsg.time){
+    lastMsg.id = m.id;
+    return;
+  }
 
   msgs[contactId].push(newMsg);
 
