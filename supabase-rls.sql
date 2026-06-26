@@ -379,7 +379,7 @@ CREATE TABLE IF NOT EXISTS public.agent_settings (
   idioma      text DEFAULT 'Español',
   demora      smallint DEFAULT 3,
   pautas      jsonb DEFAULT '[]'::jsonb,
-  horario     text DEFAULT 'Lunes a Viernes, 9:00 – 19:00 (hora México)',
+  horario     text DEFAULT 'Lunes a Sábado, 10:00 – 19:00 (hora México)',
   active      boolean DEFAULT true,
   updated_at  timestamptz DEFAULT now(),
   CONSTRAINT agent_settings_singleton CHECK (id = 1)
