@@ -47,9 +47,11 @@ CATALOGO:
 3. CIR 150 - $1,995 MXN - Generador de ozono inteligente 150 mg/h, hasta 50 m2
 4. AQUA 500 - $1,450 MXN - Purificador de agua y aire, aire hasta 100 m2
 5. AQUA 1000 - $1,650 MXN - Purificador de agua/aire con iones, aire hasta 150 m2
-6. Klair UV (Air CK30 UVC) - $3,495 MXN - UNICO equipo con desinfeccion/esterilizacion UV-C profesional, hasta 100 m2 (clinicas, dentistas)
+6. Klair UV (Air CK30 UVC) - $3,495 MXN - UNICO equipo con desinfeccion/esterilizacion UV-C; modulo que se instala en un MINISPLIT de 1 a 3 toneladas (12,000 a 36,000 BTUs) para purificar y desinfectar el aire
 
-TECNOLOGIA POR PRODUCTO (NUNCA la inventes): El UNICO equipo con luz UV-C que desinfecta y esteriliza es el Klair UV. P4, ULTRA 150, CIR 150 y UTILITY O3 usan OZONO; AQUA 500/1000 purifican aire+agua. NUNCA digas que el P4 ni otro equipo desinfecta con UV-C: eso es falso. Para consultorios dentales, clinicas u hospitales que requieran desinfeccion, recomienda SIEMPRE el Klair UV sin importar los m2.
+TECNOLOGIA POR PRODUCTO (NUNCA la inventes): El UNICO equipo con luz UV-C que desinfecta y esteriliza es el Klair UV. P4, ULTRA 150, CIR 150 y UTILITY O3 usan OZONO; AQUA 500/1000 purifican aire+agua. NUNCA digas que el P4 ni otro equipo desinfecta con UV-C: eso es falso.
+
+RECOMENDACION PARA AIRE: hasta 30 m2 = P4; hasta 50 m2 = CIR 150 o ULTRA 150; Klair UV SOLO si el cliente tiene minisplit de 1 a 3 toneladas (12,000-36,000 BTUs), ya que se instala dentro del minisplit. Pregunta si tiene minisplit antes de recomendar el Klair UV; sin minisplit recomienda P4/CIR/ULTRA segun m2.
 
 PRECIOS VIGENTES: Los precios de este CATALOGO son los unicos validos. Si en el historial aparece un precio distinto (P4 $2,190, ULTRA $1,985.99, CIR $2,200), estaba desactualizado: ignoralo y usa SIEMPRE el del catalogo.
 

@@ -66,15 +66,18 @@ CATÁLOGO DE PRODUCTOS:
 3. Generador CIR 150 - $1,995 MXN - Espacios hasta 50 m² (casas, oficinas, consultorios) - https://www.grupopingus.com/products/generador-de-ozono-inteligente-cir-150-mgh
 4. Purificador AQUA 500 - $1,450 MXN - Aire (100 m²) + Agua, ideal cocinas, consultorios, hogares - https://www.grupopingus.com/products/purificador-de-agua-aire-aqua-500
 5. Purificador AQUA 1000 - $1,650 MXN - Aire (150 m²) + Agua + Iones, ideal restaurantes, colegios - https://www.grupopingus.com/products/purificador-de-agua-aire-aqua-1000
-6. Klair UV - $3,495 MXN - ÚNICO equipo con desinfección/esterilización UV-C profesional, para clínicas, consultorios y hospitales - https://www.grupopingus.com/products/modulo-de-desinfeccion-air-ck30-uvc
+6. Klair UV - $3,495 MXN - ÚNICO equipo con desinfección/esterilización UV-C. Es un módulo UV-C que se instala en el MINISPLIT (aire acondicionado) de 1 a 3 toneladas (12,000 a 36,000 BTUs) para purificar y desinfectar el aire - https://www.grupopingus.com/products/modulo-de-desinfeccion-air-ck30-uvc
 
 ⚠️ TECNOLOGÍA POR PRODUCTO — REGLA CRÍTICA (NUNCA la inventes ni la mezcles):
 - El ÚNICO equipo que desinfecta y esteriliza con luz UV-C es el Klair UV. Es el único producto con tecnología UV-C de todo el catálogo.
 - Los demás equipos NO tienen UV-C. P4, ULTRA 150, CIR 150 y UTILITY O3 funcionan con OZONO. AQUA 500 y AQUA 1000 purifican aire + agua (ozono/filtración/iones), tampoco con UV-C.
 - NUNCA digas que el P4, ULTRA 150, CIR 150, AQUA 500/1000 o cualquier otro equipo "desinfecta con UV-C" o tiene UV-C. Eso es FALSO. Solo el Klair UV.
-- Si el cliente pide específicamente desinfección/esterilización con UV-C, la respuesta es SIEMPRE el Klair UV, sin importar los m².
 
-⚠️ ESPACIOS DE SALUD — REGLA CRÍTICA: Para consultorios dentales, clínicas, hospitales o cualquier espacio médico/de salud que requiera desinfección, recomienda SIEMPRE el Klair UV ($3,495 MXN), SIN importar los metros cuadrados (incluso 12 m²). NUNCA recomiendes el P4 ni otro equipo de ozono como solución de desinfección UV-C para estos espacios.
+⚠️ RECOMENDACIÓN PARA PURIFICAR/DESINFECTAR EL AIRE — REGLA CRÍTICA:
+- Hasta 30 m²: P4 ($1,490 MXN).
+- Hasta 50 m²: CIR 150 ($1,995 MXN) o ULTRA 150 ($1,795 MXN).
+- Klair UV ($3,495 MXN): SOLO si el cliente tiene MINISPLIT (aire acondicionado) de 1 a 3 toneladas (12,000 a 36,000 BTUs). El Klair UV se instala dentro del minisplit; sin minisplit no aplica.
+- Por lo tanto, antes de recomendar el Klair UV pregunta si tiene minisplit y de cuántas toneladas o BTUs. Si NO tiene minisplit, recomienda P4 / CIR 150 / ULTRA 150 según los m². NO recomiendes el Klair UV solo por ser clínica, consultorio o dentista si no tiene minisplit.
 
 ⚠️ PRECIOS VIGENTES — REGLA CRÍTICA: Los precios de este CATÁLOGO son los ÚNICOS válidos y actuales. Si en el historial de esta conversación aparece un precio DISTINTO para un producto (por ejemplo P4 a $2,190, ULTRA 150 a $1,985.99 o CIR 150 a $2,200), ese precio estaba DESACTUALIZADO: ignóralo por completo y cotiza SIEMPRE con el precio de este catálogo. Si un precio viejo ya se mencionó antes, corrígelo con naturalidad usando el precio vigente. NUNCA repitas un precio del historial que no coincida con este catálogo.
 
@@ -83,7 +86,7 @@ TABLA DE RECOMENDACIÓN:
 - Casa/sala/consultorio hasta 50 m² (aire): CIR 150 o ULTRA 150
 - Cocina/consultorio (aire+agua): AQUA 500
 - Restaurante/colegio (aire+agua): AQUA 1000
-- Clínica/hospital/consultorio dental (desinfección UV-C): Klair UV
+- Cliente con minisplit de 1 a 3 toneladas (12,000–36,000 BTUs) que quiere desinfectar el aire con UV-C: Klair UV
 
 REGLAS CRÍTICAS SOBRE METROS CUADRADOS (m²):
 - Pregunta los m² UNA SOLA VEZ por conversación. Si ya los preguntaste antes, NO repitas la pregunta.
@@ -124,13 +127,14 @@ const FALLBACK_RESPONSES = {
   'buenos': '¡Hola! Soy el asistente de PINGUS. ¿En qué te puedo ayudar?',
   'buenas': '¡Hola! Soy el asistente de PINGUS. ¿En qué te puedo ayudar?',
   'precio': 'Nuestros equipos van de $1,450 a $3,495 MXN. ¿Quieres que te recomiende uno según tu espacio?',
-  'catálogo': 'Tenemos: P4 ($1,490 / 30m²), ULTRA 150 ($1,795 / 50m²), CIR 150 ($1,995 / 50m²), AQUA 500 ($1,450 / 100m²), AQUA 1000 ($1,650 / 150m²) y Klair UV ($3,495 / clínicas). ¿Cuántos m² tiene tu espacio?',
-  'catalogo': 'Tenemos: P4 ($1,490 / 30m²), ULTRA 150 ($1,795 / 50m²), CIR 150 ($1,995 / 50m²), AQUA 500 ($1,450 / 100m²), AQUA 1000 ($1,650 / 150m²) y Klair UV ($3,495 / clínicas). ¿Cuántos m² tiene tu espacio?',
-  'klair': 'El Klair UV cuesta $3,495 MXN. Desinfección UV-C profesional para clínicas, consultorios y hospitales. Link: https://www.grupopingus.com/products/modulo-de-desinfeccion-air-ck30-uvc',
-  'uv': 'El Klair UV cuesta $3,495 MXN. Desinfección UV-C profesional para clínicas, consultorios y hospitales.',
-  'dentista': 'Para consultorios dentales te recomiendo el Klair UV ($3,495 MXN) — desinfección UV-C de grado médico. ¿Te envío más info?',
-  'clínica': 'Para clínicas el modelo ideal es el Klair UV ($3,495 MXN) con tecnología UV-C profesional.',
-  'clinica': 'Para clínicas el modelo ideal es el Klair UV ($3,495 MXN) con tecnología UV-C profesional.',
+  'catálogo': 'Tenemos: P4 ($1,490 / 30m²), ULTRA 150 ($1,795 / 50m²), CIR 150 ($1,995 / 50m²), AQUA 500 ($1,450 / 100m²), AQUA 1000 ($1,650 / 150m²) y Klair UV ($3,495 / módulo UV-C para minisplit). ¿Cuántos m² tiene tu espacio?',
+  'catalogo': 'Tenemos: P4 ($1,490 / 30m²), ULTRA 150 ($1,795 / 50m²), CIR 150 ($1,995 / 50m²), AQUA 500 ($1,450 / 100m²), AQUA 1000 ($1,650 / 150m²) y Klair UV ($3,495 / módulo UV-C para minisplit). ¿Cuántos m² tiene tu espacio?',
+  'klair': 'El Klair UV cuesta $3,495 MXN. Es el módulo UV-C que se instala en tu minisplit (1 a 3 toneladas / 12,000–36,000 BTUs) para purificar y desinfectar el aire. ¿Tienes minisplit? Link: https://www.grupopingus.com/products/modulo-de-desinfeccion-air-ck30-uvc',
+  'uv': 'El Klair UV cuesta $3,495 MXN. Es el único equipo con desinfección UV-C: se instala en un minisplit de 1 a 3 toneladas (12,000–36,000 BTUs). ¿Tienes minisplit?',
+  'minisplit': 'El Klair UV ($3,495 MXN) es el módulo UV-C que se instala en tu minisplit (1 a 3 toneladas / 12,000–36,000 BTUs) para purificar y desinfectar el aire. Link: https://www.grupopingus.com/products/modulo-de-desinfeccion-air-ck30-uvc',
+  'dentista': 'Para purificar el aire de tu consultorio recomiendo según los m²: P4 ($1,490 / 30m²) o CIR 150 ($1,995 / 50m²). Si tienes minisplit, el Klair UV ($3,495 MXN) lo desinfecta con UV-C. ¿Cuántos m² tiene y tienes minisplit?',
+  'clínica': 'Para purificar el aire recomiendo según los m²: P4 ($1,490 / 30m²) o CIR 150 ($1,995 / 50m²). Si tienes minisplit, el Klair UV ($3,495 MXN) lo desinfecta con UV-C. ¿Cuántos m² tiene y tienes minisplit?',
+  'clinica': 'Para purificar el aire recomiendo según los m²: P4 ($1,490 / 30m²) o CIR 150 ($1,995 / 50m²). Si tienes minisplit, el Klair UV ($3,495 MXN) lo desinfecta con UV-C. ¿Cuántos m² tiene y tienes minisplit?',
   'envío': 'El envío es GRATIS a toda la República Mexicana. Llega en 2 días hábiles por DHL, Estafeta, FedEx o UPS con seguimiento incluido.',
   'envio': 'El envío es GRATIS a toda la República Mexicana. Llega en 2 días hábiles con seguimiento.',
   'garantía': 'Todos nuestros equipos tienen 6 meses de garantía contra defectos de fábrica y soporte directo en México.',
@@ -154,8 +158,8 @@ const FALLBACK_RESPONSES = {
   'casa': 'Para casa te recomiendo el CIR 150 ($1,995 MXN) si es hasta 50 m², o el AQUA 500 ($1,450 MXN) si también quieres purificar agua. ¿Cuántos m² tiene tu espacio?',
   'oficina': 'Para oficinas el modelo ideal depende de los m². ¿Cuántos metros cuadrados tiene tu oficina?',
   'restaurante': 'Para restaurantes recomiendo el AQUA 1000 ($1,650 MXN) que cubre 150 m² y purifica aire + agua. ¿Cuántos m² tiene el local?',
-  'consultorio': 'Para consultorios tenemos el CIR 150 ($1,995 MXN / 50m²) o el Klair UV ($3,495 MXN) para desinfección UV-C profesional. ¿Cuántos m² tiene?',
-  'hospital': 'Para hospitales y clínicas el modelo ideal es el Klair UV ($3,495 MXN) con desinfección UV-C profesional.',
+  'consultorio': 'Para consultorios recomiendo según los m²: P4 ($1,490 / 30m²) o CIR 150 ($1,995 / 50m²). Si tienes minisplit, el Klair UV ($3,495 MXN) lo desinfecta con UV-C. ¿Cuántos m² tiene y tienes minisplit?',
+  'hospital': 'Para purificar el aire recomiendo según los m²: P4 ($1,490 / 30m²) o CIR 150 ($1,995 / 50m²). Si tienes minisplit, el Klair UV ($3,495 MXN) lo desinfecta con UV-C. ¿Cuántos m² tiene y tienes minisplit?',
   'gracias': 'Con gusto. Si necesitas más información, aquí estoy. Equipo PINGUS – The Health Guardian.',
   'sí': 'Perfecto, cuéntame más sobre tu espacio y te recomiendo el equipo ideal.',
   'si': 'Perfecto, cuéntame más sobre tu espacio y te recomiendo el equipo ideal.',
@@ -194,12 +198,15 @@ function fallbackReply(text, history = []) {
   }
 
   const wantsWater = /agua/.test(ctx);
-  const medical = /(dental|dentista|cl[ií]nica|hospital|consultorio|desinfecci|uv-?c|quir[oó]fano|m[eé]dic)/.test(ctx);
+  // El Klair UV (UV-C) se instala en un minisplit de 1 a 3 toneladas (12,000–36,000 BTUs).
+  // Solo se recomienda cuando el cliente menciona que tiene minisplit / esos BTUs / toneladas.
+  const hasMinisplit = /(mini\s?split|minisplit|aire acondicionado|\d{1,3}\s?(ton|tonelada)|1[2-9][.,]?\d{3}\s?btu|[23][0-9][.,]?\d{3}\s?btu|\bbtus?\b)/.test(ctx);
+
+  if (hasMinisplit) {
+    return `El Klair UV ($3,495 MXN) es el módulo UV-C que se instala en tu minisplit (1 a 3 toneladas / 12,000–36,000 BTUs) para desinfectar el aire. Link: https://www.grupopingus.com/products/modulo-de-desinfeccion-air-ck30-uvc`;
+  }
 
   if (area && area > 0 && area < 2000) {
-    if (medical) {
-      return `Para ${area} m² en un espacio de salud te recomiendo el Klair UV ($3,495 MXN) con desinfección UV-C profesional. Link: https://www.grupopingus.com/products/modulo-de-desinfeccion-air-ck30-uvc`;
-    }
     return `Para ${area} m² te recomiendo ${recommendByArea(area, wantsWater)}`;
   }
 
