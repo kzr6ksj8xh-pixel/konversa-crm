@@ -832,7 +832,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
 Tu función es:
 1. Dar un saludo breve y amable como la IA de PINGUS
-2. Entender qué espacio quiere purificar el cliente (aire, agua o ambos)
+2. Entender qué espacio quiere purificar el cliente (aire o agua) — NUNCA uses la palabra "ambos"
 3. Recomendar el equipo correcto según m² y uso (ver catálogo en Fuentes)
 4. Resolver dudas con información de las Fuentes — nunca inventes datos
 5. Capturar datos del lead (nombre, espacio, m², uso) y pasarlo a un asesor humano cuando haya intención de compra
@@ -855,6 +855,7 @@ REGLA IMPORTANTE: Para consultorios, clínicas, dentistas y espacios de salud, r
             <div class="aia-pauta">Habla de 'tú' siempre. Nunca de 'usted'.</div>
             <div class="aia-pauta">Cuando recomiendes un producto, di SIEMPRE: nombre + precio + link.</div>
             <div class="aia-pauta">Si el cliente pregunta por un espacio, pide los m² ANTES de recomendar.</div>
+            <div class="aia-pauta" style="background:#fef2f2;border-color:#fca5a5">NUNCA uses la palabra "ambos". Ofrece siempre las opciones como "aire o agua".</div>
             <div class="aia-pauta">Si no tienes la información en las Fuentes, di: "Te conecto con un asesor para darte el dato exacto" y transfiere el chat.</div>
             <div class="aia-pauta" style="background:#fef2f2;border-color:#fca5a5">Nunca uses estas palabras: sinergia, paradigma, apalancamiento, 'es menester', 'cabe señalar', 'en el panorama actual'.</div>
             <div class="aia-pauta">No uses emojis en más de 1 de cada 3 mensajes.</div>
@@ -2207,7 +2208,7 @@ function toggleAgentStatus(){
   }
 }
 var aiaResponses={
-  'hola':['¡Hola! Soy el asistente de PINGUS. ¿Qué espacio quieres purificar: aire, agua o ambos?','¡Hola! Soy la IA de Grupo PINGUS – The Health Guardian. ¿En qué te puedo ayudar?'],
+  'hola':['¡Hola! Soy el asistente de PINGUS. ¿Qué espacio quieres purificar: aire o agua?','¡Hola! Soy la IA de Grupo PINGUS – The Health Guardian. ¿En qué te puedo ayudar?'],
   'precio':['Nuestros equipos van de $1,450 a $3,890 MXN. ¿Quieres que te recomiende uno según tu espacio?'],
   'precios':['Nuestros equipos van de $1,450 a $3,890 MXN. ¿Quieres que te recomiende uno según tu espacio?'],
   'lista':['Nuestros equipos van de $1,450 a $3,890 MXN. ¿Quieres que te recomiende uno según tu espacio?'],
@@ -2265,9 +2266,9 @@ function resetAIAChat(){
 
 /* ══ ACCIONES EDITABLES ══ */
 var aiaActions=[
-  {id:1,cuando:'El cliente envía "Hola", "Buenas", "Buenos días" o cualquier saludo de apertura',hacer:'Responder: "¡Hola! Soy el asistente de PINGUS. ¿Qué espacio quieres purificar: aire, agua o ambos?"',mas:'No volver a saludar en mensajes siguientes de la misma conversación'},
+  {id:1,cuando:'El cliente envía "Hola", "Buenas", "Buenos días" o cualquier saludo de apertura',hacer:'Responder: "¡Hola! Soy el asistente de PINGUS. ¿Qué espacio quieres purificar: aire o agua?"',mas:'No volver a saludar en mensajes siguientes de la misma conversación'},
   {id:2,cuando:'El cliente menciona tipo de espacio (casa, consultorio, restaurante, oficina) pero NO da metros cuadrados',hacer:'Pedir m² antes de recomendar: "Para recomendarte el equipo exacto, ¿cuántos m² tiene el espacio?"',mas:'Si no responde, ofrecer rango: pequeño (hasta 30 m²) / mediano (50-100 m²) / grande (150+ m²)'},
-  {id:3,cuando:'El cliente da m² + uso (aire/agua/ambos)',hacer:'Recomendar modelo con precio + link según tabla de Fuentes. Capturar: Nombre del lead, Tipo de espacio, m², Uso principal',mas:'Recomendar solo 1 producto principal. Si hay duda, ofrecer máximo 2 opciones.'},
+  {id:3,cuando:'El cliente da m² + uso (aire o agua)',hacer:'Recomendar modelo con precio + link según tabla de Fuentes. Capturar: Nombre del lead, Tipo de espacio, m², Uso principal',mas:'Recomendar solo 1 producto principal. Si hay duda, ofrecer máximo 2 opciones.'},
   {id:4,cuando:'El cliente pregunta "¿cuánto cuesta?", "precios" o "lista"',hacer:'Dar rango + invitar a personalizar: "Nuestros equipos van de $1,450 a $3,890 MXN. ¿Quieres que te recomiende uno según tu espacio?"',mas:'NO dar la lista completa. Forzar la pregunta del espacio para calificar el lead.'},
   {id:5,cuando:'El cliente pregunta sobre seguridad, "es peligroso", "afecta la salud"',hacer:'Responder: "Sí, en las dosis controladas de nuestros equipos. La recomendación es no estar en el espacio durante el ciclo y ventilar al terminar."',mas:'Si insiste, transferir a asesor'},
   {id:6,cuando:'El cliente dice "está caro", "vi uno más barato", "en Amazon hay de X"',hacer:'Diferenciar: "Nuestros equipos tienen garantía oficial de 6 meses y soporte directo en México. Envío gratis en 2 días."',mas:'Si pide descuento, transferir a asesor'},

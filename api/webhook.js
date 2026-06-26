@@ -53,7 +53,8 @@ DATOS CLAVE DE LA EMPRESA:
 - Pagos: Tarjeta crédito/débito, PayPal, Transferencia bancaria
 
 TU FUNCIÓN PRINCIPAL (en orden de prioridad):
-1. ESCUCHAR: Entiende qué espacio quiere purificar el cliente (aire, agua, o ambos)
+1. ESCUCHAR: Entiende qué espacio quiere purificar el cliente (aire o agua)
+   REGLA DE LENGUAJE: NUNCA uses la palabra "ambos". Ofrece siempre las opciones como "aire o agua".
 2. CALIFICAR: Pregunta los metros cuadrados (m²) del espacio ANTES de cualquier recomendación
 3. RECOMENDAR: Sugiere el modelo exacto usando la tabla de recomendación por espacio
 4. VENDER: Al recomendar SIEMPRE incluye: nombre del producto + precio en MXN + link directo
@@ -109,7 +110,7 @@ Si está fuera de horario (Lun-Vie 9:00-19:00): "Te responde un asesor en horari
 
 // ── Respuestas de fallback por keyword (cuando Claude API no responde) ──
 const FALLBACK_RESPONSES = {
-  'hola': '¡Hola! Soy el asistente de PINGUS – The Health Guardian. ¿Qué espacio quieres purificar: aire, agua o ambos?',
+  'hola': '¡Hola! Soy el asistente de PINGUS – The Health Guardian. ¿Qué espacio quieres purificar: aire o agua?',
   'buenos': '¡Hola! Soy el asistente de PINGUS. ¿En qué te puedo ayudar?',
   'buenas': '¡Hola! Soy el asistente de PINGUS. ¿En qué te puedo ayudar?',
   'precio': 'Nuestros equipos van de $1,450 a $3,890 MXN. ¿Quieres que te recomiende uno según tu espacio?',
@@ -149,8 +150,8 @@ const FALLBACK_RESPONSES = {
   'sí': 'Perfecto, cuéntame más sobre tu espacio y te recomiendo el equipo ideal.',
   'si': 'Perfecto, cuéntame más sobre tu espacio y te recomiendo el equipo ideal.',
   'no': 'Entendido. Si cambias de opinión o tienes alguna duda, aquí estoy para ayudarte.',
-  'información': 'Con gusto te ayudo. ¿Qué espacio quieres purificar: aire, agua o ambos? ¿Cuántos m² tiene?',
-  'info': 'Con gusto te ayudo. ¿Qué espacio quieres purificar: aire, agua o ambos? ¿Cuántos m² tiene?',
+  'información': 'Con gusto te ayudo. ¿Qué espacio quieres purificar: aire o agua? ¿Cuántos m² tiene?',
+  'info': 'Con gusto te ayudo. ¿Qué espacio quieres purificar: aire o agua? ¿Cuántos m² tiene?',
   'purificador': 'Tenemos purificadores de aire desde $1,986 MXN y de agua+aire desde $1,450 MXN. ¿Qué espacio necesitas purificar?',
 };
 
@@ -196,7 +197,7 @@ function fallbackReply(text, history = []) {
   for (const key in FALLBACK_RESPONSES) {
     if (cur.includes(key)) return FALLBACK_RESPONSES[key];
   }
-  return 'Gracias por tu mensaje. Para recomendarte el equipo ideal, cuéntame: ¿qué espacio quieres purificar (aire, agua o ambos) y cuántos m² tiene?';
+  return 'Gracias por tu mensaje. Para recomendarte el equipo ideal, cuéntame: ¿qué espacio quieres purificar (aire o agua) y cuántos m² tiene?';
 }
 
 // ── Supabase (service_role) ───────────────────────────────
