@@ -1199,7 +1199,7 @@ async function loadContactsFromDB(){
         dbId:c.id
       };
     });
-  }catch(e){console.warn('loadContacts error:',e);}
+  }catch(e){console.warn('loadContacts error:',e);lastDataError='Excepción al leer contactos: '+((e&&e.message)||e);}
 }
 
 async function loadLeadsFromDB(){
@@ -2364,6 +2364,26 @@ function editAIAHorario(){
   }catch(e){}
 })();
 
+// Diagnóstico en vivo: muestra estado real de la sesión y de una consulta directa.
+async function runAuthDiag(){
+  var el=document.getElementById('authDiag');
+  if(!el||!sb)return;
+  var lines=[];
+  try{
+    var sres=await sb.auth.getSession();
+    var session=sres&&sres.data&&sres.data.session;
+    lines.push('Sesión guardada: '+(session?'SÍ':'NO'));
+    if(session){
+      lines.push('Access token: '+(session.access_token?'presente':'AUSENTE'));
+      var ures=await sb.auth.getUser();
+      lines.push('getUser(): '+((ures&&ures.data&&ures.data.user)?(ures.data.user.email||ures.data.user.id):(ures&&ures.error?('ERROR '+ures.error.message):'null')));
+    }
+    var r=await sb.from('contacts').select('id',{count:'exact',head:true});
+    lines.push('Consulta directa contacts: '+(r.error?('ERROR '+(r.error.code||'')+' '+r.error.message):((r.count!=null?r.count:'?')+' filas')));
+  }catch(e){lines.push('Excepción: '+((e&&e.message)||e));}
+  el.innerHTML=lines.map(escHtml).join('<br>');
+}
+
 /* ══════════════════════════════════════
    CONTACT LIST
 ══════════════════════════════════════ */
@@ -2384,7 +2404,9 @@ function renderContactList(){
     document.getElementById('contactList').innerHTML=
       '<div style="padding:24px 16px;font-size:12px;color:var(--txt2);line-height:1.6;text-align:center">'+
       diag+'<br><span style="font-size:11px;color:var(--txt3)">Total cargados: '+contacts.length+
-      ' · Usuario: '+escHtml((currentUser&&(currentUser.email||currentUser.id))||'?')+'</span></div>';
+      ' · Usuario: '+escHtml((currentUser&&(currentUser.email||currentUser.id))||'?')+'</span>'+
+      '<div id="authDiag" style="margin-top:10px;font-size:11px;color:var(--txt3)">Verificando sesión…</div></div>';
+    runAuthDiag();
     updateNavBadges();
     return;
   }
