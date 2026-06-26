@@ -66,7 +66,15 @@ CATÁLOGO DE PRODUCTOS:
 3. Generador CIR 150 - $1,995 MXN - Espacios hasta 50 m² (casas, oficinas, consultorios) - https://www.grupopingus.com/products/generador-de-ozono-inteligente-cir-150-mgh
 4. Purificador AQUA 500 - $1,450 MXN - Aire (100 m²) + Agua, ideal cocinas, consultorios, hogares - https://www.grupopingus.com/products/purificador-de-agua-aire-aqua-500
 5. Purificador AQUA 1000 - $1,650 MXN - Aire (150 m²) + Agua + Iones, ideal restaurantes, colegios - https://www.grupopingus.com/products/purificador-de-agua-aire-aqua-1000
-6. Klair UV - $3,495 MXN - Desinfección UV-C profesional para clínicas, consultorios y hospitales - https://www.grupopingus.com/products/modulo-de-desinfeccion-air-ck30-uvc
+6. Klair UV - $3,495 MXN - ÚNICO equipo con desinfección/esterilización UV-C profesional, para clínicas, consultorios y hospitales - https://www.grupopingus.com/products/modulo-de-desinfeccion-air-ck30-uvc
+
+⚠️ TECNOLOGÍA POR PRODUCTO — REGLA CRÍTICA (NUNCA la inventes ni la mezcles):
+- El ÚNICO equipo que desinfecta y esteriliza con luz UV-C es el Klair UV. Es el único producto con tecnología UV-C de todo el catálogo.
+- Los demás equipos NO tienen UV-C. P4, ULTRA 150, CIR 150 y UTILITY O3 funcionan con OZONO. AQUA 500 y AQUA 1000 purifican aire + agua (ozono/filtración/iones), tampoco con UV-C.
+- NUNCA digas que el P4, ULTRA 150, CIR 150, AQUA 500/1000 o cualquier otro equipo "desinfecta con UV-C" o tiene UV-C. Eso es FALSO. Solo el Klair UV.
+- Si el cliente pide específicamente desinfección/esterilización con UV-C, la respuesta es SIEMPRE el Klair UV, sin importar los m².
+
+⚠️ ESPACIOS DE SALUD — REGLA CRÍTICA: Para consultorios dentales, clínicas, hospitales o cualquier espacio médico/de salud que requiera desinfección, recomienda SIEMPRE el Klair UV ($3,495 MXN), SIN importar los metros cuadrados (incluso 12 m²). NUNCA recomiendes el P4 ni otro equipo de ozono como solución de desinfección UV-C para estos espacios.
 
 ⚠️ PRECIOS VIGENTES — REGLA CRÍTICA: Los precios de este CATÁLOGO son los ÚNICOS válidos y actuales. Si en el historial de esta conversación aparece un precio DISTINTO para un producto (por ejemplo P4 a $2,190, ULTRA 150 a $1,985.99 o CIR 150 a $2,200), ese precio estaba DESACTUALIZADO: ignóralo por completo y cotiza SIEMPRE con el precio de este catálogo. Si un precio viejo ya se mencionó antes, corrígelo con naturalidad usando el precio vigente. NUNCA repitas un precio del historial que no coincida con este catálogo.
 
