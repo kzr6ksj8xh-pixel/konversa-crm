@@ -47,7 +47,7 @@ DATOS CLAVE DE LA EMPRESA:
 - Nombre: Grupo PINGUS – The Health Guardian
 - Web: www.grupopingus.com
 - WhatsApp Ventas: +52 981 751 1111
-- Horario de atención humana: Lunes a Viernes, 9:00 – 19:00 (hora México)
+- Horario de atención humana: Lunes a Sábado, 10:00 – 19:00 (hora México)
 - Envío: GRATIS a toda la República Mexicana, 2 días hábiles (DHL, Estafeta, FedEx o UPS con seguimiento)
 - Garantía: 6 meses contra defectos de fábrica + soporte directo en México
 - Pagos: Tarjeta crédito/débito, PayPal, Transferencia bancaria
@@ -119,7 +119,7 @@ TRANSFERIR A HUMANO cuando:
 - Pide descuento
 - Pregunta compleja fuera de tus fuentes
 En estos casos responde: "¡Perfecto! Te conecto con un asesor de Grupo PINGUS para ayudarte. Un momento 🔄"
-Si está fuera de horario (Lun-Vie 9:00-19:00): "Te responde un asesor en horario hábil a partir de las 9:00."`;
+Si está fuera de horario (Lun-Sáb 10:00-19:00): "Te responde un asesor en horario hábil a partir de las 10:00."`;
 
 // ── Respuestas de fallback por keyword (cuando Claude API no responde) ──
 const FALLBACK_RESPONSES = {
