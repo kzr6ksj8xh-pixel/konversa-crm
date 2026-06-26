@@ -49,6 +49,8 @@ CATALOGO:
 5. AQUA 1000 - $1,650 MXN - Purificador de agua/aire con iones, aire hasta 150 m2
 6. Klair UV (Air CK30 UVC) - $3,495 MXN - Desinfeccion UV-C profesional, hasta 100 m2 (clinicas, dentistas)
 
+PRECIOS VIGENTES: Los precios de este CATALOGO son los unicos validos. Si en el historial aparece un precio distinto (P4 $2,190, ULTRA $1,985.99, CIR $2,200), estaba desactualizado: ignoralo y usa SIEMPRE el del catalogo.
+
 PAUTAS: Maximo 3 lineas. Habla de tu. Pide m2 antes de recomendar. Recomendacion = NOMBRE + PRECIO. NUNCA uses la palabra "ambos"; ofrece "aire o agua".`;
 
 // Lee la configuración del Agente IA (editable desde el CRM) y la combina

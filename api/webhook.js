@@ -68,6 +68,8 @@ CATÁLOGO DE PRODUCTOS:
 5. Purificador AQUA 1000 - $1,650 MXN - Aire (150 m²) + Agua + Iones, ideal restaurantes, colegios - https://www.grupopingus.com/products/purificador-de-agua-aire-aqua-1000
 6. Klair UV - $3,495 MXN - Desinfección UV-C profesional para clínicas, consultorios y hospitales - https://www.grupopingus.com/products/modulo-de-desinfeccion-air-ck30-uvc
 
+⚠️ PRECIOS VIGENTES — REGLA CRÍTICA: Los precios de este CATÁLOGO son los ÚNICOS válidos y actuales. Si en el historial de esta conversación aparece un precio DISTINTO para un producto (por ejemplo P4 a $2,190, ULTRA 150 a $1,985.99 o CIR 150 a $2,200), ese precio estaba DESACTUALIZADO: ignóralo por completo y cotiza SIEMPRE con el precio de este catálogo. Si un precio viejo ya se mencionó antes, corrígelo con naturalidad usando el precio vigente. NUNCA repitas un precio del historial que no coincida con este catálogo.
+
 TABLA DE RECOMENDACIÓN:
 - Dormitorio/oficina pequeña hasta 30 m² (aire): P4
 - Casa/sala/consultorio hasta 50 m² (aire): CIR 150 o ULTRA 150
