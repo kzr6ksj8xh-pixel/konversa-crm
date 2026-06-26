@@ -832,19 +832,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
 Tu función es:
 1. Dar un saludo breve y amable como la IA de PINGUS
-2. Entender qué espacio quiere purificar el cliente (aire, agua o ambos)
+2. Entender qué espacio quiere purificar el cliente (aire o agua) — NUNCA uses la palabra "ambos"
 3. Recomendar el equipo correcto según m² y uso (ver catálogo en Fuentes)
 4. Resolver dudas con información de las Fuentes — nunca inventes datos
 5. Capturar datos del lead (nombre, espacio, m², uso) y pasarlo a un asesor humano cuando haya intención de compra
 
 REGLA IMPORTANTE: Para consultorios, clínicas, dentistas y espacios de salud, recomienda EXCLUSIVAMENTE equipos de aire (ULTRA 150, CIR 150, P4 o Klair UV). NUNCA sugieras AQUA 500 ni AQUA 1000 para estos espacios.</textarea>
           <div class="g2" style="gap:10px;margin-bottom:14px">
-            <div><div style="font-size:11px;font-weight:500;margin-bottom:4px">Tono de voz</div><select style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;font-size:11px"><option selected>Profesional cercano</option><option>Formal</option><option>Amigable</option><option>Casual</option><option>Profesional</option></select></div>
-            <div><div style="font-size:11px;font-weight:500;margin-bottom:4px">Longitud de las respuestas</div><select style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;font-size:11px"><option selected>Corta</option><option>Media</option><option>Larga</option></select></div>
+            <div><div style="font-size:11px;font-weight:500;margin-bottom:4px">Tono de voz</div><select id="aiaTono" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;font-size:11px"><option selected>Profesional cercano</option><option>Formal</option><option>Amigable</option><option>Casual</option><option>Profesional</option></select></div>
+            <div><div style="font-size:11px;font-weight:500;margin-bottom:4px">Longitud de las respuestas</div><select id="aiaLongitud" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;font-size:11px"><option selected>Corta</option><option>Media</option><option>Larga</option></select></div>
           </div>
           <div class="g2" style="gap:10px;margin-bottom:14px">
-            <div><div style="font-size:11px;font-weight:500;margin-bottom:4px">Idioma de la respuesta</div><select style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;font-size:11px"><option>Español</option><option>Inglés</option><option>Portugués</option></select></div>
-            <div><div style="font-size:11px;font-weight:500;margin-bottom:4px">Demora antes de responder (seg)</div><input type="number" value="3" min="0" max="30" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;font-size:11px"></div>
+            <div><div style="font-size:11px;font-weight:500;margin-bottom:4px">Idioma de la respuesta</div><select id="aiaIdioma" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;font-size:11px"><option>Español</option><option>Inglés</option><option>Portugués</option></select></div>
+            <div><div style="font-size:11px;font-weight:500;margin-bottom:4px">Demora antes de responder (seg)</div><input id="aiaDemora" type="number" value="3" min="0" max="30" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;font-size:11px"></div>
           </div>
           <div style="font-size:12px;font-weight:600;margin-bottom:6px">Pautas</div>
           <p style="font-size:10px;color:var(--txt2);margin-bottom:8px">Configura las instrucciones que deben cumplirse en cada mensaje.</p>
@@ -855,12 +855,13 @@ REGLA IMPORTANTE: Para consultorios, clínicas, dentistas y espacios de salud, r
             <div class="aia-pauta">Habla de 'tú' siempre. Nunca de 'usted'.</div>
             <div class="aia-pauta">Cuando recomiendes un producto, di SIEMPRE: nombre + precio + link.</div>
             <div class="aia-pauta">Si el cliente pregunta por un espacio, pide los m² ANTES de recomendar.</div>
+            <div class="aia-pauta" style="background:#fef2f2;border-color:#fca5a5">NUNCA uses la palabra "ambos". Ofrece siempre las opciones como "aire o agua".</div>
             <div class="aia-pauta">Si no tienes la información en las Fuentes, di: "Te conecto con un asesor para darte el dato exacto" y transfiere el chat.</div>
             <div class="aia-pauta" style="background:#fef2f2;border-color:#fca5a5">Nunca uses estas palabras: sinergia, paradigma, apalancamiento, 'es menester', 'cabe señalar', 'en el panorama actual'.</div>
             <div class="aia-pauta">No uses emojis en más de 1 de cada 3 mensajes.</div>
             <div class="aia-pauta">Cierra firmando solo cuando entregues info clave: "Equipo PINGUS – The Health Guardian".</div>
           </div>
-          <button style="margin-top:12px;padding:8px 20px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:12px;cursor:pointer;font-weight:500" onclick="toast('Personalidad guardada ✓')">💾 Guardar cambios</button>
+          <button id="aiaSavePersonalidad" style="margin-top:12px;padding:8px 20px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:12px;cursor:pointer;font-weight:500" onclick="saveAIASettings(this)">💾 Guardar cambios</button>
         </div>
         <!-- FUENTES TAB -->
         <div class="aia-panel" id="aia-fuentes">
@@ -872,7 +873,7 @@ REGLA IMPORTANTE: Para consultorios, clínicas, dentistas y espacios de salud, r
               <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px">☐</td><td style="padding:8px"><a href="https://www.grupopingus.com" target="_blank" style="color:#2563eb">https://www.grupopingus.com</a></td><td style="padding:8px">URL</td><td style="padding:8px">🟢 Ver fuente &nbsp; 0</td></tr>
               <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px">☐</td><td style="padding:8px"><a href="https://docs.google.com/document/d/1LbPShBxNgd4qy9vnjh2bGoZq8C7nxxlcBWIsrsUtEUc/edit" target="_blank" style="color:#2563eb">Base de Conocimiento PINGUS</a> <span style="font-size:9px;padding:2px 6px;background:#059669;color:#fff;border-radius:4px">✓ Drive</span></td><td style="padding:8px">Google Doc</td><td style="padding:8px">🟢 Activa</td></tr>
               <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px">☐</td><td style="padding:8px" colspan="3" style="font-size:10px;color:var(--txt2)">
-                <b>Catálogo:</b> P4 $2,190 (30m²) · ULTRA 150 $1,986 (50m²) · CIR 150 $2,200 (50m²) · AQUA 500 $1,450 (100m²) · AQUA 1000 $1,650 (150m²) · Klair UV $3,890 (clínicas)<br>
+                <b>Catálogo:</b> P4 $1,490 (30m²) · ULTRA 150 $1,795 (50m²) · CIR 150 $1,995 (50m²) · AQUA 500 $1,450 (100m²) · AQUA 1000 $1,650 (150m²) · Klair UV $3,495 (clínicas)<br>
                 <b>Envío:</b> Gratis, 2 días hábiles · <b>Garantía:</b> 6 meses · <b>Pago:</b> Tarjeta, PayPal, Transferencia · <b>Horario:</b> Lun-Sáb 10:00-19:00
               </td></tr>
             </tbody>
@@ -1143,7 +1144,7 @@ var demoLeads = [
   {id:10,name:'Andrés Campos',company:'FinTech MX',             amount:48000, stage:'interes',    ch:'ig',ag:'lr',date:'Mar',  hot:false},
 ];
 var demoTemplates = [
-  {id:1,name:'Catálogo',type:'text',cat:'bienvenida',shortcut:'catalogo',content:'¡Hola {{nombre}}! Te comparto nuestro catálogo de purificadores PINGUS:\n\n🌬️ *Aire*\n• P4 — $2,190 MXN (hasta 30 m²)\n• ULTRA 150 — $1,985.99 MXN (hasta 50 m²)\n• CIR 150 — $2,200 MXN (hasta 50 m²)\n\n💧 *Aire + Agua*\n• AQUA 500 — $1,450 MXN (hasta 100 m²)\n• AQUA 1000 — $1,650 MXN (hasta 150 m²)\n\n🔬 *UV-C Profesional*\n• Klair UV — $3,890 MXN (clínicas y consultorios)\n\n✅ Envío GRATIS a toda la República · Garantía 6 meses\n🛒 www.grupopingus.com\n\n¿Te interesa algún modelo? Con gusto te asesoro.'}
+  {id:1,name:'Catálogo',type:'text',cat:'bienvenida',shortcut:'catalogo',content:'¡Hola {{nombre}}! Te comparto nuestro catálogo de purificadores PINGUS:\n\n🌬️ *Aire*\n• P4 — $1,490 MXN (hasta 30 m²)\n• ULTRA 150 — $1,795 MXN (hasta 50 m²)\n• CIR 150 — $1,995 MXN (hasta 50 m²)\n\n💧 *Aire + Agua*\n• AQUA 500 — $1,450 MXN (hasta 100 m²)\n• AQUA 1000 — $1,650 MXN (hasta 150 m²)\n\n🔬 *UV-C Profesional*\n• Klair UV — $3,495 MXN (clínicas y consultorios)\n\n✅ Envío GRATIS a toda la República · Garantía 6 meses\n🛒 www.grupopingus.com\n\n¿Te interesa algún modelo? Con gusto te asesoro.'}
 ];
 var demoAutoList = [
   {id:1,icon:'ti-brand-whatsapp',iconBg:'#d1fae5',iconColor:'#059669',title:'Bot de bienvenida WA',subtitle:'WhatsApp · Activo',on:true,channels:['wa'],trigger:'Cuando llega un mensaje nuevo de un contacto desconocido',actions:['Enviar mensaje de bienvenida','Asignar etiqueta "Nuevo lead"','Notificar al equipo'],executions:342},
@@ -2102,8 +2103,9 @@ function switchView(v){
   }
   if(v==='pipeline')renderPipeline();
   if(v==='products')renderProducts();
-  if(v==='aiagent')loadAIAgentStats();
+  if(v==='aiagent'){loadAIAgentStats();if(!_aiaLoaded){_aiaLoaded=true;loadAIASettings();}}
 }
+var _aiaLoaded=false;
 document.querySelectorAll('.tn-btn[data-view],.bn-btn[data-view],.ls-btn[data-view]').forEach(el=>el.addEventListener('click',()=>switchView(el.dataset.view)));
 document.getElementById('bnTplBtn')?.addEventListener('click',()=>{switchView('chat');tplOpen=true;tplTab='browse';renderTpl();});
 document.getElementById('bnNewLeadBtn')?.addEventListener('click',()=>openLeadModal('entrada'));
@@ -2206,27 +2208,27 @@ function toggleAgentStatus(){
   }
 }
 var aiaResponses={
-  'hola':['¡Hola! Soy el asistente de PINGUS. ¿Qué espacio quieres purificar: aire, agua o ambos?','¡Hola! Soy la IA de Grupo PINGUS – The Health Guardian. ¿En qué te puedo ayudar?'],
-  'precio':['Nuestros equipos van de $1,450 a $3,890 MXN. ¿Quieres que te recomiende uno según tu espacio?'],
-  'precios':['Nuestros equipos van de $1,450 a $3,890 MXN. ¿Quieres que te recomiende uno según tu espacio?'],
-  'lista':['Nuestros equipos van de $1,450 a $3,890 MXN. ¿Quieres que te recomiende uno según tu espacio?'],
-  'catálogo':['Claro, tenemos: P4 ($2,190 / 30m²), ULTRA 150 ($1,986 / 50m²), CIR 150 ($2,200 / 50m²), AQUA 500 ($1,450 / 100m²), AQUA 1000 ($1,650 / 150m²) y Klair UV ($3,890 / clínicas). ¿Cuántos m² tiene tu espacio?'],
+  'hola':['¡Hola! Soy el asistente de PINGUS. ¿Qué espacio quieres purificar: aire o agua?','¡Hola! Soy la IA de Grupo PINGUS – The Health Guardian. ¿En qué te puedo ayudar?'],
+  'precio':['Nuestros equipos van de $1,450 a $3,495 MXN. ¿Quieres que te recomiende uno según tu espacio?'],
+  'precios':['Nuestros equipos van de $1,450 a $3,495 MXN. ¿Quieres que te recomiende uno según tu espacio?'],
+  'lista':['Nuestros equipos van de $1,450 a $3,495 MXN. ¿Quieres que te recomiende uno según tu espacio?'],
+  'catálogo':['Claro, tenemos: P4 ($1,490 / 30m²), ULTRA 150 ($1,795 / 50m²), CIR 150 ($1,995 / 50m²), AQUA 500 ($1,450 / 100m²), AQUA 1000 ($1,650 / 150m²) y Klair UV ($3,495 / clínicas). ¿Cuántos m² tiene tu espacio?'],
   'envío':['El envío es GRATIS a toda la República Mexicana. Llega en 2 días hábiles por DHL, Estafeta, FedEx o UPS con seguimiento incluido.'],
   'envio':['El envío es GRATIS a toda la República Mexicana. Llega en 2 días hábiles con seguimiento.'],
   'garantía':['Todos nuestros equipos tienen 6 meses de garantía contra defectos de fábrica y soporte directo en México.'],
   'garantia':['Todos nuestros equipos tienen 6 meses de garantía contra defectos de fábrica y soporte directo en México.'],
   'pago':['Puedes pagar con tarjeta de crédito/débito, PayPal o transferencia bancaria. Compra 100% segura.'],
   'factura':['Para facturación te conecto con un asesor que te apoya con tus datos fiscales. Un momento...'],
-  'p4':['El P4 cuesta $2,190 MXN. Purificador de aire para espacios hasta 30 m² — ideal para dormitorios, oficinas privadas y automóviles. Mira más aquí: https://www.grupopingus.com/products/purificador-de-aire-p4'],
-  'ultra':['El ULTRA 150 es nuestro más vendido: $1,985.99 MXN, cubre 50 m². Ideal para salas, restaurantes y salones. Link: https://www.grupopingus.com/products/generador-de-ozono-ultra-150-mg-h'],
-  'cir':['El CIR 150 cuesta $2,200 MXN, cubre 50 m². Diseño circular para casas, oficinas y consultorios pequeños. Link: https://www.grupopingus.com/products/generador-de-ozono-inteligente-cir-150-mgh'],
+  'p4':['El P4 cuesta $1,490 MXN. Purificador de aire para espacios hasta 30 m² — ideal para dormitorios, oficinas privadas y automóviles. Mira más aquí: https://www.grupopingus.com/products/purificador-de-aire-p4'],
+  'ultra':['El ULTRA 150 es nuestro más vendido: $1,795 MXN, cubre 50 m². Ideal para salas, restaurantes y salones. Link: https://www.grupopingus.com/products/generador-de-ozono-ultra-150-mg-h'],
+  'cir':['El CIR 150 cuesta $1,995 MXN, cubre 50 m². Diseño circular para casas, oficinas y consultorios pequeños. Link: https://www.grupopingus.com/products/generador-de-ozono-inteligente-cir-150-mgh'],
   'aqua 500':['El AQUA 500 cuesta $1,450 MXN. Purifica aire (100 m²) Y agua. Ideal para cocinas y hogares con niños. Link: https://www.grupopingus.com/products/purificador-de-agua-aire-aqua-500'],
   'aqua 1000':['El AQUA 1000 cuesta $1,650 MXN, cubre 150 m² y tiene generador de iones. Ideal para restaurantes y colegios. Link: https://www.grupopingus.com/products/purificador-de-agua-aire-aqua-1000'],
-  'ck30':['El Klair UV es nivel profesional/clínico: $3,890 MXN, tecnología UV-C + ozono, para 100 m². Ideal para clínicas y dentistas. Link: https://www.grupopingus.com/products/modulo-de-desinfeccion-air-ck30-uvc'],
-  'klair':['El Klair UV es nivel profesional/clínico: $3,890 MXN, tecnología UV-C + ozono, para 100 m². Ideal para clínicas y dentistas. Link: https://www.grupopingus.com/products/modulo-de-desinfeccion-air-ck30-uvc'],
-  'dentista':['Para clínicas y dentistas recomendamos el Klair UV ($3,890 MXN) — desinfección UV-C + ozono a nivel profesional para 100 m². ¿Cuántos m² tiene tu consultorio?'],
-  'consultorio':['Para consultorios recomendamos purificadores de aire: ULTRA 150 ($1,986 / 50m²), CIR 150 ($2,200 / 50m²) o Klair UV ($3,890 / 100m² profesional). ¿Cuántos m² tiene tu consultorio?'],
-  'dormitorio':['Para dormitorios recomendamos el P4 ($2,190 MXN) — purifica hasta 30 m². ¿Cuántos m² tiene la habitación?'],
+  'ck30':['El Klair UV es nivel profesional/clínico: $3,495 MXN, tecnología UV-C + ozono, para 100 m². Ideal para clínicas y dentistas. Link: https://www.grupopingus.com/products/modulo-de-desinfeccion-air-ck30-uvc'],
+  'klair':['El Klair UV es nivel profesional/clínico: $3,495 MXN, tecnología UV-C + ozono, para 100 m². Ideal para clínicas y dentistas. Link: https://www.grupopingus.com/products/modulo-de-desinfeccion-air-ck30-uvc'],
+  'dentista':['Para clínicas y dentistas recomendamos el Klair UV ($3,495 MXN) — desinfección UV-C + ozono a nivel profesional para 100 m². ¿Cuántos m² tiene tu consultorio?'],
+  'consultorio':['Para consultorios recomendamos purificadores de aire: ULTRA 150 ($1,795 / 50m²), CIR 150 ($1,995 / 50m²) o Klair UV ($3,495 / 100m² profesional). ¿Cuántos m² tiene tu consultorio?'],
+  'dormitorio':['Para dormitorios recomendamos el P4 ($1,490 MXN) — purifica hasta 30 m². ¿Cuántos m² tiene la habitación?'],
   'restaurante':['Para restaurantes el AQUA 1000 ($1,650 MXN) cubre 150 m² y elimina olores de cocina. ¿Cuántos m² tiene el espacio?'],
   'm²':['Para recomendarte el equipo exacto necesito saber los m². ¿De qué tamaño es el espacio: pequeño (hasta 30 m²), mediano (50-100 m²) o grande (150+ m²)?'],
   'metro':['Para recomendarte el equipo exacto necesito saber los m². ¿De qué tamaño es el espacio?'],
@@ -2264,10 +2266,10 @@ function resetAIAChat(){
 
 /* ══ ACCIONES EDITABLES ══ */
 var aiaActions=[
-  {id:1,cuando:'El cliente envía "Hola", "Buenas", "Buenos días" o cualquier saludo de apertura',hacer:'Responder: "¡Hola! Soy el asistente de PINGUS. ¿Qué espacio quieres purificar: aire, agua o ambos?"',mas:'No volver a saludar en mensajes siguientes de la misma conversación'},
+  {id:1,cuando:'El cliente envía "Hola", "Buenas", "Buenos días" o cualquier saludo de apertura',hacer:'Responder: "¡Hola! Soy el asistente de PINGUS. ¿Qué espacio quieres purificar: aire o agua?"',mas:'No volver a saludar en mensajes siguientes de la misma conversación'},
   {id:2,cuando:'El cliente menciona tipo de espacio (casa, consultorio, restaurante, oficina) pero NO da metros cuadrados',hacer:'Pedir m² antes de recomendar: "Para recomendarte el equipo exacto, ¿cuántos m² tiene el espacio?"',mas:'Si no responde, ofrecer rango: pequeño (hasta 30 m²) / mediano (50-100 m²) / grande (150+ m²)'},
-  {id:3,cuando:'El cliente da m² + uso (aire/agua/ambos)',hacer:'Recomendar modelo con precio + link según tabla de Fuentes. Capturar: Nombre del lead, Tipo de espacio, m², Uso principal',mas:'Recomendar solo 1 producto principal. Si hay duda, ofrecer máximo 2 opciones.'},
-  {id:4,cuando:'El cliente pregunta "¿cuánto cuesta?", "precios" o "lista"',hacer:'Dar rango + invitar a personalizar: "Nuestros equipos van de $1,450 a $3,890 MXN. ¿Quieres que te recomiende uno según tu espacio?"',mas:'NO dar la lista completa. Forzar la pregunta del espacio para calificar el lead.'},
+  {id:3,cuando:'El cliente da m² + uso (aire o agua)',hacer:'Recomendar modelo con precio + link según tabla de Fuentes. Capturar: Nombre del lead, Tipo de espacio, m², Uso principal',mas:'Recomendar solo 1 producto principal. Si hay duda, ofrecer máximo 2 opciones.'},
+  {id:4,cuando:'El cliente pregunta "¿cuánto cuesta?", "precios" o "lista"',hacer:'Dar rango + invitar a personalizar: "Nuestros equipos van de $1,450 a $3,495 MXN. ¿Quieres que te recomiende uno según tu espacio?"',mas:'NO dar la lista completa. Forzar la pregunta del espacio para calificar el lead.'},
   {id:5,cuando:'El cliente pregunta sobre seguridad, "es peligroso", "afecta la salud"',hacer:'Responder: "Sí, en las dosis controladas de nuestros equipos. La recomendación es no estar en el espacio durante el ciclo y ventilar al terminar."',mas:'Si insiste, transferir a asesor'},
   {id:6,cuando:'El cliente dice "está caro", "vi uno más barato", "en Amazon hay de X"',hacer:'Diferenciar: "Nuestros equipos tienen garantía oficial de 6 meses y soporte directo en México. Envío gratis en 2 días."',mas:'Si pide descuento, transferir a asesor'},
   {id:7,cuando:'El cliente pregunta por envío, garantía o formas de pago',hacer:'Responder: envío 2 días hábiles GRATIS / garantía 6 meses / pago con tarjeta, PayPal o transferencia',mas:'Después de responder, retomar la venta: "¿Te recomiendo un modelo?"'},
@@ -2343,11 +2345,68 @@ function addNewAction(){
   document.getElementById('aiaContent').scrollTop=0;
 }
 setTimeout(renderActions,500);
-function saveAIASettings(){
-  var horario=document.getElementById('aiaHorarioLabel')?.innerText||'';
-  var prompt=document.getElementById('aiaPrompt')?.value||'';
-  try{ localStorage.setItem('aia_horario',horario); localStorage.setItem('aia_prompt',prompt); }catch(e){}
-  toast('Ajustes guardados ✓');
+// Recolecta la configuración completa del agente desde la UI
+function collectAIASettings(){
+  var pautas=[].map.call(document.querySelectorAll('#aiaPautas .aia-pauta'),function(el){return el.innerText.trim();}).filter(Boolean);
+  return {
+    prompt:document.getElementById('aiaPrompt')?.value||'',
+    tono:document.getElementById('aiaTono')?.value||'',
+    longitud:document.getElementById('aiaLongitud')?.value||'',
+    idioma:document.getElementById('aiaIdioma')?.value||'',
+    demora:parseInt(document.getElementById('aiaDemora')?.value,10)||0,
+    pautas:pautas,
+    horario:document.getElementById('aiaHorarioLabel')?.innerText||'',
+    active:!!aiAgentActive
+  };
+}
+// Guarda en Supabase (persistencia real entre dispositivos) + localStorage de respaldo
+async function saveAIASettings(btn){
+  var cfg=collectAIASettings();
+  var prevTxt=btn?btn.textContent:'';
+  if(btn){btn.disabled=true;btn.textContent='Guardando…';}
+  // Respaldo local inmediato
+  try{
+    localStorage.setItem('aia_horario',cfg.horario);
+    localStorage.setItem('aia_prompt',cfg.prompt);
+    localStorage.setItem('aia_settings',JSON.stringify(cfg));
+  }catch(e){}
+  var ok=true;
+  try{
+    if(sb){
+      var{error}=await sb.from('agent_settings').upsert(
+        Object.assign({id:1,updated_at:new Date().toISOString()},cfg),
+        {onConflict:'id'}
+      );
+      if(error){ok=false;console.error('saveAIASettings',error);}
+    }
+  }catch(e){ok=false;console.error('saveAIASettings',e);}
+  if(btn){btn.disabled=false;btn.textContent=prevTxt||'💾 Guardar cambios';}
+  toast(ok?'Ajustes guardados ✓':'Guardado local (sin conexión a la nube)');
+}
+// Aplica una configuración a los campos de la UI
+function applyAIASettings(cfg){
+  if(!cfg)return;
+  var setVal=function(id,v){var el=document.getElementById(id);if(el&&v!=null&&v!=='')el.value=v;};
+  setVal('aiaPrompt',cfg.prompt);
+  setVal('aiaTono',cfg.tono);
+  setVal('aiaLongitud',cfg.longitud);
+  setVal('aiaIdioma',cfg.idioma);
+  if(cfg.demora!=null){var d=document.getElementById('aiaDemora');if(d)d.value=cfg.demora;}
+  if(cfg.horario){var h=document.getElementById('aiaHorarioLabel');if(h)h.innerText=cfg.horario;}
+}
+// Carga la configuración: primero respaldo local, luego Supabase (fuente de verdad)
+async function loadAIASettings(){
+  try{
+    var raw=localStorage.getItem('aia_settings');
+    if(raw)applyAIASettings(JSON.parse(raw));
+    else applyAIASettings({prompt:localStorage.getItem('aia_prompt'),horario:localStorage.getItem('aia_horario')});
+  }catch(e){}
+  try{
+    if(sb){
+      var{data,error}=await sb.from('agent_settings').select('*').eq('id',1).maybeSingle();
+      if(!error&&data)applyAIASettings(data);
+    }
+  }catch(e){console.error('loadAIASettings',e);}
 }
 function editAIAHorario(){
   var lbl=document.getElementById('aiaHorarioLabel');
@@ -2356,15 +2415,6 @@ function editAIAHorario(){
   var nuevo=prompt('Editar horario del agente:',cur);
   if(nuevo&&nuevo.trim()){lbl.innerText=nuevo.trim();toast('Horario actualizado — recuerda guardar ajustes');}
 }
-// Restore saved settings on load
-(function(){
-  try{
-    var h=localStorage.getItem('aia_horario');
-    var p=localStorage.getItem('aia_prompt');
-    if(h){var el=document.getElementById('aiaHorarioLabel');if(el)el.innerText=h;}
-    if(p){var el2=document.getElementById('aiaPrompt');if(el2)el2.value=p;}
-  }catch(e){}
-})();
 
 /* ══════════════════════════════════════
    CONTACT LIST
@@ -2838,7 +2888,7 @@ document.getElementById('aiTog')?.addEventListener('click',function(){
 var PINGUS_PRODUCTS = [
   {id:'cir', name:'Generador OZONO CIR', category:'150 mg/h · Inteligente', precio:'$1,995 MXN', tag:'Nuevo', tagColor:'#d1fae5', tagTc:'#065f46', desc:'Generador de ozono inteligente con ciclos automáticos. Ideal para habitaciones y oficinas.', img:'https://www.grupopingus.com/cdn/shop/files/CIR.png?v=1772811104&width=300', url:'https://www.grupopingus.com/products/generador-de-ozono-inteligente-cir-150-mgh'},
   {id:'ultra150', name:'Generador ULTRA 150', category:'150 mg/h · Portátil', precio:'$1,795 MXN', tag:'Popular', tagColor:'#fff0e8', tagTc:'#7c2d12', desc:'Generador de ozono portátil de alta eficiencia. Elimina virus, bacterias y malos olores.', img:'https://www.grupopingus.com/cdn/shop/files/ULTRA150F2.png?v=1772811044&width=300', url:'https://www.grupopingus.com/products/generador-de-ozono-ultra-150-mg-h'},
-  {id:'ck30', name:'Klair UV', category:'Desinfección UV-C', precio:'$3,890 MXN', tag:'Profesional', tagColor:'#fae8ff', tagTc:'#c2410c', desc:'Módulo UV-C para clínicas, laboratorios y quirófanos. Máxima desinfección.', img:'https://www.grupopingus.com/cdn/shop/files/imgi_2_product-1-309.152.3-2.jpg?v=1771959535&width=300', url:'https://www.grupopingus.com/products/modulo-de-desinfeccion-air-ck30-uvc'},
+  {id:'ck30', name:'Klair UV', category:'Desinfección UV-C', precio:'$3,495 MXN', tag:'Profesional', tagColor:'#fae8ff', tagTc:'#c2410c', desc:'Módulo UV-C para clínicas, laboratorios y quirófanos. Máxima desinfección.', img:'https://www.grupopingus.com/cdn/shop/files/imgi_2_product-1-309.152.3-2.jpg?v=1771959535&width=300', url:'https://www.grupopingus.com/products/modulo-de-desinfeccion-air-ck30-uvc'},
   {id:'aqua1000', name:'AQUA 1000', category:'Purificador Agua/Aire', precio:'$1,650 MXN', tag:'Dual', tagColor:'#d1fae5', tagTc:'#065f46', desc:'Purifica agua y aire en un solo equipo. Mayor capacidad para restaurantes y negocios.', img:'https://www.grupopingus.com/cdn/shop/files/AQUA1000.png?v=1771962150&width=300', url:'https://www.grupopingus.com/products/purificador-de-agua-aire-aqua-1000'},
   {id:'aqua500', name:'AQUA 500', category:'Purificador Agua/Aire', precio:'$1,450 MXN', tag:'Más vendido', tagColor:'#fef3c7', tagTc:'#92400e', desc:'Ozonizador de agua y aire compacto. Perfecto para hogar, cocina o negocio pequeño.', img:'https://www.grupopingus.com/cdn/shop/files/ChatGPT_Image_4_mar_2026_03_51_31_p.m..png?v=1772735492&width=300', url:'https://www.grupopingus.com/products/purificador-de-agua-aire-aqua-500'},
   {id:'p4', name:'Purificador P4', category:'Generador de Ozono', precio:'$1,490 MXN', tag:'Recomendado', tagColor:'#dbeafe', tagTc:'#1e3a8a', desc:'4 modos de operación inteligentes P1-P4. Desodoriza y esteriliza con 99% efectividad.', img:'https://www.grupopingus.com/cdn/shop/files/P4.png?v=1771962640&width=300', url:'https://www.grupopingus.com/products/purificador-de-aire-p4'},

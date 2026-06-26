@@ -53,19 +53,20 @@ DATOS CLAVE DE LA EMPRESA:
 - Pagos: Tarjeta crédito/débito, PayPal, Transferencia bancaria
 
 TU FUNCIÓN PRINCIPAL (en orden de prioridad):
-1. ESCUCHAR: Entiende qué espacio quiere purificar el cliente (aire, agua, o ambos)
+1. ESCUCHAR: Entiende qué espacio quiere purificar el cliente (aire o agua)
+   REGLA DE LENGUAJE: NUNCA uses la palabra "ambos". Ofrece siempre las opciones como "aire o agua".
 2. CALIFICAR: Pregunta los metros cuadrados (m²) del espacio ANTES de cualquier recomendación
 3. RECOMENDAR: Sugiere el modelo exacto usando la tabla de recomendación por espacio
 4. VENDER: Al recomendar SIEMPRE incluye: nombre del producto + precio en MXN + link directo
 5. ESCALAR: Si hay intención de compra, solicitud de factura o pregunta compleja → transferir a asesor humano
 
 CATÁLOGO DE PRODUCTOS:
-1. Purificador de Aire P4 - $2,190 MXN - Espacios hasta 30 m² (dormitorios, oficinas, autos) - https://www.grupopingus.com/products/purificador-de-aire-p4
-2. Generador ULTRA 150 - $1,985.99 MXN - Espacios hasta 50 m² (salas, restaurantes, salones) - https://www.grupopingus.com/products/generador-de-ozono-ultra-150-mg-h
-3. Generador CIR 150 - $2,200 MXN - Espacios hasta 50 m² (casas, oficinas, consultorios) - https://www.grupopingus.com/products/generador-de-ozono-inteligente-cir-150-mgh
+1. Purificador de Aire P4 - $1,490 MXN - Espacios hasta 30 m² (dormitorios, oficinas, autos) - https://www.grupopingus.com/products/purificador-de-aire-p4
+2. Generador ULTRA 150 - $1,795 MXN - Espacios hasta 50 m² (salas, restaurantes, salones) - https://www.grupopingus.com/products/generador-de-ozono-ultra-150-mg-h
+3. Generador CIR 150 - $1,995 MXN - Espacios hasta 50 m² (casas, oficinas, consultorios) - https://www.grupopingus.com/products/generador-de-ozono-inteligente-cir-150-mgh
 4. Purificador AQUA 500 - $1,450 MXN - Aire (100 m²) + Agua, ideal cocinas, consultorios, hogares - https://www.grupopingus.com/products/purificador-de-agua-aire-aqua-500
 5. Purificador AQUA 1000 - $1,650 MXN - Aire (150 m²) + Agua + Iones, ideal restaurantes, colegios - https://www.grupopingus.com/products/purificador-de-agua-aire-aqua-1000
-6. Klair UV - $3,890 MXN - Desinfección UV-C profesional para clínicas, consultorios y hospitales - https://www.grupopingus.com/products/klair-uv
+6. Klair UV - $3,495 MXN - Desinfección UV-C profesional para clínicas, consultorios y hospitales - https://www.grupopingus.com/products/modulo-de-desinfeccion-air-ck30-uvc
 
 TABLA DE RECOMENDACIÓN:
 - Dormitorio/oficina pequeña hasta 30 m² (aire): P4
@@ -109,17 +110,17 @@ Si está fuera de horario (Lun-Vie 9:00-19:00): "Te responde un asesor en horari
 
 // ── Respuestas de fallback por keyword (cuando Claude API no responde) ──
 const FALLBACK_RESPONSES = {
-  'hola': '¡Hola! Soy el asistente de PINGUS – The Health Guardian. ¿Qué espacio quieres purificar: aire, agua o ambos?',
+  'hola': '¡Hola! Soy el asistente de PINGUS – The Health Guardian. ¿Qué espacio quieres purificar: aire o agua?',
   'buenos': '¡Hola! Soy el asistente de PINGUS. ¿En qué te puedo ayudar?',
   'buenas': '¡Hola! Soy el asistente de PINGUS. ¿En qué te puedo ayudar?',
-  'precio': 'Nuestros equipos van de $1,450 a $3,890 MXN. ¿Quieres que te recomiende uno según tu espacio?',
-  'catálogo': 'Tenemos: P4 ($2,190 / 30m²), ULTRA 150 ($1,986 / 50m²), CIR 150 ($2,200 / 50m²), AQUA 500 ($1,450 / 100m²), AQUA 1000 ($1,650 / 150m²) y Klair UV ($3,890 / clínicas). ¿Cuántos m² tiene tu espacio?',
-  'catalogo': 'Tenemos: P4 ($2,190 / 30m²), ULTRA 150 ($1,986 / 50m²), CIR 150 ($2,200 / 50m²), AQUA 500 ($1,450 / 100m²), AQUA 1000 ($1,650 / 150m²) y Klair UV ($3,890 / clínicas). ¿Cuántos m² tiene tu espacio?',
-  'klair': 'El Klair UV cuesta $3,890 MXN. Desinfección UV-C profesional para clínicas, consultorios y hospitales. Link: https://www.grupopingus.com/products/klair-uv',
-  'uv': 'El Klair UV cuesta $3,890 MXN. Desinfección UV-C profesional para clínicas, consultorios y hospitales.',
-  'dentista': 'Para consultorios dentales te recomiendo el Klair UV ($3,890 MXN) — desinfección UV-C de grado médico. ¿Te envío más info?',
-  'clínica': 'Para clínicas el modelo ideal es el Klair UV ($3,890 MXN) con tecnología UV-C profesional.',
-  'clinica': 'Para clínicas el modelo ideal es el Klair UV ($3,890 MXN) con tecnología UV-C profesional.',
+  'precio': 'Nuestros equipos van de $1,450 a $3,495 MXN. ¿Quieres que te recomiende uno según tu espacio?',
+  'catálogo': 'Tenemos: P4 ($1,490 / 30m²), ULTRA 150 ($1,795 / 50m²), CIR 150 ($1,995 / 50m²), AQUA 500 ($1,450 / 100m²), AQUA 1000 ($1,650 / 150m²) y Klair UV ($3,495 / clínicas). ¿Cuántos m² tiene tu espacio?',
+  'catalogo': 'Tenemos: P4 ($1,490 / 30m²), ULTRA 150 ($1,795 / 50m²), CIR 150 ($1,995 / 50m²), AQUA 500 ($1,450 / 100m²), AQUA 1000 ($1,650 / 150m²) y Klair UV ($3,495 / clínicas). ¿Cuántos m² tiene tu espacio?',
+  'klair': 'El Klair UV cuesta $3,495 MXN. Desinfección UV-C profesional para clínicas, consultorios y hospitales. Link: https://www.grupopingus.com/products/modulo-de-desinfeccion-air-ck30-uvc',
+  'uv': 'El Klair UV cuesta $3,495 MXN. Desinfección UV-C profesional para clínicas, consultorios y hospitales.',
+  'dentista': 'Para consultorios dentales te recomiendo el Klair UV ($3,495 MXN) — desinfección UV-C de grado médico. ¿Te envío más info?',
+  'clínica': 'Para clínicas el modelo ideal es el Klair UV ($3,495 MXN) con tecnología UV-C profesional.',
+  'clinica': 'Para clínicas el modelo ideal es el Klair UV ($3,495 MXN) con tecnología UV-C profesional.',
   'envío': 'El envío es GRATIS a toda la República Mexicana. Llega en 2 días hábiles por DHL, Estafeta, FedEx o UPS con seguimiento incluido.',
   'envio': 'El envío es GRATIS a toda la República Mexicana. Llega en 2 días hábiles con seguimiento.',
   'garantía': 'Todos nuestros equipos tienen 6 meses de garantía contra defectos de fábrica y soporte directo en México.',
@@ -128,9 +129,9 @@ const FALLBACK_RESPONSES = {
   'factura': 'Para facturación te conecto con un asesor que te apoya con tus datos fiscales. Un momento... 🔄',
   'comprar': '¡Perfecto! Te conecto con un asesor para finalizar tu compra. Un momento... 🔄',
   'quiero': '¡Perfecto! Te conecto con un asesor en un momento. ¿Me confirmas tu nombre?',
-  'p4': 'El P4 cuesta $2,190 MXN. Purificador de aire para espacios hasta 30 m². Link: https://www.grupopingus.com/products/purificador-de-aire-p4',
-  'ultra': 'El ULTRA 150 cuesta $1,985.99 MXN, cubre 50 m². Link: https://www.grupopingus.com/products/generador-de-ozono-ultra-150-mg-h',
-  'cir': 'El CIR 150 cuesta $2,200 MXN, cubre 50 m². Link: https://www.grupopingus.com/products/generador-de-ozono-inteligente-cir-150-mgh',
+  'p4': 'El P4 cuesta $1,490 MXN. Purificador de aire para espacios hasta 30 m². Link: https://www.grupopingus.com/products/purificador-de-aire-p4',
+  'ultra': 'El ULTRA 150 cuesta $1,795 MXN, cubre 50 m². Link: https://www.grupopingus.com/products/generador-de-ozono-ultra-150-mg-h',
+  'cir': 'El CIR 150 cuesta $1,995 MXN, cubre 50 m². Link: https://www.grupopingus.com/products/generador-de-ozono-inteligente-cir-150-mgh',
   'aqua 500': 'El AQUA 500 cuesta $1,450 MXN. Purifica aire (100 m²) y agua. Link: https://www.grupopingus.com/products/purificador-de-agua-aire-aqua-500',
   'aqua 1000': 'El AQUA 1000 cuesta $1,650 MXN, cubre 150 m² + iones. Link: https://www.grupopingus.com/products/purificador-de-agua-aire-aqua-1000',
   'ozono': 'Nuestros equipos generan de 100 a 150 mg/h de ozono por periodos cortos. Puedes estar en el espacio mientras funciona. Elimina bacterias, virus, hongos y olores. ¿Te interesa para algún espacio en particular?',
@@ -140,18 +141,18 @@ const FALLBACK_RESPONSES = {
   'aire': 'Para purificar aire necesito saber los m² de tu espacio. ¿Es pequeño (hasta 30 m²), mediano (50-100 m²) o grande (150+ m²)?',
   'agua': 'Para purificar agua tenemos: AQUA 500 ($1,450 MXN / aire 100m² + agua) y AQUA 1000 ($1,650 MXN / aire 150m² + agua + iones). ¿Cuántos m² tiene tu espacio?',
   'ambos': 'Para purificar aire y agua tenemos: AQUA 500 ($1,450 MXN / 100m²) y AQUA 1000 ($1,650 MXN / 150m²). ¿Cuántos m² tiene tu espacio?',
-  'casa': 'Para casa te recomiendo el CIR 150 ($2,200 MXN) si es hasta 50 m², o el AQUA 500 ($1,450 MXN) si también quieres purificar agua. ¿Cuántos m² tiene tu espacio?',
+  'casa': 'Para casa te recomiendo el CIR 150 ($1,995 MXN) si es hasta 50 m², o el AQUA 500 ($1,450 MXN) si también quieres purificar agua. ¿Cuántos m² tiene tu espacio?',
   'oficina': 'Para oficinas el modelo ideal depende de los m². ¿Cuántos metros cuadrados tiene tu oficina?',
   'restaurante': 'Para restaurantes recomiendo el AQUA 1000 ($1,650 MXN) que cubre 150 m² y purifica aire + agua. ¿Cuántos m² tiene el local?',
-  'consultorio': 'Para consultorios tenemos el CIR 150 ($2,200 MXN / 50m²) o el Klair UV ($3,890 MXN) para desinfección UV-C profesional. ¿Cuántos m² tiene?',
-  'hospital': 'Para hospitales y clínicas el modelo ideal es el Klair UV ($3,890 MXN) con desinfección UV-C profesional.',
+  'consultorio': 'Para consultorios tenemos el CIR 150 ($1,995 MXN / 50m²) o el Klair UV ($3,495 MXN) para desinfección UV-C profesional. ¿Cuántos m² tiene?',
+  'hospital': 'Para hospitales y clínicas el modelo ideal es el Klair UV ($3,495 MXN) con desinfección UV-C profesional.',
   'gracias': 'Con gusto. Si necesitas más información, aquí estoy. Equipo PINGUS – The Health Guardian.',
   'sí': 'Perfecto, cuéntame más sobre tu espacio y te recomiendo el equipo ideal.',
   'si': 'Perfecto, cuéntame más sobre tu espacio y te recomiendo el equipo ideal.',
   'no': 'Entendido. Si cambias de opinión o tienes alguna duda, aquí estoy para ayudarte.',
-  'información': 'Con gusto te ayudo. ¿Qué espacio quieres purificar: aire, agua o ambos? ¿Cuántos m² tiene?',
-  'info': 'Con gusto te ayudo. ¿Qué espacio quieres purificar: aire, agua o ambos? ¿Cuántos m² tiene?',
-  'purificador': 'Tenemos purificadores de aire desde $1,986 MXN y de agua+aire desde $1,450 MXN. ¿Qué espacio necesitas purificar?',
+  'información': 'Con gusto te ayudo. ¿Qué espacio quieres purificar: aire o agua? ¿Cuántos m² tiene?',
+  'info': 'Con gusto te ayudo. ¿Qué espacio quieres purificar: aire o agua? ¿Cuántos m² tiene?',
+  'purificador': 'Tenemos purificadores de aire desde $1,490 MXN y de agua+aire desde $1,450 MXN. ¿Qué espacio necesitas purificar?',
 };
 
 // Recomienda el equipo ideal según m² y si quiere purificar agua
@@ -160,8 +161,8 @@ function recommendByArea(area, wantsWater) {
     if (area <= 100) return 'el AQUA 500 ($1,450 MXN), purifica aire (hasta 100 m²) + agua. Link: https://www.grupopingus.com/products/purificador-de-agua-aire-aqua-500';
     return 'el AQUA 1000 ($1,650 MXN), cubre 150 m² + agua + iones. Link: https://www.grupopingus.com/products/purificador-de-agua-aire-aqua-1000';
   }
-  if (area <= 30) return 'el P4 ($2,190 MXN), purificador de aire para espacios hasta 30 m². Link: https://www.grupopingus.com/products/purificador-de-aire-p4';
-  if (area <= 50) return 'el CIR 150 ($2,200 MXN) o el ULTRA 150 ($1,985.99 MXN), ideales hasta 50 m². Link: https://www.grupopingus.com/products/generador-de-ozono-inteligente-cir-150-mgh';
+  if (area <= 30) return 'el P4 ($1,490 MXN), purificador de aire para espacios hasta 30 m². Link: https://www.grupopingus.com/products/purificador-de-aire-p4';
+  if (area <= 50) return 'el CIR 150 ($1,995 MXN) o el ULTRA 150 ($1,795 MXN), ideales hasta 50 m². Link: https://www.grupopingus.com/products/generador-de-ozono-inteligente-cir-150-mgh';
   if (area <= 100) return 'el AQUA 500 ($1,450 MXN), cubre hasta 100 m² y purifica aire + agua. Link: https://www.grupopingus.com/products/purificador-de-agua-aire-aqua-500';
   return 'el AQUA 1000 ($1,650 MXN), cubre hasta 150 m² + iones. Link: https://www.grupopingus.com/products/purificador-de-agua-aire-aqua-1000';
 }
@@ -187,7 +188,7 @@ function fallbackReply(text, history = []) {
 
   if (area && area > 0 && area < 2000) {
     if (medical) {
-      return `Para ${area} m² en un espacio de salud te recomiendo el Klair UV ($3,890 MXN) con desinfección UV-C profesional. Link: https://www.grupopingus.com/products/klair-uv`;
+      return `Para ${area} m² en un espacio de salud te recomiendo el Klair UV ($3,495 MXN) con desinfección UV-C profesional. Link: https://www.grupopingus.com/products/modulo-de-desinfeccion-air-ck30-uvc`;
     }
     return `Para ${area} m² te recomiendo ${recommendByArea(area, wantsWater)}`;
   }
@@ -196,7 +197,7 @@ function fallbackReply(text, history = []) {
   for (const key in FALLBACK_RESPONSES) {
     if (cur.includes(key)) return FALLBACK_RESPONSES[key];
   }
-  return 'Gracias por tu mensaje. Para recomendarte el equipo ideal, cuéntame: ¿qué espacio quieres purificar (aire, agua o ambos) y cuántos m² tiene?';
+  return 'Gracias por tu mensaje. Para recomendarte el equipo ideal, cuéntame: ¿qué espacio quieres purificar (aire o agua) y cuántos m² tiene?';
 }
 
 // ── Supabase (service_role) ───────────────────────────────
@@ -209,6 +210,38 @@ async function getSupabase() {
           auth: { persistSession: false, autoRefreshToken: false }
     });
     return _sb;
+}
+
+// ── Configuración del Agente IA (editable desde el CRM) ───────
+// Se cachea ~60s para no consultar Supabase en cada mensaje.
+let _agentCfg = null;
+let _agentCfgAt = 0;
+async function getAgentSettings() {
+    if (_agentCfg && (Date.now() - _agentCfgAt) < 60000) return _agentCfg;
+    try {
+        const sb = await getSupabase();
+        if (!sb) return null;
+        const { data } = await sb.from('agent_settings').select('*').eq('id', 1).maybeSingle();
+        _agentCfg = data || null;
+        _agentCfgAt = Date.now();
+    } catch (e) {
+        console.error('[AGENT] getAgentSettings:', e.message);
+    }
+    return _agentCfg;
+}
+
+// Construye el system prompt combinando la base (catálogo, reglas) con la
+// personalidad e instrucciones que el usuario configura en el CRM.
+async function buildSystemPrompt() {
+    const cfg = await getAgentSettings();
+    if (!cfg) return SYSTEM_PROMPT;
+    let extra = '';
+    if (cfg.prompt && cfg.prompt.trim()) extra += `\n\nPERSONALIDAD Y ROL (configurado en el CRM):\n${cfg.prompt.trim()}`;
+    if (Array.isArray(cfg.pautas) && cfg.pautas.length) extra += `\n\nPAUTAS OBLIGATORIAS:\n- ${cfg.pautas.join('\n- ')}`;
+    if (cfg.tono) extra += `\n\nTono de voz: ${cfg.tono}.`;
+    if (cfg.longitud) extra += ` Longitud de respuestas: ${cfg.longitud}.`;
+    if (cfg.idioma) extra += ` Idioma: ${cfg.idioma}.`;
+    return extra ? SYSTEM_PROMPT + extra : SYSTEM_PROMPT;
 }
 
 // ── Resolver / crear contacto por canal+handle (atómico vía RPC) ──
@@ -275,6 +308,8 @@ async function callClaude(history, userMessage) {
     const messages = [...history, { role: 'user', content: userMessage }];
     while (messages.length && messages[0].role !== 'user') messages.shift();
 
+    const systemPrompt = await buildSystemPrompt();
+
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
           method: 'POST',
@@ -286,7 +321,7 @@ async function callClaude(history, userMessage) {
           body: JSON.stringify({
                   model: CLAUDE_MODEL,
                   max_tokens: 300,
-                  system: SYSTEM_PROMPT,
+                  system: systemPrompt,
                   messages
           })
     });

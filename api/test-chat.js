@@ -42,14 +42,39 @@ function rateLimit(ip, maxReqs = 20, windowMs = 60000) {
 const SYSTEM_PROMPT = `Eres PINGUS ASISTENTE, el chatbot de ventas de Grupo PINGUS, empresa mexicana de purificadores de aire y agua con tecnologia de ozono.
 
 CATALOGO:
-1. Generador OZONO CIR - $1,995 MXN - Inteligente, ideal 20-50 m2
-2. Generador ULTRA 150 - $1,795 MXN - Portatil, ideal 50-100 m2
-3. Generador ULTRA 200 - $2,495 MXN - Mayor capacidad, ideal 100-200 m2
-4. Modulo Air CK30 UVC - $8,500 MXN - UV-C para clinicas
-5. AQUA 1000 - $3,200 MXN - Agua+aire para negocios
-6. AQUA HOME - $1,495 MXN - Agua domestico
+1. P4 - $1,490 MXN - Purificador de aire, hasta 30 m2 (dormitorios, oficinas, autos)
+2. ULTRA 150 - $1,795 MXN - Generador de ozono 150 mg/h, hasta 50 m2 (mas vendido)
+3. CIR 150 - $1,995 MXN - Generador de ozono inteligente 150 mg/h, hasta 50 m2
+4. AQUA 500 - $1,450 MXN - Purificador de agua y aire, aire hasta 100 m2
+5. AQUA 1000 - $1,650 MXN - Purificador de agua/aire con iones, aire hasta 150 m2
+6. Klair UV (Air CK30 UVC) - $3,495 MXN - Desinfeccion UV-C profesional, hasta 100 m2 (clinicas, dentistas)
 
-PAUTAS: Maximo 3 lineas. Habla de tu. Pide m2 antes de recomendar. Recomendacion = NOMBRE + PRECIO.`;
+PAUTAS: Maximo 3 lineas. Habla de tu. Pide m2 antes de recomendar. Recomendacion = NOMBRE + PRECIO. NUNCA uses la palabra "ambos"; ofrece "aire o agua".`;
+
+// Lee la configuración del Agente IA (editable desde el CRM) y la combina
+// con el prompt base para que la simulación refleje los cambios guardados.
+let _agentCfg = null, _agentCfgAt = 0;
+async function buildSystemPrompt() {
+  try {
+    if (!_agentCfg || (Date.now() - _agentCfgAt) >= 60000) {
+      if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) return SYSTEM_PROMPT;
+      const { createClient } = await import('@supabase/supabase-js');
+      const sb = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, { auth: { persistSession: false, autoRefreshToken: false } });
+      const { data } = await sb.from('agent_settings').select('*').eq('id', 1).maybeSingle();
+      _agentCfg = data || null;
+      _agentCfgAt = Date.now();
+    }
+  } catch (e) { console.error('[TEST-CHAT] settings:', e.message); }
+  const cfg = _agentCfg;
+  if (!cfg) return SYSTEM_PROMPT;
+  let extra = '';
+  if (cfg.prompt && cfg.prompt.trim()) extra += `\n\nPERSONALIDAD Y ROL (configurado en el CRM):\n${cfg.prompt.trim()}`;
+  if (Array.isArray(cfg.pautas) && cfg.pautas.length) extra += `\n\nPAUTAS OBLIGATORIAS:\n- ${cfg.pautas.join('\n- ')}`;
+  if (cfg.tono) extra += `\n\nTono de voz: ${cfg.tono}.`;
+  if (cfg.longitud) extra += ` Longitud de respuestas: ${cfg.longitud}.`;
+  if (cfg.idioma) extra += ` Idioma: ${cfg.idioma}.`;
+  return extra ? SYSTEM_PROMPT + extra : SYSTEM_PROMPT;
+}
 
 const testConversations = new Map();
 
@@ -83,10 +108,11 @@ export default async function handler(req, res) {
     const messages = testConversations.get(sid);
     messages.push({ role: 'user', content: message });
     if (messages.length > 20) messages.splice(0, messages.length - 20);
+    const systemPrompt = await buildSystemPrompt();
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-api-key': CLAUDE_API_KEY, 'anthropic-version': '2023-06-01' },
-      body: JSON.stringify({ model: CLAUDE_MODEL, max_tokens: 300, system: SYSTEM_PROMPT, messages: messages })
+      body: JSON.stringify({ model: CLAUDE_MODEL, max_tokens: 300, system: systemPrompt, messages: messages })
     });
     if (!response.ok) { const e = await response.text(); return res.status(500).json({ error: 'Claude API error', details: e }); }
     const data = await response.json();
