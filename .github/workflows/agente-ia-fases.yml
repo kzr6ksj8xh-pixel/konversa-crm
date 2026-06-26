@@ -2,7 +2,7 @@ name: Agente IA — Fases programadas
 
 # Ejecuta automáticamente las 5 fases del plan docs/PLAN-AGENTE-IA.md.
 #
-# Programado: 09:05 UTC del 26 de junio = 03:05 a.m. hora CDMX (UTC-6).
+# Programado: 09:05 UTC del 27 de junio = 03:05 a.m. hora CDMX (UTC-6).
 # El cron de GitHub Actions SIEMPRE es en UTC.
 #
 # IMPORTANTE (límites reales que debes conocer):
@@ -16,7 +16,7 @@ name: Agente IA — Fases programadas
 on:
   schedule:
     # min hora día-del-mes mes día-de-semana  (UTC)
-    - cron: "5 9 26 6 *"   # 26-jun 09:05 UTC == 03:05 CDMX
+    - cron: "5 9 27 6 *"   # 27-jun 09:05 UTC == 03:05 CDMX
   workflow_dispatch: {}     # botón manual de respaldo (Actions → Run workflow)
 
 permissions:
