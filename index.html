@@ -877,6 +877,19 @@ REGLA IMPORTANTE: Para consultorios, clínicas, dentistas y espacios de salud, r
               </td></tr>
             </tbody>
           </table>
+          <!-- BASE DE CONOCIMIENTO — sincronización Google Docs -->
+          <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:14px">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+              <div style="width:30px;height:30px;border-radius:8px;background:#4285f4;display:flex;align-items:center;justify-content:center;font-size:14px">📄</div>
+              <b style="font-size:12px">Base de Conocimiento (Google Docs)</b>
+            </div>
+            <p style="font-size:10px;color:var(--txt2);margin-bottom:10px">El agente de IA usa el contenido de tus Google Docs. Se resincroniza automáticamente cada día; también puedes forzarla ahora.</p>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+              <button onclick="syncKnowledgeNow()" style="font-size:10px;padding:5px 12px;border:none;background:#4285f4;color:#fff;border-radius:4px;cursor:pointer;font-weight:500"><i class='ti ti-refresh' style='font-size:11px'></i> Forzar resincronización</button>
+              <label style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--txt2);cursor:pointer"><input type="checkbox" id="kbAutoSync" onchange="toggleKnowledgeAutoSync(this.checked)" checked> Resync automática diaria</label>
+            </div>
+            <div id="kbSyncStatus" style="margin-top:8px;font-size:9px;color:var(--txt3)"></div>
+          </div>
           <div style="display:flex;align-items:center;gap:8px;padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px">
             <span style="font-size:12px;font-weight:600">Productos</span>
             <div style="width:32px;height:18px;border-radius:9px;background:#059669;cursor:pointer;display:flex;align-items:center;justify-content:flex-end;padding-right:2px"><div style="width:14px;height:14px;border-radius:50%;background:#fff"></div></div>
@@ -1462,6 +1475,60 @@ async function syncShopifyNow(){
       toast('Error: '+(data.error||'fallo sync'));
     }
   }catch(e){toast('Error sincronizando: '+e.message);}
+}
+
+/* ── BASE DE CONOCIMIENTO (Google Docs) ── */
+async function kbAuthToken(){
+  if(!sb)return null;
+  try{const{data:{session}}=await sb.auth.getSession();return session?.access_token||null;}catch(e){return null;}
+}
+function fmtKbDate(iso){
+  if(!iso)return 'nunca';
+  try{var d=new Date(iso);return d.toLocaleString('es-MX',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});}catch(e){return iso;}
+}
+async function loadKnowledgeStatus(){
+  var el=document.getElementById('kbSyncStatus');
+  var token=await kbAuthToken();
+  if(!token){if(el)el.textContent='Inicia sesión real para gestionar la base de conocimiento.';return;}
+  try{
+    var res=await fetch('/api/knowledge',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({action:'status'})});
+    var data=await res.json();
+    if(data.status!=='ok'||!Array.isArray(data.sources)){if(el)el.textContent='No se pudo cargar el estado.';return;}
+    var s=data.sources[0];
+    if(!s){if(el)el.textContent='Sin fuentes configuradas.';return;}
+    var auto=document.getElementById('kbAutoSync');if(auto)auto.checked=!!s.auto_sync;
+    var icon=s.last_sync_status==='error'?'⚠️':(s.last_synced_at?'✅':'⏳');
+    var txt=icon+' Última sincronización: '+fmtKbDate(s.last_synced_at);
+    if(s.char_count)txt+=' · '+s.char_count.toLocaleString('es-MX')+' caracteres';
+    if(s.last_sync_status==='error'&&s.last_sync_error)txt+=' · Error: '+s.last_sync_error;
+    if(el)el.textContent=txt;
+  }catch(e){if(el)el.textContent='Error: '+e.message;}
+}
+async function syncKnowledgeNow(){
+  var token=await kbAuthToken();
+  if(!token){toast('Inicia sesión real (no demo) para sincronizar');return;}
+  toast('Sincronizando base de conocimiento...');
+  try{
+    var res=await fetch('/api/knowledge',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({action:'sync'})});
+    var data=await res.json();
+    if(data.status==='ok'){
+      var ok=data.synced||0,total=data.total||0;
+      var failed=(data.results||[]).filter(function(r){return r.status==='error';});
+      if(failed.length)toast('Sincronizadas '+ok+'/'+total+'. Error: '+failed[0].error);
+      else toast('Base de conocimiento sincronizada ('+ok+' fuente'+(ok===1?'':'s')+') ✓');
+      loadKnowledgeStatus();
+    }else{toast('Error: '+(data.error||'fallo sync'));}
+  }catch(e){toast('Error sincronizando: '+e.message);}
+}
+async function toggleKnowledgeAutoSync(enabled){
+  var token=await kbAuthToken();
+  if(!token){toast('Inicia sesión real para cambiar esta opción');return;}
+  try{
+    var res=await fetch('/api/knowledge',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({action:'set-auto-sync',doc_id:'1LbPShBxNgd4qy9vnjh2bGoZq8C7nxxlcBWIsrsUtEUc',enabled:enabled})});
+    var data=await res.json();
+    if(data.status==='ok')toast(enabled?'Resync diaria activada ✓':'Resync diaria desactivada');
+    else toast('Error: '+(data.error||'no se pudo guardar'));
+  }catch(e){toast('Error: '+e.message);}
 }
 
 /* ── SUPABASE REALTIME ── */
@@ -2190,6 +2257,7 @@ function switchAITab(tab){
   document.querySelectorAll('.aia-panel').forEach(p=>{p.classList.remove('active');});
   var p=document.getElementById('aia-'+tab);
   if(p)p.classList.add('active');
+  if(tab==='fuentes')loadKnowledgeStatus();
 }
 function toggleAgentStatus(){
   aiAgentActive=!aiAgentActive;

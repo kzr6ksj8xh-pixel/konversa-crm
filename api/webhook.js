@@ -260,8 +260,51 @@ async function loadHistory(sb, conversationId) {
       .map(m => ({ role: (m.sender === 'in' || m.sender === 'customer') ? 'user' : 'assistant', content: m.content }));
 }
 
+// ── Base de Conocimiento (Google Docs sincronizados) ──────
+// Se cachea en memoria del proceso para no consultar la DB en cada
+// mensaje. Las fuentes se sincronizan vía /api/knowledge (botón en la
+// app + cron diario); aquí solo se leen y se inyectan al system prompt.
+let _kbCache = null;          // string concatenado
+let _kbCacheAt = 0;           // timestamp ms
+const KB_TTL_MS = 5 * 60 * 1000; // 5 min
+
+async function loadKnowledgeBase(sb) {
+    if (!sb) return '';
+    const now = Date.now();
+    if (_kbCache !== null && now - _kbCacheAt < KB_TTL_MS) return _kbCache;
+    try {
+        const { data, error } = await sb.from('knowledge_sources')
+            .select('title, content')
+            .eq('is_active', true)
+            .order('created_at', { ascending: true });
+        if (error) throw error;
+        const blocks = (data || [])
+            .filter(s => s.content && s.content.trim())
+            .map(s => `### ${s.title || 'Fuente'}\n${s.content.trim()}`);
+        _kbCache = blocks.join('\n\n');
+        _kbCacheAt = now;
+    } catch (e) {
+        console.warn('[KNOWLEDGE] load error:', e?.message);
+        // Conserva el cache anterior si lo hubiera; si no, vacío.
+        if (_kbCache === null) _kbCache = '';
+    }
+    return _kbCache;
+}
+
+// Construye el system prompt final = prompt base + base de conocimiento.
+function buildSystemPrompt(knowledge) {
+    if (!knowledge) return SYSTEM_PROMPT;
+    return `${SYSTEM_PROMPT}
+
+═══════════════════════════════════════════════
+BASE DE CONOCIMIENTO (fuente de la verdad — sincronizada desde Google Docs):
+Usa esta información como referencia prioritaria. Si entra en conflicto con lo anterior, esta base manda.
+═══════════════════════════════════════════════
+${knowledge}`;
+}
+
 // ── Claude API ────────────────────────────────────────────
-async function callClaude(history, userMessage) {
+async function callClaude(history, userMessage, systemPrompt = SYSTEM_PROMPT) {
     if (!AI_ENABLED) {
         console.log('[CLAUDE] Deshabilitado (AI_ENABLED!=true) — usando fallback inteligente');
         return null;
@@ -286,7 +329,7 @@ async function callClaude(history, userMessage) {
           body: JSON.stringify({
                   model: CLAUDE_MODEL,
                   max_tokens: 300,
-                  system: SYSTEM_PROMPT,
+                  system: systemPrompt,
                   messages
           })
     });
@@ -339,7 +382,8 @@ async function processIncoming(channel, handle, name, text) {
         contactId: contact.id
     }).catch(e => console.warn('[PUSH]', e?.message));
 
-  const reply = await callClaude(history, text);
+  const knowledge = await loadKnowledgeBase(sb);
+  const reply = await callClaude(history, text, buildSystemPrompt(knowledge));
     const finalReply = reply || fallbackReply(text, history);
     await persistMessage(sb, convId, channel, 'ai', finalReply);
     await pushPromise;

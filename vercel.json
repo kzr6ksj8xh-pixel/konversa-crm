@@ -2,8 +2,12 @@
   "functions": {
     "api/webhook.js": { "maxDuration": 60 },
     "api/shopify.js": { "maxDuration": 30 },
-    "api/shopify-webhook.js": { "maxDuration": 30 }
+    "api/shopify-webhook.js": { "maxDuration": 30 },
+    "api/knowledge.js": { "maxDuration": 60 }
   },
+  "crons": [
+    { "path": "/api/knowledge", "schedule": "0 8 * * *" }
+  ],
   "rewrites": [
     { "source": "/webhook", "destination": "/api/webhook" },
     { "source": "/shopify/install", "destination": "/api/shopify?action=install" },
