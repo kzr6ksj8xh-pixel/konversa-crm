@@ -1,0 +1,89 @@
+name: Agente IA — Fases programadas
+
+# Ejecuta automáticamente las 5 fases del plan docs/PLAN-AGENTE-IA.md.
+#
+# Programado: 09:05 UTC del 26 de junio = 03:05 a.m. hora CDMX (UTC-6).
+# El cron de GitHub Actions SIEMPRE es en UTC.
+#
+# IMPORTANTE (límites reales que debes conocer):
+#   1. Los workflows con `schedule:` SOLO disparan desde la rama por defecto
+#      (main). Este archivo debe estar en `main` para que el cron funcione.
+#   2. Requiere el secreto ANTHROPIC_API_KEY y la GitHub App de Claude instalada
+#      (solo lo puede hacer un admin del repo).
+#   3. GitHub puede retrasar runs programados bajo carga. Por eso se incluye
+#      `workflow_dispatch` para dispararlo manualmente si el cron se salta.
+
+on:
+  schedule:
+    # min hora día-del-mes mes día-de-semana  (UTC)
+    - cron: "5 9 26 6 *"   # 26-jun 09:05 UTC == 03:05 CDMX
+  workflow_dispatch: {}     # botón manual de respaldo (Actions → Run workflow)
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  fases:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: claude/ai-agent-improvements-anuzhe
+
+      - name: Ejecutar fases con Claude Code
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          claude_args: "--max-turns 120 --model claude-sonnet-4-6"
+          prompt: |
+            Eres un agente de ingeniería trabajando en el repo Konversa CRM.
+            Tu tarea es IMPLEMENTAR, en orden, las fases descritas en
+            docs/PLAN-AGENTE-IA.md. Trabaja en la rama
+            `claude/ai-agent-improvements-anuzhe` (ya está checada).
+
+            Reglas de ejecución:
+            1. Lee primero docs/PLAN-AGENTE-IA.md completo y los archivos que
+               menciona (api/webhook.js, api/shopify.js, api/test-chat.js,
+               index.html, supabase-integrations.sql).
+            2. Implementa las fases en este orden, una por una:
+                 - Fase 0: migración SQL (agent_config, agent_actions,
+                   knowledge_sources, knowledge_chunks + RLS) y un seed que
+                   vuelque el SYSTEM_PROMPT/catálogo actual de api/webhook.js a
+                   agent_config + una knowledge_source. Crea los .sql en el repo;
+                   NO ejecutes nada contra ninguna base de datos.
+                 - Fase 1 (Pautas reales): api/agent-config.js (GET/PUT, auth
+                   admin) + en api/webhook.js loadAgentConfig cacheado,
+                   buildSystemPrompt dinámico y respetar is_active. Conecta la UI
+                   (Personalidad/Pautas/Acciones/Toggle) a los endpoints.
+                 - Fase 2 (Integraciones reales): extrae lib/shopify-data.js y
+                   añade tool use de Claude en webhook.js (buscar_producto,
+                   estado_pedido, transferir_a_humano). Estado real de
+                   integraciones en la UI.
+                 - Fase 3 (Conocimiento Nivel A): api/knowledge.js (CRUD + sync)
+                   y loadKnowledge concatenado en el prompt; tab Fuentes
+                   funcional.
+                 - Fase 4 (RAG): deja el andamiaje (tabla knowledge_chunks,
+                   helper de embeddings con Voyage detrás de una env var) pero NO
+                   inventes claves; documenta las env vars necesarias.
+            3. Haz UN commit por fase con mensaje claro en español
+               ("Fase N: ..."). NO uses fuerza (--force) ni reescribas historia.
+            4. NO inventes secretos ni API keys. Donde se necesiten (Supabase,
+               Voyage, Shopify), usa process.env.* y documenta la variable.
+            5. Mantén SIEMPRE el fallback existente: si la config/DB falla, el bot
+               debe seguir respondiendo con fallbackReply. No rompas el webhook
+               de producción.
+            6. Si una fase no se puede completar de forma segura, DETENTE ahí,
+               commitea lo hecho, y deja el resto documentado. No fuerces.
+            7. Al terminar (o al detenerte), abre/actualiza un Pull Request hacia
+               `main` con: resumen por fase de lo implementado, los pasos
+               manuales pendientes (correr las migraciones SQL en Supabase, añadir
+               secretos/env vars, instalar la GitHub App), y los riesgos.
+
+            Prioriza correctitud y no romper el bot en producción por encima de
+            terminar todas las fases. Si dudas entre avanzar o parar, para y
+            documenta.
