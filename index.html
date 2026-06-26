@@ -1169,6 +1169,7 @@ var shopifyProducts = [];
    SUPABASE DATA LAYER
 ══════════════════════════════════════ */
 function contactColor(name){
+  name=name||'';
   var colors=[{bg:'#fff0e8',tc:'#7c2d12'},{bg:'#dbeafe',tc:'#1e3a8a'},{bg:'#d1fae5',tc:'#065f46'},{bg:'#fee2e2',tc:'#991b1b'},{bg:'#fef9c3',tc:'#713f12'},{bg:'#fae8ff',tc:'#701a75'}];
   var hash=0;for(var i=0;i<name.length;i++)hash=name.charCodeAt(i)+((hash<<5)-hash);
   return colors[Math.abs(hash)%colors.length];
@@ -1184,11 +1185,12 @@ async function loadContactsFromDB(){
     if(error){console.warn('loadContacts error:',error);lastDataError='Error al leer contactos: '+(error.message||error.code||JSON.stringify(error));return;}
     lastDataError='';
     contacts=(data||[]).map(function(c){
-      var col=contactColor(c.name);
+      var nm=c.name||c.phone||c.email||'Sin nombre';
+      var col=contactColor(nm);
       var chs=c.channels||[];
       var mainCh=chs[0]?.ch||'wa';
       return{
-        id:c.id,ini:ini(c.name),name:c.name,comp:c.company||'',
+        id:c.id,ini:ini(nm),name:nm,comp:c.company||'',
         pre:c.deal_name||'',time:timeSince(c.updated_at||c.created_at),
         lastMsgAt:new Date(c.updated_at||c.created_at).getTime(),
         unread:0,bg:col.bg,tc:col.tc,ch:mainCh,
@@ -1782,7 +1784,7 @@ function toast(m){const e=document.getElementById('toast');if(!e)return;e.textCo
 function fmt(n){return new Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN',maximumFractionDigits:0}).format(n);}
 function now(){const d=new Date();return`${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}`;}
 function cI(ch,sz=10){return`<i class="ti ${CH[ch]?.icon||'ti-message'}" style="font-size:${sz}px"></i>`;}
-function ini(n){const p=n.trim().split(' ');return p.length>=2?p[0][0].toUpperCase()+p[1][0].toUpperCase():n.substring(0,2).toUpperCase();}
+function ini(n){n=(n||'').trim();if(!n)return '?';var p=n.split(/\s+/).filter(Boolean);return p.length>=2?(p[0][0]+p[1][0]).toUpperCase():n.substring(0,2).toUpperCase();}
 
 /* Permission guard */
 function can(action){
