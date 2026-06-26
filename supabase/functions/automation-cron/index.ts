@@ -7,7 +7,7 @@
 // Rules
 //  1. Lead estancado en Cotización 24 hrs → WhatsApp message + internal note + bump updated_at
 //  2. Lead estancado en cualquier etapa 48 hrs → internal note (skip if note already added in last 48 hrs)
-//  3. Bot de descuento — 24 hrs sin respuesta del cliente → mensaje "15% de descuento en 48 hrs"
+//  3. Bot de descuento — 3 hrs sin respuesta del cliente → mensaje "30% de descuento en tu carrito"
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -487,13 +487,19 @@ async function runRule2(
 }
 
 // ---------------------------------------------------------------------------
-// Rule 3 — Bot de descuento 24 hrs sin respuesta del cliente
+// Rule 3 — Bot de descuento 3 hrs sin respuesta del cliente
 // ---------------------------------------------------------------------------
 
-const DISCOUNT_MESSAGE =
-  "¡Hola! 🎉 Aprovecha *15% de descuento* en todos los productos que compres *EN LAS PRÓXIMAS 48 HORAS*. ¡No dejes pasar esta oportunidad! 🛍️\n\n🌐 www.grupopingus.com";
+// Horas sin respuesta del cliente antes de enviar el descuento de carrito.
+const DISCOUNT_WAIT_HOURS = 3;
+// Límite superior de la ventana en modo cron (1 h por encima de WAIT) para
+// que el cron horario lo dispare una sola vez sin reenviar cada hora.
+const DISCOUNT_WINDOW_HOURS = 4;
 
-const DISCOUNT_NOTE_MARKER = "Bot descuento 15 enviado";
+const DISCOUNT_MESSAGE =
+  "¡Hola! 🛒 Vimos que dejaste productos en tu carrito. Aprovecha *30% de descuento* para completar tu compra *EN LAS PRÓXIMAS 48 HORAS*. ¡No dejes pasar esta oportunidad! 🎉\n\n🌐 www.grupopingus.com";
+
+const DISCOUNT_NOTE_MARKER = "Bot descuento 30 enviado";
 
 async function runRule3(
   supabase: ReturnType<typeof createClient>,
@@ -501,7 +507,7 @@ async function runRule3(
   phoneNumberId: string,
   metaPageToken: string,
   force = false,
-  minHours = 24,
+  minHours = DISCOUNT_WAIT_HOURS,
 ): Promise<ActionResult[]> {
   const results: ActionResult[] = [];
 
@@ -524,9 +530,9 @@ async function runRule3(
   const now = Date.now();
 
   // In force mode: any conversation silent >= minHours (no upper bound)
-  // In cron mode: exact 24-25h window to avoid re-sending every hour
-  const cutoffMin = new Date(now - (force ? minHours : 24) * 60 * 60 * 1000).toISOString();
-  const cutoffMax = force ? undefined : new Date(now - 25 * 60 * 60 * 1000).toISOString();
+  // In cron mode: exact 3-4h window to avoid re-sending every hour
+  const cutoffMin = new Date(now - (force ? minHours : DISCOUNT_WAIT_HOURS) * 60 * 60 * 1000).toISOString();
+  const cutoffMax = force ? undefined : new Date(now - DISCOUNT_WINDOW_HOURS * 60 * 60 * 1000).toISOString();
 
   let query = supabase
     .from("messages")
@@ -569,7 +575,7 @@ async function runRule3(
 
       const latestMs = new Date(latestInbound.sent_at).getTime();
       if (latestMs > now - minHours * 60 * 60 * 1000) continue; // still active
-      if (!force && latestMs < now - 25 * 60 * 60 * 1000) continue; // cron: already handled
+      if (!force && latestMs < now - DISCOUNT_WINDOW_HOURS * 60 * 60 * 1000) continue; // cron: already handled
 
       // Skip if discount note already exists in this conversation (last 7 days)
       const alreadySent = await noteExistsRecently(
@@ -671,7 +677,7 @@ async function runRule3(
       }
 
       // Always add internal note as audit trail
-      const noteContent = `${DISCOUNT_NOTE_MARKER} enviado automáticamente — 24h sin respuesta del cliente. Entregado=${messageSent}.`;
+      const noteContent = `${DISCOUNT_NOTE_MARKER} enviado automáticamente — 3h sin respuesta del cliente. Entregado=${messageSent}.`;
       await addInternalNote(supabase, convId, noteContent);
 
       results.push({
@@ -731,7 +737,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
   // ── Parámetros opcionales para disparo manual ────────────────────────────
   const url = new URL(req.url);
   const force = url.searchParams.get("force") === "true";
-  const minHours = parseInt(url.searchParams.get("minHours") ?? "24", 10);
+  const minHours = parseInt(url.searchParams.get("minHours") ?? "3", 10);
 
   // ── Run rules ────────────────────────────────────────────────────────────
   const startedAt = new Date().toISOString();
