@@ -211,6 +211,38 @@ async function getSupabase() {
     return _sb;
 }
 
+// ── Configuración del Agente IA (editable desde el CRM) ───────
+// Se cachea ~60s para no consultar Supabase en cada mensaje.
+let _agentCfg = null;
+let _agentCfgAt = 0;
+async function getAgentSettings() {
+    if (_agentCfg && (Date.now() - _agentCfgAt) < 60000) return _agentCfg;
+    try {
+        const sb = await getSupabase();
+        if (!sb) return null;
+        const { data } = await sb.from('agent_settings').select('*').eq('id', 1).maybeSingle();
+        _agentCfg = data || null;
+        _agentCfgAt = Date.now();
+    } catch (e) {
+        console.error('[AGENT] getAgentSettings:', e.message);
+    }
+    return _agentCfg;
+}
+
+// Construye el system prompt combinando la base (catálogo, reglas) con la
+// personalidad e instrucciones que el usuario configura en el CRM.
+async function buildSystemPrompt() {
+    const cfg = await getAgentSettings();
+    if (!cfg) return SYSTEM_PROMPT;
+    let extra = '';
+    if (cfg.prompt && cfg.prompt.trim()) extra += `\n\nPERSONALIDAD Y ROL (configurado en el CRM):\n${cfg.prompt.trim()}`;
+    if (Array.isArray(cfg.pautas) && cfg.pautas.length) extra += `\n\nPAUTAS OBLIGATORIAS:\n- ${cfg.pautas.join('\n- ')}`;
+    if (cfg.tono) extra += `\n\nTono de voz: ${cfg.tono}.`;
+    if (cfg.longitud) extra += ` Longitud de respuestas: ${cfg.longitud}.`;
+    if (cfg.idioma) extra += ` Idioma: ${cfg.idioma}.`;
+    return extra ? SYSTEM_PROMPT + extra : SYSTEM_PROMPT;
+}
+
 // ── Resolver / crear contacto por canal+handle (atómico vía RPC) ──
 async function resolveContact(sb, channel, handle, name) {
     const phone = channel === 'wa' ? handle : null;
@@ -275,6 +307,8 @@ async function callClaude(history, userMessage) {
     const messages = [...history, { role: 'user', content: userMessage }];
     while (messages.length && messages[0].role !== 'user') messages.shift();
 
+    const systemPrompt = await buildSystemPrompt();
+
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
           method: 'POST',
@@ -286,7 +320,7 @@ async function callClaude(history, userMessage) {
           body: JSON.stringify({
                   model: CLAUDE_MODEL,
                   max_tokens: 300,
-                  system: SYSTEM_PROMPT,
+                  system: systemPrompt,
                   messages
           })
     });

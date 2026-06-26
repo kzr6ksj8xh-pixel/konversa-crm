@@ -839,12 +839,12 @@ Tu función es:
 
 REGLA IMPORTANTE: Para consultorios, clínicas, dentistas y espacios de salud, recomienda EXCLUSIVAMENTE equipos de aire (ULTRA 150, CIR 150, P4 o Klair UV). NUNCA sugieras AQUA 500 ni AQUA 1000 para estos espacios.</textarea>
           <div class="g2" style="gap:10px;margin-bottom:14px">
-            <div><div style="font-size:11px;font-weight:500;margin-bottom:4px">Tono de voz</div><select style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;font-size:11px"><option selected>Profesional cercano</option><option>Formal</option><option>Amigable</option><option>Casual</option><option>Profesional</option></select></div>
-            <div><div style="font-size:11px;font-weight:500;margin-bottom:4px">Longitud de las respuestas</div><select style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;font-size:11px"><option selected>Corta</option><option>Media</option><option>Larga</option></select></div>
+            <div><div style="font-size:11px;font-weight:500;margin-bottom:4px">Tono de voz</div><select id="aiaTono" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;font-size:11px"><option selected>Profesional cercano</option><option>Formal</option><option>Amigable</option><option>Casual</option><option>Profesional</option></select></div>
+            <div><div style="font-size:11px;font-weight:500;margin-bottom:4px">Longitud de las respuestas</div><select id="aiaLongitud" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;font-size:11px"><option selected>Corta</option><option>Media</option><option>Larga</option></select></div>
           </div>
           <div class="g2" style="gap:10px;margin-bottom:14px">
-            <div><div style="font-size:11px;font-weight:500;margin-bottom:4px">Idioma de la respuesta</div><select style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;font-size:11px"><option>Español</option><option>Inglés</option><option>Portugués</option></select></div>
-            <div><div style="font-size:11px;font-weight:500;margin-bottom:4px">Demora antes de responder (seg)</div><input type="number" value="3" min="0" max="30" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;font-size:11px"></div>
+            <div><div style="font-size:11px;font-weight:500;margin-bottom:4px">Idioma de la respuesta</div><select id="aiaIdioma" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;font-size:11px"><option>Español</option><option>Inglés</option><option>Portugués</option></select></div>
+            <div><div style="font-size:11px;font-weight:500;margin-bottom:4px">Demora antes de responder (seg)</div><input id="aiaDemora" type="number" value="3" min="0" max="30" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;font-size:11px"></div>
           </div>
           <div style="font-size:12px;font-weight:600;margin-bottom:6px">Pautas</div>
           <p style="font-size:10px;color:var(--txt2);margin-bottom:8px">Configura las instrucciones que deben cumplirse en cada mensaje.</p>
@@ -860,7 +860,7 @@ REGLA IMPORTANTE: Para consultorios, clínicas, dentistas y espacios de salud, r
             <div class="aia-pauta">No uses emojis en más de 1 de cada 3 mensajes.</div>
             <div class="aia-pauta">Cierra firmando solo cuando entregues info clave: "Equipo PINGUS – The Health Guardian".</div>
           </div>
-          <button style="margin-top:12px;padding:8px 20px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:12px;cursor:pointer;font-weight:500" onclick="toast('Personalidad guardada ✓')">💾 Guardar cambios</button>
+          <button id="aiaSavePersonalidad" style="margin-top:12px;padding:8px 20px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:12px;cursor:pointer;font-weight:500" onclick="saveAIASettings(this)">💾 Guardar cambios</button>
         </div>
         <!-- FUENTES TAB -->
         <div class="aia-panel" id="aia-fuentes">
@@ -2102,8 +2102,9 @@ function switchView(v){
   }
   if(v==='pipeline')renderPipeline();
   if(v==='products')renderProducts();
-  if(v==='aiagent')loadAIAgentStats();
+  if(v==='aiagent'){loadAIAgentStats();if(!_aiaLoaded){_aiaLoaded=true;loadAIASettings();}}
 }
+var _aiaLoaded=false;
 document.querySelectorAll('.tn-btn[data-view],.bn-btn[data-view],.ls-btn[data-view]').forEach(el=>el.addEventListener('click',()=>switchView(el.dataset.view)));
 document.getElementById('bnTplBtn')?.addEventListener('click',()=>{switchView('chat');tplOpen=true;tplTab='browse';renderTpl();});
 document.getElementById('bnNewLeadBtn')?.addEventListener('click',()=>openLeadModal('entrada'));
@@ -2343,11 +2344,68 @@ function addNewAction(){
   document.getElementById('aiaContent').scrollTop=0;
 }
 setTimeout(renderActions,500);
-function saveAIASettings(){
-  var horario=document.getElementById('aiaHorarioLabel')?.innerText||'';
-  var prompt=document.getElementById('aiaPrompt')?.value||'';
-  try{ localStorage.setItem('aia_horario',horario); localStorage.setItem('aia_prompt',prompt); }catch(e){}
-  toast('Ajustes guardados ✓');
+// Recolecta la configuración completa del agente desde la UI
+function collectAIASettings(){
+  var pautas=[].map.call(document.querySelectorAll('#aiaPautas .aia-pauta'),function(el){return el.innerText.trim();}).filter(Boolean);
+  return {
+    prompt:document.getElementById('aiaPrompt')?.value||'',
+    tono:document.getElementById('aiaTono')?.value||'',
+    longitud:document.getElementById('aiaLongitud')?.value||'',
+    idioma:document.getElementById('aiaIdioma')?.value||'',
+    demora:parseInt(document.getElementById('aiaDemora')?.value,10)||0,
+    pautas:pautas,
+    horario:document.getElementById('aiaHorarioLabel')?.innerText||'',
+    active:!!aiAgentActive
+  };
+}
+// Guarda en Supabase (persistencia real entre dispositivos) + localStorage de respaldo
+async function saveAIASettings(btn){
+  var cfg=collectAIASettings();
+  var prevTxt=btn?btn.textContent:'';
+  if(btn){btn.disabled=true;btn.textContent='Guardando…';}
+  // Respaldo local inmediato
+  try{
+    localStorage.setItem('aia_horario',cfg.horario);
+    localStorage.setItem('aia_prompt',cfg.prompt);
+    localStorage.setItem('aia_settings',JSON.stringify(cfg));
+  }catch(e){}
+  var ok=true;
+  try{
+    if(sb){
+      var{error}=await sb.from('agent_settings').upsert(
+        Object.assign({id:1,updated_at:new Date().toISOString()},cfg),
+        {onConflict:'id'}
+      );
+      if(error){ok=false;console.error('saveAIASettings',error);}
+    }
+  }catch(e){ok=false;console.error('saveAIASettings',e);}
+  if(btn){btn.disabled=false;btn.textContent=prevTxt||'💾 Guardar cambios';}
+  toast(ok?'Ajustes guardados ✓':'Guardado local (sin conexión a la nube)');
+}
+// Aplica una configuración a los campos de la UI
+function applyAIASettings(cfg){
+  if(!cfg)return;
+  var setVal=function(id,v){var el=document.getElementById(id);if(el&&v!=null&&v!=='')el.value=v;};
+  setVal('aiaPrompt',cfg.prompt);
+  setVal('aiaTono',cfg.tono);
+  setVal('aiaLongitud',cfg.longitud);
+  setVal('aiaIdioma',cfg.idioma);
+  if(cfg.demora!=null){var d=document.getElementById('aiaDemora');if(d)d.value=cfg.demora;}
+  if(cfg.horario){var h=document.getElementById('aiaHorarioLabel');if(h)h.innerText=cfg.horario;}
+}
+// Carga la configuración: primero respaldo local, luego Supabase (fuente de verdad)
+async function loadAIASettings(){
+  try{
+    var raw=localStorage.getItem('aia_settings');
+    if(raw)applyAIASettings(JSON.parse(raw));
+    else applyAIASettings({prompt:localStorage.getItem('aia_prompt'),horario:localStorage.getItem('aia_horario')});
+  }catch(e){}
+  try{
+    if(sb){
+      var{data,error}=await sb.from('agent_settings').select('*').eq('id',1).maybeSingle();
+      if(!error&&data)applyAIASettings(data);
+    }
+  }catch(e){console.error('loadAIASettings',e);}
 }
 function editAIAHorario(){
   var lbl=document.getElementById('aiaHorarioLabel');
@@ -2356,15 +2414,6 @@ function editAIAHorario(){
   var nuevo=prompt('Editar horario del agente:',cur);
   if(nuevo&&nuevo.trim()){lbl.innerText=nuevo.trim();toast('Horario actualizado — recuerda guardar ajustes');}
 }
-// Restore saved settings on load
-(function(){
-  try{
-    var h=localStorage.getItem('aia_horario');
-    var p=localStorage.getItem('aia_prompt');
-    if(h){var el=document.getElementById('aiaHorarioLabel');if(el)el.innerText=h;}
-    if(p){var el2=document.getElementById('aiaPrompt');if(el2)el2.value=p;}
-  }catch(e){}
-})();
 
 /* ══════════════════════════════════════
    CONTACT LIST

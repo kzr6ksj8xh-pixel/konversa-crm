@@ -367,6 +367,50 @@ CREATE INDEX IF NOT EXISTS idx_templates_created_by ON public.templates(created_
 
 
 -- ============================================================
+-- 12d. AGENT SETTINGS (configuración del Agente IA)
+-- ============================================================
+-- Tabla singleton (id=1) con la personalidad/pautas/horario del agente.
+-- Se persiste desde el CRM y la leen los endpoints webhook.js / test-chat.js.
+CREATE TABLE IF NOT EXISTS public.agent_settings (
+  id          smallint PRIMARY KEY DEFAULT 1,
+  prompt      text,
+  tono        text DEFAULT 'Profesional cercano',
+  longitud    text DEFAULT 'Corta',
+  idioma      text DEFAULT 'Español',
+  demora      smallint DEFAULT 3,
+  pautas      jsonb DEFAULT '[]'::jsonb,
+  horario     text DEFAULT 'Lunes a Viernes, 9:00 – 19:00 (hora México)',
+  active      boolean DEFAULT true,
+  updated_at  timestamptz DEFAULT now(),
+  CONSTRAINT agent_settings_singleton CHECK (id = 1)
+);
+
+ALTER TABLE public.agent_settings ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "agent_settings_select" ON public.agent_settings;
+DROP POLICY IF EXISTS "agent_settings_insert" ON public.agent_settings;
+DROP POLICY IF EXISTS "agent_settings_update" ON public.agent_settings;
+
+CREATE POLICY "agent_settings_select"
+  ON public.agent_settings FOR SELECT
+  TO authenticated USING (true);
+
+CREATE POLICY "agent_settings_insert"
+  ON public.agent_settings FOR INSERT
+  TO authenticated WITH CHECK (true);
+
+CREATE POLICY "agent_settings_update"
+  ON public.agent_settings FOR UPDATE
+  TO authenticated USING (true);
+
+REVOKE ALL ON public.agent_settings FROM anon;
+GRANT SELECT, INSERT, UPDATE ON public.agent_settings TO authenticated;
+
+INSERT INTO public.agent_settings (id) VALUES (1)
+ON CONFLICT (id) DO NOTHING;
+
+
+-- ============================================================
 -- 13. VERIFICACIÓN
 -- ============================================================
 -- Ejecutá esto después para confirmar que RLS está activo:
