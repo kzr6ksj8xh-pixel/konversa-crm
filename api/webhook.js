@@ -51,6 +51,7 @@ DATOS CLAVE DE LA EMPRESA:
 - Envío: GRATIS a toda la República Mexicana, 2 días hábiles (DHL, Estafeta, FedEx o UPS con seguimiento)
 - Garantía: 6 meses contra defectos de fábrica + soporte directo en México
 - Pagos: Tarjeta crédito/débito, PayPal, Transferencia bancaria
+- MESES SIN INTERESES (MSI): hasta 6 MSI con TODAS las tarjetas de crédito
 
 TU FUNCIÓN PRINCIPAL (en orden de prioridad):
 1. ESCUCHAR: Entiende qué espacio quiere purificar el cliente (aire o agua)
@@ -80,6 +81,12 @@ CATÁLOGO DE PRODUCTOS:
 - Por lo tanto, antes de recomendar el Klair UV pregunta si tiene minisplit y de cuántas toneladas o BTUs. Si NO tiene minisplit, recomienda P4 / CIR 150 / ULTRA 150 según los m². NO recomiendes el Klair UV solo por ser clínica, consultorio o dentista si no tiene minisplit.
 
 ⚠️ PRECIOS VIGENTES — REGLA CRÍTICA: Los precios de este CATÁLOGO son los ÚNICOS válidos y actuales. Si en el historial de esta conversación aparece un precio DISTINTO para un producto (por ejemplo P4 a $2,190, ULTRA 150 a $1,985.99 o CIR 150 a $2,200), ese precio estaba DESACTUALIZADO: ignóralo por completo y cotiza SIEMPRE con el precio de este catálogo. Si un precio viejo ya se mencionó antes, corrígelo con naturalidad usando el precio vigente. NUNCA repitas un precio del historial que no coincida con este catálogo.
+
+💳 MESES SIN INTERESES (MSI) — CUÁNDO OFRECERLOS (IMPORTANTE):
+Grupo PINGUS maneja hasta 6 meses sin intereses (MSI) con TODAS las tarjetas de crédito.
+Ofrécelos en el MOMENTO OPORTUNO: SOLO cuando detectes interés real de compra — el cliente pregunta el precio o disponibilidad, dice "me interesa", "lo quiero", "¿cómo lo compro?" o pide una cotización.
+Hazlo de forma natural justo DESPUÉS de dar el precio o la recomendación, por ejemplo: "Además, lo puedes diferir hasta a 6 meses sin intereses con cualquier tarjeta de crédito."
+NUNCA menciones los MSI en el saludo ni antes de que el cliente muestre interés. Ofrécelos una sola vez, no en cada mensaje.
 
 TABLA DE RECOMENDACIÓN:
 - Dormitorio/oficina pequeña hasta 30 m² (aire): P4
@@ -139,7 +146,10 @@ const FALLBACK_RESPONSES = {
   'envio': 'El envío es GRATIS a toda la República Mexicana. Llega en 2 días hábiles con seguimiento.',
   'garantía': 'Todos nuestros equipos tienen 6 meses de garantía contra defectos de fábrica y soporte directo en México.',
   'garantia': 'Todos nuestros equipos tienen 6 meses de garantía contra defectos de fábrica y soporte directo en México.',
-  'pago': 'Puedes pagar con tarjeta de crédito/débito, PayPal o transferencia bancaria. Compra 100% segura.',
+  'pago': 'Puedes pagar con tarjeta de crédito/débito, PayPal o transferencia bancaria. Y manejamos hasta 6 meses sin intereses con todas las tarjetas de crédito. Compra 100% segura.',
+  'msi': '¡Sí! Manejamos hasta 6 meses sin intereses (MSI) con todas las tarjetas de crédito. ¿Te recomiendo un modelo según tu espacio?',
+  'meses sin intereses': '¡Sí! Manejamos hasta 6 meses sin intereses (MSI) con todas las tarjetas de crédito. ¿Te recomiendo un modelo según tu espacio?',
+  'mensualidades': '¡Claro! Puedes diferir tu compra hasta a 6 meses sin intereses con cualquier tarjeta de crédito. ¿Qué espacio quieres purificar?',
   'factura': 'Para facturación te conecto con un asesor que te apoya con tus datos fiscales. Un momento... 🔄',
   'comprar': '¡Perfecto! Te conecto con un asesor para finalizar tu compra. Un momento... 🔄',
   'quiero': '¡Perfecto! Te conecto con un asesor en un momento. ¿Me confirmas tu nombre?',

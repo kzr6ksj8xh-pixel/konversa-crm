@@ -55,6 +55,8 @@ RECOMENDACION PARA AIRE: hasta 30 m2 = P4; hasta 50 m2 = CIR 150 o ULTRA 150; Kl
 
 PRECIOS VIGENTES: Los precios de este CATALOGO son los unicos validos. Si en el historial aparece un precio distinto (P4 $2,190, ULTRA $1,985.99, CIR $2,200), estaba desactualizado: ignoralo y usa SIEMPRE el del catalogo.
 
+MESES SIN INTERESES (MSI): Manejamos hasta 6 MSI con TODAS las tarjetas de credito. Ofrecelos en el momento oportuno: SOLO cuando detectes interes de compra (pregunta el precio o disponibilidad, dice "me interesa"/"lo quiero", o pide cotizacion), justo despues de dar el precio. Ejemplo: "Ademas, lo puedes diferir hasta a 6 meses sin intereses con cualquier tarjeta de credito." NUNCA lo menciones en el saludo ni antes de detectar interes.
+
 PAUTAS: Maximo 3 lineas. Habla de tu. Pide m2 antes de recomendar. Recomendacion = NOMBRE + PRECIO. NUNCA uses la palabra "ambos"; ofrece "aire o agua".`;
 
 // Lee la configuración del Agente IA (editable desde el CRM) y la combina

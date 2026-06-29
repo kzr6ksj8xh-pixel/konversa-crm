@@ -857,6 +857,7 @@ RECOMENDACIÓN PARA PURIFICAR/DESINFECTAR EL AIRE: hasta 30 m² = P4 ($1,490 MXN
             <div class="aia-pauta">Habla de 'tú' siempre. Nunca de 'usted'.</div>
             <div class="aia-pauta">Cuando recomiendes un producto, di SIEMPRE: nombre + precio + link.</div>
             <div class="aia-pauta">Si el cliente pregunta por un espacio, pide los m² ANTES de recomendar.</div>
+            <div class="aia-pauta" style="background:#ecfdf5;border-color:#6ee7b7">Cuando detectes interés de compra (pregunta el precio o disponibilidad, dice "me interesa"/"lo quiero" o pide cotización), ofrece en ese momento, justo después del precio: "Además, lo puedes diferir hasta a 6 meses sin intereses con cualquier tarjeta de crédito." NUNCA lo menciones en el saludo ni antes de detectar interés.</div>
             <div class="aia-pauta" style="background:#fef2f2;border-color:#fca5a5">NUNCA uses la palabra "ambos". Ofrece siempre las opciones como "aire o agua".</div>
             <div class="aia-pauta">Si no tienes la información en las Fuentes, di: "Te conecto con un asesor para darte el dato exacto" y transfiere el chat.</div>
             <div class="aia-pauta" style="background:#fef2f2;border-color:#fca5a5">Nunca uses estas palabras: sinergia, paradigma, apalancamiento, 'es menester', 'cabe señalar', 'en el panorama actual'.</div>
@@ -876,7 +877,7 @@ RECOMENDACIÓN PARA PURIFICAR/DESINFECTAR EL AIRE: hasta 30 m² = P4 ($1,490 MXN
               <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px">☐</td><td style="padding:8px"><a href="https://docs.google.com/document/d/1LbPShBxNgd4qy9vnjh2bGoZq8C7nxxlcBWIsrsUtEUc/edit" target="_blank" style="color:#2563eb">Base de Conocimiento PINGUS</a> <span style="font-size:9px;padding:2px 6px;background:#059669;color:#fff;border-radius:4px">✓ Drive</span></td><td style="padding:8px">Google Doc</td><td style="padding:8px">🟢 Activa</td></tr>
               <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px">☐</td><td style="padding:8px" colspan="3" style="font-size:10px;color:var(--txt2)">
                 <b>Catálogo:</b> P4 $1,490 (30m²) · ULTRA 150 $1,795 (50m²) · CIR 150 $1,995 (50m²) · AQUA 500 $1,450 (100m²) · AQUA 1000 $1,650 (150m²) · Klair UV $3,495 (módulo UV-C para minisplit 1–3 ton / 12k–36k BTUs)<br>
-                <b>Envío:</b> Gratis, 2 días hábiles · <b>Garantía:</b> 6 meses · <b>Pago:</b> Tarjeta, PayPal, Transferencia · <b>Horario:</b> Lun-Sáb 10:00-19:00
+                <b>Envío:</b> Gratis, 2 días hábiles · <b>Garantía:</b> 6 meses · <b>Pago:</b> Tarjeta, PayPal, Transferencia · <b>MSI:</b> hasta 6 meses sin intereses (todas las tarjetas) · <b>Horario:</b> Lun-Sáb 10:00-19:00
               </td></tr>
             </tbody>
           </table>
@@ -2219,7 +2220,10 @@ var aiaResponses={
   'envio':['El envío es GRATIS a toda la República Mexicana. Llega en 2 días hábiles con seguimiento.'],
   'garantía':['Todos nuestros equipos tienen 6 meses de garantía contra defectos de fábrica y soporte directo en México.'],
   'garantia':['Todos nuestros equipos tienen 6 meses de garantía contra defectos de fábrica y soporte directo en México.'],
-  'pago':['Puedes pagar con tarjeta de crédito/débito, PayPal o transferencia bancaria. Compra 100% segura.'],
+  'pago':['Puedes pagar con tarjeta de crédito/débito, PayPal o transferencia bancaria. Y manejamos hasta 6 meses sin intereses con todas las tarjetas de crédito. Compra 100% segura.'],
+  'msi':['¡Sí! Manejamos hasta 6 meses sin intereses (MSI) con todas las tarjetas de crédito. ¿Te recomiendo un modelo según tu espacio?'],
+  'meses sin intereses':['¡Sí! Manejamos hasta 6 meses sin intereses (MSI) con todas las tarjetas de crédito. ¿Te recomiendo un modelo según tu espacio?'],
+  'mensualidades':['¡Claro! Puedes diferir tu compra hasta a 6 meses sin intereses con cualquier tarjeta de crédito. ¿Qué espacio quieres purificar?'],
   'factura':['Para facturación te conecto con un asesor que te apoya con tus datos fiscales. Un momento...'],
   'p4':['El P4 cuesta $1,490 MXN. Purificador de aire para espacios hasta 30 m² — ideal para dormitorios, oficinas privadas y automóviles. Mira más aquí: https://www.grupopingus.com/products/purificador-de-aire-p4'],
   'ultra':['El ULTRA 150 es nuestro más vendido: $1,795 MXN, cubre 50 m². Ideal para salas, restaurantes y salones. Link: https://www.grupopingus.com/products/generador-de-ozono-ultra-150-mg-h'],
@@ -2275,12 +2279,13 @@ var aiaActions=[
   {id:4,cuando:'El cliente pregunta "¿cuánto cuesta?", "precios" o "lista"',hacer:'Dar rango + invitar a personalizar: "Nuestros equipos van de $1,450 a $3,495 MXN. ¿Quieres que te recomiende uno según tu espacio?"',mas:'NO dar la lista completa. Forzar la pregunta del espacio para calificar el lead.'},
   {id:5,cuando:'El cliente pregunta sobre seguridad, "es peligroso", "afecta la salud"',hacer:'Responder: "Sí, en las dosis controladas de nuestros equipos. La recomendación es no estar en el espacio durante el ciclo y ventilar al terminar."',mas:'Si insiste, transferir a asesor'},
   {id:6,cuando:'El cliente dice "está caro", "vi uno más barato", "en Amazon hay de X"',hacer:'Diferenciar: "Nuestros equipos tienen garantía oficial de 6 meses y soporte directo en México. Envío gratis en 2 días."',mas:'Si pide descuento, transferir a asesor'},
-  {id:7,cuando:'El cliente pregunta por envío, garantía o formas de pago',hacer:'Responder: envío 2 días hábiles GRATIS / garantía 6 meses / pago con tarjeta, PayPal o transferencia',mas:'Después de responder, retomar la venta: "¿Te recomiendo un modelo?"'},
+  {id:7,cuando:'El cliente pregunta por envío, garantía o formas de pago',hacer:'Responder: envío 2 días hábiles GRATIS / garantía 6 meses / pago con tarjeta, PayPal o transferencia + hasta 6 meses sin intereses con todas las tarjetas',mas:'Después de responder, retomar la venta: "¿Te recomiendo un modelo?"'},
   {id:8,cuando:'El cliente dice "lo quiero", "cómo pago", "lo voy a llevar", "cómo lo compro"',hacer:'Confirmar: "Perfecto. Te conecto con un asesor en un momento." → TRANSFERIR EL CHAT al equipo de ventas → Marcar lead como CALIFICADO',mas:'Si está fuera de horario (Lun-Sáb 10:00-19:00): "Te responde un asesor en horario hábil a partir de las 10:00."'},
   {id:9,cuando:'El cliente pregunta por factura, datos fiscales o RFC',hacer:'Transferir directo a humano: "Para facturación te conecto con un asesor que te apoya con tus datos fiscales." → Marcar lead como CALIFICADO',mas:'Marcar el lead como CALIFICADO. No intentar resolver la factura — siempre al humano.'},
   {id:10,cuando:'El cliente no responde en 24 horas',hacer:'Enviar un solo seguimiento: "¿Sigues buscando un purificador? Si quieres, te ayudo a elegir el modelo ideal en 1 minuto."',mas:'Si no responde tras este mensaje, NO insistir más. Marcar lead como FRÍO.'},
   {id:11,cuando:'El cliente envía un mensaje de voz o audio',hacer:'Responder: "¡Recibí tu audio! Por el momento no puedo escucharlo, pero con gusto te ayudo si me escribes tu pregunta."',mas:'Si el cliente insiste en comunicarse por voz, transferir al equipo humano.'},
-  {id:12,cuando:'El cliente envía una imagen o foto',hacer:'Responder: "¡Gracias por la imagen! Para recomendarte el equipo ideal, cuéntame: ¿qué espacio es y cuántos m² tiene?"',mas:'Usar la foto como señal de interés — el cliente ya está pensando en comprar. Calificar el lead.'}
+  {id:12,cuando:'El cliente envía una imagen o foto',hacer:'Responder: "¡Gracias por la imagen! Para recomendarte el equipo ideal, cuéntame: ¿qué espacio es y cuántos m² tiene?"',mas:'Usar la foto como señal de interés — el cliente ya está pensando en comprar. Calificar el lead.'},
+  {id:13,cuando:'El cliente muestra interés de compra (pregunta el precio o disponibilidad, dice "me interesa", "lo quiero" o pide cotización)',hacer:'En el momento oportuno, justo después de dar el precio o la recomendación, ofrecer: "Además, lo puedes diferir hasta a 6 meses sin intereses con cualquier tarjeta de crédito."',mas:'NO mencionar los MSI en el saludo ni antes de detectar interés. Ofrecerlos una sola vez, no en cada mensaje.'}
 ];
 var aiaNextId=13;
 var aiaEditingId=null;
