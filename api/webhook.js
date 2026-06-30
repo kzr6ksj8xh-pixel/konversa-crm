@@ -485,6 +485,7 @@ async function sendFBMessage(recipientId, text) {
 }
 
 async function handleMessenger(body) {
+    console.log('[FB raw]', JSON.stringify(body));
     const entry = body.entry?.[0];
     const messaging = entry?.messaging?.[0];
     if (!messaging) return { status: 'no_messaging' };
@@ -495,6 +496,7 @@ async function handleMessenger(body) {
     const text = messaging.message?.text;
 
   if (!senderId || !text) {
+        console.log('[FB skip] no text. keys=', Object.keys(messaging).join(','));
         if (senderId && messaging.message?.attachments) {
                 await sendFBMessage(senderId, '¡Hola! Por el momento solo puedo leer mensajes de texto. ¿En qué te puedo ayudar? 😊');
         }
