@@ -381,9 +381,16 @@ CREATE TABLE IF NOT EXISTS public.agent_settings (
   pautas      jsonb DEFAULT '[]'::jsonb,
   horario     text DEFAULT 'Lunes a Sábado, 10:00 – 19:00 (hora México)',
   active      boolean DEFAULT true,
+  knowledge          text,          -- base de conocimiento sincronizada desde Google Drive
+  knowledge_synced_at timestamptz,  -- última sincronización con Drive
   updated_at  timestamptz DEFAULT now(),
   CONSTRAINT agent_settings_singleton CHECK (id = 1)
 );
+
+-- Columnas añadidas después de la creación inicial (idempotente).
+ALTER TABLE public.agent_settings ADD COLUMN IF NOT EXISTS active              boolean DEFAULT true;
+ALTER TABLE public.agent_settings ADD COLUMN IF NOT EXISTS knowledge           text;
+ALTER TABLE public.agent_settings ADD COLUMN IF NOT EXISTS knowledge_synced_at timestamptz;
 
 ALTER TABLE public.agent_settings ENABLE ROW LEVEL SECURITY;
 

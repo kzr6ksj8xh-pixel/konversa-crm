@@ -885,6 +885,14 @@ RECOMENDACIÓN PARA PURIFICAR/DESINFECTAR EL AIRE: hasta 30 m² = P4 ($1,490 MXN
               </td></tr>
             </tbody>
           </table>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;margin-bottom:12px">
+            <div style="flex:1;min-width:180px">
+              <div style="font-size:12px;font-weight:600">Base de conocimiento (Google Drive)</div>
+              <div style="font-size:10px;color:var(--txt2)">Trae el contenido del Google Doc y actualiza lo que sabe el agente.</div>
+              <div id="driveSyncStatus" style="font-size:10px;color:var(--txt3);margin-top:2px">Última sincronización: nunca</div>
+            </div>
+            <button id="driveSyncBtn" onclick="syncDrive(this)" style="font-size:11px;padding:7px 14px;border:none;background:#059669;color:#fff;border-radius:6px;cursor:pointer;font-weight:500;white-space:nowrap"><i class="ti ti-refresh" style="font-size:12px"></i> Actualizar con Drive</button>
+          </div>
           <div style="display:flex;align-items:center;gap:8px;padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px">
             <span style="font-size:12px;font-weight:600">Productos</span>
             <div style="width:32px;height:18px;border-radius:9px;background:#059669;cursor:pointer;display:flex;align-items:center;justify-content:flex-end;padding-right:2px"><div style="width:14px;height:14px;border-radius:50%;background:#fff"></div></div>
@@ -2200,19 +2208,62 @@ function switchAITab(tab){
   var p=document.getElementById('aia-'+tab);
   if(p)p.classList.add('active');
 }
-function toggleAgentStatus(){
-  aiAgentActive=!aiAgentActive;
+// Refleja el estado activo/inactivo en la UI (badge + botón).
+function renderAgentStatus(){
   var s=document.getElementById('aiAgentStatus');
   var b=document.getElementById('aiAgentToggleBtn');
   if(aiAgentActive){
-    s.textContent='Activado';s.style.background='#d1fae5';s.style.color='#065f46';
-    b.textContent='⊘ Desactivar agente';b.style.borderColor='#dc2626';b.style.color='#dc2626';
-    toast('Agente IA activado ✓');
+    if(s){s.textContent='Activado';s.style.background='#d1fae5';s.style.color='#065f46';}
+    if(b){b.textContent='⊘ Desactivar agente';b.style.borderColor='#dc2626';b.style.color='#dc2626';}
   }else{
-    s.textContent='Desactivado';s.style.background='#fee2e2';s.style.color='#dc2626';
-    b.textContent='✓ Activar agente';b.style.borderColor='#059669';b.style.color='#059669';
-    toast('Agente IA desactivado');
+    if(s){s.textContent='Desactivado';s.style.background='#fee2e2';s.style.color='#dc2626';}
+    if(b){b.textContent='✓ Activar agente';b.style.borderColor='#059669';b.style.color='#059669';}
   }
+}
+// Activa/desactiva el agente y PERSISTE el cambio al instante en Supabase,
+// para que el webhook (api/webhook.js) deje de responder de inmediato.
+async function toggleAgentStatus(){
+  aiAgentActive=!aiAgentActive;
+  renderAgentStatus();
+  var ok=true;
+  try{
+    if(sb){
+      var{error}=await sb.from('agent_settings').upsert(
+        {id:1,active:aiAgentActive,updated_at:new Date().toISOString()},
+        {onConflict:'id'}
+      );
+      if(error){ok=false;console.error('toggleAgentStatus',error);}
+    }else{ok=false;}
+  }catch(e){ok=false;console.error('toggleAgentStatus',e);}
+  // Respaldo local para que el estado se conserve al recargar sin conexión.
+  try{var raw=localStorage.getItem('aia_settings');var st=raw?JSON.parse(raw):{};st.active=aiAgentActive;localStorage.setItem('aia_settings',JSON.stringify(st));}catch(e){}
+  if(aiAgentActive){
+    toast(ok?'Agente IA activado ✓':'Agente activado (sin conexión a la nube)');
+  }else{
+    toast(ok?'Agente IA desactivado — dejará de responder':'Agente desactivado (sin conexión a la nube)');
+  }
+}
+// Sincroniza la base de conocimiento desde el Google Doc (cuenta de servicio en el servidor).
+async function syncDrive(btn){
+  var prev=btn?btn.innerHTML:'';
+  if(btn){btn.disabled=true;btn.innerHTML='Sincronizando…';}
+  var statusEl=document.getElementById('driveSyncStatus');
+  try{
+    var res=await fetch('/api/drive-sync',{method:'POST',headers:{'Content-Type':'application/json'}});
+    var data=await res.json().catch(function(){return{};});
+    if(res.ok&&data.ok){
+      var when=new Date(data.syncedAt||Date.now()).toLocaleString('es-MX');
+      if(statusEl)statusEl.textContent='Última sincronización: '+when+' · '+data.chars+' caracteres'+(data.truncated?' (recortado)':'');
+      toast('Conocimiento actualizado desde Drive ✓');
+    }else{
+      if(statusEl)statusEl.textContent='Error: '+(data.error||('HTTP '+res.status));
+      toast('No se pudo sincronizar con Drive');
+    }
+  }catch(e){
+    if(statusEl)statusEl.textContent='Error de red al sincronizar';
+    toast('No se pudo sincronizar con Drive');
+  }
+  if(btn){btn.disabled=false;btn.innerHTML=prev||'<i class="ti ti-refresh" style="font-size:12px"></i> Actualizar con Drive';}
 }
 var aiaResponses={
   'hola':['¡Hola! 👋 Bienvenido a Grupo PINGUS – The Health Guardian. Queremos ayudarte a respirar mejor o tener agua más pura. Para recomendarte el equipo ideal con un 30% de DESCUENTO (código: OZON30), cuéntame: 1. ¿Qué buscas purificar: aire o agua? 2. ¿Qué espacio tienes en mente? (ej. dormitorio, consultorio, sala, cocina). 3. ¿Cuántos metros cuadrados (m²) tiene el lugar?'],
@@ -2405,6 +2456,13 @@ function applyAIASettings(cfg){
   setVal('aiaIdioma',cfg.idioma);
   if(cfg.demora!=null){var d=document.getElementById('aiaDemora');if(d)d.value=cfg.demora;}
   if(cfg.horario){var h=document.getElementById('aiaHorarioLabel');if(h)h.innerText=cfg.horario;}
+  // Estado real del agente (activo/inactivo) y botón sincronizados con lo guardado.
+  if(cfg.active!=null){aiAgentActive=(cfg.active!==false);renderAgentStatus();}
+  // Última sincronización de la base de conocimiento desde Drive.
+  if(cfg.knowledge_synced_at){
+    var st=document.getElementById('driveSyncStatus');
+    if(st){var chars=cfg.knowledge?(' · '+cfg.knowledge.length+' caracteres'):'';st.textContent='Última sincronización: '+new Date(cfg.knowledge_synced_at).toLocaleString('es-MX')+chars;}
+  }
 }
 // Carga la configuración: primero respaldo local, luego Supabase (fuente de verdad)
 async function loadAIASettings(){
