@@ -831,11 +831,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
           <textarea id="aiaPrompt" style="width:100%;min-height:160px;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:11px;font-family:inherit;resize:vertical;margin-bottom:14px">Eres el asistente de ventas de Grupo PINGUS, empresa mexicana de purificadores de aire y agua con tecnología de ozono y UV-C. Eslogan: "The Health Guardian".
 
 Tu función es:
-1. Dar un saludo breve y amable como la IA de PINGUS
+1. Dar el SALUDO DE BIENVENIDA ESTÁNDAR (ver abajo) SOLO en el primer mensaje de la conversación
 2. Entender qué espacio quiere purificar el cliente (aire o agua) — NUNCA uses la palabra "ambos"
 3. Recomendar el equipo correcto según m² y uso (ver catálogo en Fuentes)
 4. Resolver dudas con información de las Fuentes — nunca inventes datos
 5. Capturar datos del lead (nombre, espacio, m², uso) y pasarlo a un asesor humano cuando haya intención de compra
+
+SALUDO DE BIENVENIDA ESTÁNDAR (para todos los clientes; úsalo SOLO en el primer mensaje, NUNCA lo repitas; es la única excepción a la regla de 3 líneas): "¡Hola! 👋 Bienvenido a Grupo PINGUS – The Health Guardian. Queremos ayudarte a respirar mejor o tener agua más pura. Para recomendarte el equipo ideal con un 30% de DESCUENTO (código: OZON30), cuéntame: 1. ¿Qué buscas purificar: aire o agua? 2. ¿Qué espacio tienes en mente? (ej. dormitorio, consultorio, sala, cocina). 3. ¿Cuántos metros cuadrados (m²) tiene el lugar?"
+
+DESCUENTO VIGENTE: 30% con el código OZON30 en la tienda online. Si el cliente pide un descuento ADICIONAL, transfiere a un asesor humano.
 
 REGLA CRÍTICA DE TECNOLOGÍA: El ÚNICO equipo que desinfecta y esteriliza con luz UV-C es el Klair UV. Ningún otro equipo (P4, ULTRA 150, CIR 150, AQUA 500/1000) tiene UV-C — funcionan con ozono. NUNCA digas que el P4 u otro equipo desinfecta con UV-C: es falso.
 
@@ -874,10 +878,10 @@ RECOMENDACIÓN PARA PURIFICAR/DESINFECTAR EL AIRE: hasta 30 m² = P4 ($1,490 MXN
             <tbody>
               <tr style="background:#fff0e8;border-bottom:1px solid var(--border)"><td style="padding:8px">☐</td><td style="padding:8px;font-weight:600;color:var(--accent)">+ Añadir una nueva fuente</td><td></td><td></td></tr>
               <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px">☐</td><td style="padding:8px"><a href="https://www.grupopingus.com" target="_blank" style="color:#2563eb">https://www.grupopingus.com</a></td><td style="padding:8px">URL</td><td style="padding:8px">🟢 Ver fuente &nbsp; 0</td></tr>
-              <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px">☐</td><td style="padding:8px"><a href="https://docs.google.com/document/d/1LbPShBxNgd4qy9vnjh2bGoZq8C7nxxlcBWIsrsUtEUc/edit" target="_blank" style="color:#2563eb">Base de Conocimiento PINGUS</a> <span style="font-size:9px;padding:2px 6px;background:#059669;color:#fff;border-radius:4px">✓ Drive</span></td><td style="padding:8px">Google Doc</td><td style="padding:8px">🟢 Activa</td></tr>
+              <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px">☐</td><td style="padding:8px"><a href="https://docs.google.com/document/d/1RnhfW6gFTfkkiFvCGZUj18y6UBkXYxP1OyUIO51KKn0/edit" target="_blank" style="color:#2563eb">Base de Conocimiento PINGUS – Manual del Agente IA</a> <span style="font-size:9px;padding:2px 6px;background:#059669;color:#fff;border-radius:4px">✓ Drive</span></td><td style="padding:8px">Google Doc</td><td style="padding:8px">🟢 Activa</td></tr>
               <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px">☐</td><td style="padding:8px" colspan="3" style="font-size:10px;color:var(--txt2)">
                 <b>Catálogo:</b> P4 $1,490 (30m²) · ULTRA 150 $1,795 (50m²) · CIR 150 $1,995 (50m²) · AQUA 500 $1,450 (100m²) · AQUA 1000 $1,650 (150m²) · Klair UV $3,495 (módulo UV-C para minisplit 1–3 ton / 12k–36k BTUs)<br>
-                <b>Envío:</b> Gratis, 2 días hábiles · <b>Garantía:</b> 6 meses · <b>Pago:</b> Tarjeta, PayPal, Transferencia · <b>MSI:</b> hasta 6 meses sin intereses (todas las tarjetas) · <b>Horario:</b> Lun-Sáb 10:00-19:00
+                <b>Envío:</b> Gratis, 2 días hábiles · <b>Garantía:</b> 6 meses · <b>Pago:</b> Tarjeta, PayPal, Transferencia · <b>MSI:</b> hasta 6 meses sin intereses (todas las tarjetas) · <b>Descuento:</b> 30% código OZON30 · <b>Horario:</b> Lun-Sáb 10:00-19:00
               </td></tr>
             </tbody>
           </table>
@@ -2211,7 +2215,7 @@ function toggleAgentStatus(){
   }
 }
 var aiaResponses={
-  'hola':['¡Hola! Soy el asistente de PINGUS. ¿Qué espacio quieres purificar: aire o agua?','¡Hola! Soy la IA de Grupo PINGUS – The Health Guardian. ¿En qué te puedo ayudar?'],
+  'hola':['¡Hola! 👋 Bienvenido a Grupo PINGUS – The Health Guardian. Queremos ayudarte a respirar mejor o tener agua más pura. Para recomendarte el equipo ideal con un 30% de DESCUENTO (código: OZON30), cuéntame: 1. ¿Qué buscas purificar: aire o agua? 2. ¿Qué espacio tienes en mente? (ej. dormitorio, consultorio, sala, cocina). 3. ¿Cuántos metros cuadrados (m²) tiene el lugar?'],
   'precio':['Nuestros equipos van de $1,450 a $3,495 MXN. ¿Quieres que te recomiende uno según tu espacio?'],
   'precios':['Nuestros equipos van de $1,450 a $3,495 MXN. ¿Quieres que te recomiende uno según tu espacio?'],
   'lista':['Nuestros equipos van de $1,450 a $3,495 MXN. ¿Quieres que te recomiende uno según tu espacio?'],
@@ -2242,7 +2246,7 @@ var aiaResponses={
   'seguro':['Sí, en las dosis controladas de nuestros equipos es seguro. La recomendación: no estar en el espacio durante el ciclo y ventilar al terminar.'],
   'peligro':['Nuestros equipos regulan la concentración de ozono automáticamente. Solo se recomienda no estar en el espacio durante el ciclo y ventilar al terminar.'],
   'caro':['Nuestros equipos incluyen garantía de 6 meses, soporte directo en México y envío gratis. ¿Quieres que comparemos con lo que necesitas?'],
-  'descuento':['Para descuentos especiales te conecto con un asesor. Un momento... 🔄'],
+  'descuento':['¡Tenemos 30% de DESCUENTO con el código OZON30 en la tienda online! 🎉 ¿Te recomiendo el equipo ideal según tu espacio? Para un descuento adicional te conecto con un asesor.'],
   'comprar':['¡Perfecto! Te conecto con un asesor para finalizar tu compra. Un momento... 🔄'],
   'quiero':['¡Perfecto! Te conecto con un asesor en un momento. ¿Me confirmas tu nombre?'],
   'ozono':['El ozono se genera de forma controlada, se dispersa en el ambiente, actúa contra bacterias, virus, hongos y olores, y luego se convierte en oxígeno. ¿Te interesa para algún espacio en particular?'],
@@ -2273,12 +2277,12 @@ function resetAIAChat(){
 
 /* ══ ACCIONES EDITABLES ══ */
 var aiaActions=[
-  {id:1,cuando:'El cliente envía "Hola", "Buenas", "Buenos días" o cualquier saludo de apertura',hacer:'Responder: "¡Hola! Soy el asistente de PINGUS. ¿Qué espacio quieres purificar: aire o agua?"',mas:'No volver a saludar en mensajes siguientes de la misma conversación'},
+  {id:1,cuando:'El cliente envía "Hola", "Buenas", "Buenos días" o cualquier saludo de apertura',hacer:'Responder con el SALUDO DE BIENVENIDA ESTÁNDAR: "¡Hola! 👋 Bienvenido a Grupo PINGUS – The Health Guardian. Queremos ayudarte a respirar mejor o tener agua más pura. Para recomendarte el equipo ideal con un 30% de DESCUENTO (código: OZON30), cuéntame: 1. ¿Qué buscas purificar: aire o agua? 2. ¿Qué espacio tienes en mente? 3. ¿Cuántos m² tiene el lugar?"',mas:'No volver a saludar en mensajes siguientes de la misma conversación. Es la única excepción a la regla de 3 líneas.'},
   {id:2,cuando:'El cliente menciona tipo de espacio (casa, consultorio, restaurante, oficina) pero NO da metros cuadrados',hacer:'Pedir m² antes de recomendar: "Para recomendarte el equipo exacto, ¿cuántos m² tiene el espacio?"',mas:'Si no responde, ofrecer rango: pequeño (hasta 30 m²) / mediano (50-100 m²) / grande (150+ m²)'},
   {id:3,cuando:'El cliente da m² + uso (aire o agua)',hacer:'Recomendar modelo con precio + link según tabla de Fuentes. Capturar: Nombre del lead, Tipo de espacio, m², Uso principal',mas:'Recomendar solo 1 producto principal. Si hay duda, ofrecer máximo 2 opciones.'},
   {id:4,cuando:'El cliente pregunta "¿cuánto cuesta?", "precios" o "lista"',hacer:'Dar rango + invitar a personalizar: "Nuestros equipos van de $1,450 a $3,495 MXN. ¿Quieres que te recomiende uno según tu espacio?"',mas:'NO dar la lista completa. Forzar la pregunta del espacio para calificar el lead.'},
   {id:5,cuando:'El cliente pregunta sobre seguridad, "es peligroso", "afecta la salud"',hacer:'Responder: "Sí, en las dosis controladas de nuestros equipos. La recomendación es no estar en el espacio durante el ciclo y ventilar al terminar."',mas:'Si insiste, transferir a asesor'},
-  {id:6,cuando:'El cliente dice "está caro", "vi uno más barato", "en Amazon hay de X"',hacer:'Diferenciar: "Nuestros equipos tienen garantía oficial de 6 meses y soporte directo en México. Envío gratis en 2 días."',mas:'Si pide descuento, transferir a asesor'},
+  {id:6,cuando:'El cliente dice "está caro", "vi uno más barato", "en Amazon hay de X"',hacer:'Diferenciar: "Nuestros equipos tienen garantía oficial de 6 meses y soporte directo en México. Envío gratis en 2 días."',mas:'Recordarle el 30% de descuento con el código OZON30 en la tienda online. Si pide un descuento adicional, transferir a asesor'},
   {id:7,cuando:'El cliente pregunta por envío, garantía o formas de pago',hacer:'Responder: envío 2 días hábiles GRATIS / garantía 6 meses / pago con tarjeta, PayPal o transferencia + hasta 6 meses sin intereses con todas las tarjetas',mas:'Después de responder, retomar la venta: "¿Te recomiendo un modelo?"'},
   {id:8,cuando:'El cliente dice "lo quiero", "cómo pago", "lo voy a llevar", "cómo lo compro"',hacer:'Confirmar: "Perfecto. Te conecto con un asesor en un momento." → TRANSFERIR EL CHAT al equipo de ventas → Marcar lead como CALIFICADO',mas:'Si está fuera de horario (Lun-Sáb 10:00-19:00): "Te responde un asesor en horario hábil a partir de las 10:00."'},
   {id:9,cuando:'El cliente pregunta por factura, datos fiscales o RFC',hacer:'Transferir directo a humano: "Para facturación te conecto con un asesor que te apoya con tus datos fiscales." → Marcar lead como CALIFICADO',mas:'Marcar el lead como CALIFICADO. No intentar resolver la factura — siempre al humano.'},
