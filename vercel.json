@@ -2,10 +2,12 @@
   "functions": {
     "api/webhook.js": { "maxDuration": 60 },
     "api/shopify.js": { "maxDuration": 30 },
-    "api/shopify-webhook.js": { "maxDuration": 30 }
+    "api/shopify-webhook.js": { "maxDuration": 30 },
+    "api/drive-sync.js": { "maxDuration": 30 }
   },
   "rewrites": [
     { "source": "/webhook", "destination": "/api/webhook" },
+    { "source": "/drive-sync", "destination": "/api/drive-sync" },
     { "source": "/shopify/install", "destination": "/api/shopify?action=install" },
     { "source": "/shopify/webhook", "destination": "/api/shopify-webhook" }
   ],

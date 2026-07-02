@@ -271,6 +271,10 @@ async function buildSystemPrompt() {
     if (!cfg) return SYSTEM_PROMPT;
     let extra = '';
     if (cfg.prompt && cfg.prompt.trim()) extra += `\n\nPERSONALIDAD Y ROL (configurado en el CRM):\n${cfg.prompt.trim()}`;
+    // Base de conocimiento sincronizada desde Google Drive (botón "Actualizar
+    // con Drive" del CRM). Es la fuente de verdad más reciente: si algo aquí
+    // contradice el catálogo base de arriba, gana esto.
+    if (cfg.knowledge && cfg.knowledge.trim()) extra += `\n\nBASE DE CONOCIMIENTO (sincronizada desde Google Drive — fuente de verdad; si algo aquí contradice lo anterior, usa ESTO):\n${cfg.knowledge.trim()}`;
     if (Array.isArray(cfg.pautas) && cfg.pautas.length) extra += `\n\nPAUTAS OBLIGATORIAS:\n- ${cfg.pautas.join('\n- ')}`;
     if (cfg.tono) extra += `\n\nTono de voz: ${cfg.tono}.`;
     if (cfg.longitud) extra += ` Longitud de respuestas: ${cfg.longitud}.`;
@@ -379,18 +383,28 @@ async function callClaude(history, userMessage) {
 // ── Orquestador: persiste entrante, llama IA, persiste salida ──
 async function processIncoming(channel, handle, name, text) {
     const sb = await getSupabase();
+    // Estado del agente configurado desde el CRM. Por defecto ACTIVO: solo se
+    // apaga cuando active === false explícitamente en agent_settings.
+    const cfg = await getAgentSettings();
+    const agentActive = !cfg || cfg.active !== false;
+
     if (!sb) {
+        // Sin base de datos no hay bandeja donde dejar el mensaje para un
+        // humano; si el agente está apagado, simplemente no respondemos.
+        if (!agentActive) return null;
         const aiReply = await callClaude([], text);
         return aiReply || fallbackReply(text);
     }
     const contact = await resolveContact(sb, channel, handle, name);
     if (!contact) {
+        if (!agentActive) return null;
         const aiReply = await callClaude([], text);
         return aiReply || fallbackReply(text);
     }
 
   const convId = await resolveConversation(sb, contact.id, channel);
     if (!convId) {
+        if (!agentActive) return null;
         const aiReply = await callClaude([], text);
         return aiReply || fallbackReply(text);
     }
@@ -407,6 +421,14 @@ async function processIncoming(channel, handle, name, text) {
         body: text.length > 120 ? text.slice(0, 120) + '…' : text,
         contactId: contact.id
     }).catch(e => console.warn('[PUSH]', e?.message));
+
+  // Agente IA desactivado desde el CRM: guardamos el mensaje entrante y
+  // notificamos a los agentes humanos, pero NO respondemos automáticamente.
+    if (!agentActive) {
+        console.log('[AGENT] Desactivado desde el CRM — no se responde automáticamente.');
+        await pushPromise;
+        return null;
+    }
 
   const reply = await callClaude(history, text);
     const finalReply = reply || fallbackReply(text, history);
@@ -463,6 +485,7 @@ async function handleWhatsApp(body) {
   }
 
   const aiResponse = await processIncoming('wa', from, contactName, message.text.body);
+    if (!aiResponse) return { status: 'agent_off', channel: 'whatsapp', from };
     const sent = await sendWhatsAppMessage(from, aiResponse);
     return { status: 'processed', channel: 'whatsapp', from, sent };
 }
@@ -523,6 +546,7 @@ async function handleMessenger(body) {
   }).catch(() => {});
 
   const aiResponse = await processIncoming('fb', senderId, 'Cliente Facebook', text);
+    if (!aiResponse) return { status: 'agent_off', channel: 'messenger', from: senderId };
     const sent = await sendFBMessage(senderId, aiResponse);
     return { status: 'processed', channel: 'messenger', from: senderId, sent };
 }
@@ -569,6 +593,7 @@ async function handleInstagram(body) {
   console.log(`[IG] ${senderId}: "${text}"`);
 
   const aiResponse = await processIncoming('ig', senderId, 'Cliente Instagram', text);
+    if (!aiResponse) return { status: 'agent_off', channel: 'instagram', from: senderId };
     const sent = await sendIGMessage(senderId, aiResponse);
     return { status: 'processed', channel: 'instagram', from: senderId, sent };
 }
