@@ -52,6 +52,13 @@ DATOS CLAVE DE LA EMPRESA:
 - Garantía: 6 meses contra defectos de fábrica + soporte directo en México
 - Pagos: Tarjeta crédito/débito, PayPal, Transferencia bancaria
 - MESES SIN INTERESES (MSI): hasta 6 MSI con TODAS las tarjetas de crédito
+- DESCUENTO VIGENTE: 30% de descuento con el código OZON30 en la tienda online (www.grupopingus.com)
+
+👋 SALUDO DE BIENVENIDA ESTÁNDAR (para todos los clientes — úsalo SOLO en el primer mensaje de la conversación y NUNCA lo repitas; es la ÚNICA excepción a la regla de 3 líneas):
+"¡Hola! 👋 Bienvenido a Grupo PINGUS – The Health Guardian. Queremos ayudarte a respirar mejor o tener agua más pura. Para recomendarte el equipo ideal con un 30% de DESCUENTO (código: OZON30), cuéntame:
+1. ¿Qué buscas purificar: aire o agua?
+2. ¿Qué espacio tienes en mente? (ej. dormitorio, consultorio, sala, cocina).
+3. ¿Cuántos metros cuadrados (m²) tiene el lugar?"
 
 TU FUNCIÓN PRINCIPAL (en orden de prioridad):
 1. ESCUCHAR: Entiende qué espacio quiere purificar el cliente (aire o agua)
@@ -118,21 +125,21 @@ MANEJO DE OBJECIONES:
 - "Es caro" → Garantía 6 meses + soporte México + envío gratis
 - "¿Es seguro el ozono?" → Sí, nuestros equipos generan de 100 a 150 mg/h de ozono por periodos cortos, así que SÍ puedes estar en el espacio mientras funciona. Es completamente seguro.
 - "Vi uno más barato en Amazon" → Garantía oficial + soporte directo + envío gratis 2 días
-- Si pide descuento → Transferir a asesor humano
+- Si pide descuento → Recuérdale el 30% de descuento con el código OZON30 en la tienda online. Si pide un descuento ADICIONAL → transferir a asesor humano
 
 TRANSFERIR A HUMANO cuando:
 - El cliente dice "lo quiero", "cómo pago", "lo compro"
 - Pide factura o datos fiscales
-- Pide descuento
+- Pide un descuento ADICIONAL al del código OZON30
 - Pregunta compleja fuera de tus fuentes
 En estos casos responde: "¡Perfecto! Te conecto con un asesor de Grupo PINGUS para ayudarte. Un momento 🔄"
 Si está fuera de horario (Lun-Sáb 10:00-19:00): "Te responde un asesor en horario hábil a partir de las 10:00."`;
 
 // ── Respuestas de fallback por keyword (cuando Claude API no responde) ──
 const FALLBACK_RESPONSES = {
-  'hola': '¡Hola! Soy el asistente de PINGUS – The Health Guardian. ¿Qué espacio quieres purificar: aire o agua?',
-  'buenos': '¡Hola! Soy el asistente de PINGUS. ¿En qué te puedo ayudar?',
-  'buenas': '¡Hola! Soy el asistente de PINGUS. ¿En qué te puedo ayudar?',
+  'hola': '¡Hola! 👋 Bienvenido a Grupo PINGUS – The Health Guardian. Queremos ayudarte a respirar mejor o tener agua más pura. Para recomendarte el equipo ideal con un 30% de DESCUENTO (código: OZON30), cuéntame:\n1. ¿Qué buscas purificar: aire o agua?\n2. ¿Qué espacio tienes en mente? (ej. dormitorio, consultorio, sala, cocina).\n3. ¿Cuántos metros cuadrados (m²) tiene el lugar?',
+  'buenos': '¡Hola! 👋 Bienvenido a Grupo PINGUS – The Health Guardian. Queremos ayudarte a respirar mejor o tener agua más pura. Para recomendarte el equipo ideal con un 30% de DESCUENTO (código: OZON30), cuéntame:\n1. ¿Qué buscas purificar: aire o agua?\n2. ¿Qué espacio tienes en mente? (ej. dormitorio, consultorio, sala, cocina).\n3. ¿Cuántos metros cuadrados (m²) tiene el lugar?',
+  'buenas': '¡Hola! 👋 Bienvenido a Grupo PINGUS – The Health Guardian. Queremos ayudarte a respirar mejor o tener agua más pura. Para recomendarte el equipo ideal con un 30% de DESCUENTO (código: OZON30), cuéntame:\n1. ¿Qué buscas purificar: aire o agua?\n2. ¿Qué espacio tienes en mente? (ej. dormitorio, consultorio, sala, cocina).\n3. ¿Cuántos metros cuadrados (m²) tiene el lugar?',
   'precio': 'Nuestros equipos van de $1,450 a $3,495 MXN. ¿Quieres que te recomiende uno según tu espacio?',
   'catálogo': 'Tenemos: P4 ($1,490 / 30m²), ULTRA 150 ($1,795 / 50m²), CIR 150 ($1,995 / 50m²), AQUA 500 ($1,450 / 100m²), AQUA 1000 ($1,650 / 150m²) y Klair UV ($3,495 / módulo UV-C para minisplit). ¿Cuántos m² tiene tu espacio?',
   'catalogo': 'Tenemos: P4 ($1,490 / 30m²), ULTRA 150 ($1,795 / 50m²), CIR 150 ($1,995 / 50m²), AQUA 500 ($1,450 / 100m²), AQUA 1000 ($1,650 / 150m²) y Klair UV ($3,495 / módulo UV-C para minisplit). ¿Cuántos m² tiene tu espacio?',
@@ -161,7 +168,7 @@ const FALLBACK_RESPONSES = {
   'ozono': 'Nuestros equipos generan de 100 a 150 mg/h de ozono por periodos cortos. Puedes estar en el espacio mientras funciona. Elimina bacterias, virus, hongos y olores. ¿Te interesa para algún espacio en particular?',
   'seguro': 'Sí, nuestros equipos generan de 100 a 150 mg/h por periodos cortos, así que puedes estar en el espacio mientras funciona. Es completamente seguro.',
   'caro': 'Nuestros equipos incluyen garantía de 6 meses, soporte directo en México y envío gratis. ¿Quieres que comparemos con lo que necesitas?',
-  'descuento': 'Para descuentos especiales te conecto con un asesor. Un momento... 🔄',
+  'descuento': '¡Tenemos 30% de DESCUENTO con el código OZON30 en la tienda online! 🎉 ¿Te recomiendo el equipo ideal según tu espacio? Para un descuento adicional te conecto con un asesor.',
   'aire': 'Para purificar aire necesito saber los m² de tu espacio. ¿Es pequeño (hasta 30 m²), mediano (50-100 m²) o grande (150+ m²)?',
   'agua': 'Para purificar agua tenemos: AQUA 500 ($1,450 MXN / aire 100m² + agua) y AQUA 1000 ($1,650 MXN / aire 150m² + agua + iones). ¿Cuántos m² tiene tu espacio?',
   'ambos': 'Para purificar aire y agua tenemos: AQUA 500 ($1,450 MXN / 100m²) y AQUA 1000 ($1,650 MXN / 150m²). ¿Cuántos m² tiene tu espacio?',
