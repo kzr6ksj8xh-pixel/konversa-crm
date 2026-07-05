@@ -1214,6 +1214,7 @@ async function loadContactsFromDB(){
         stage:c.stage||'entrada',channels:chs,
         phone:c.phone,email:c.email,city:c.city,
         office:c.company,agent_id:c.agent_id,ag:c.agent_id||null,
+        aiAuto:c.ai_auto_reply!==false,
         dbId:c.id
       };
     });
@@ -2601,6 +2602,16 @@ function renderMsgs(){
   if(chip) chip.textContent=ag?ag.name:'Sin asignar';
   var chipEl=document.getElementById('agentChip');
   if(chipEl){chipEl.style.background=ag?ag.bg:'var(--bg2)';chipEl.style.color=ag?ag.tc:'var(--txt2)';}
+  syncAiTog();
+}
+
+// Sincroniza el toggle "Respuesta automática IA" con el estado del contacto abierto.
+function syncAiTog(){
+  var tog=document.getElementById('aiTog'),stat=document.getElementById('aiStat');
+  if(!tog||!stat)return;
+  var on=!aC||aC.aiAuto!==false; // por defecto activada
+  tog.className='tog '+(on?'on2':'off');
+  stat.textContent=on?'Activada':'Desactivada';
 }
 
 function toggleAgentDrop(e){
@@ -2946,10 +2957,34 @@ function sendMsg(){
   }
 }
 
-document.getElementById('aiTog')?.addEventListener('click',function(){
-  aiOn=!aiOn;this.className='tog '+(aiOn?'on2':'off');
-  document.getElementById('aiStat').textContent=aiOn?'Activada':'Desactivada';
-  toast(aiOn?'IA activada':'IA desactivada');
+// Toggle "Respuesta automática IA": silencia la IA SOLO en el contacto abierto.
+// Persiste en Supabase (contacts.ai_auto_reply) para que el webhook (api/webhook.js)
+// respete el silencio aunque nadie tenga la web abierta.
+// Fallback sin backend (no usado hoy porque persistimos en Supabase): guardar en
+// localStorage bajo 'konversa_ia_muted' = { [contactId]: true } y exponer
+// window.konversaIAEnabled(id); el webhook consultaría ese estado.
+document.getElementById('aiTog')?.addEventListener('click',async function(){
+  if(!aC){toast('Abre una conversación primero');return;}
+  var prev=aC.aiAuto!==false;      // estado actual
+  var next=!prev;                  // estado deseado
+  aC.aiAuto=next;syncAiTog();      // UI optimista
+  if(demoMode||!sb){toast(next?'IA activada':'IA silenciada en este chat');return;}
+  try{
+    // .select() nos devuelve las filas afectadas: si RLS bloquea el UPDATE
+    // (operador que no es el agente asignado) no hay error pero data queda vacío.
+    var{data,error}=await sb.from('contacts').update({ai_auto_reply:next}).eq('id',aC.dbId||aC.id).select('id');
+    if(error)throw error;
+    if(!data||!data.length){
+      aC.aiAuto=prev;syncAiTog();
+      toast('Sin permiso para cambiar este contacto');
+      return;
+    }
+    toast(next?'IA activada en este chat':'IA silenciada en este chat');
+  }catch(e){
+    aC.aiAuto=prev;syncAiTog();    // revertir si falla la red
+    toast('No se pudo guardar — revisa la conexión');
+    console.warn('ai_auto_reply update error:',e);
+  }
 });
 
 /* ══════════════════════════════════════
