@@ -1243,8 +1243,12 @@ async function loadLeadsFromDB(){
 async function loadMessagesFromDB(){
   if(!sb||demoMode)return;
   try{
-    var{data,error}=await sb.from('messages').select('*,conversations!inner(contact_id,channel)').order('sent_at',{ascending:true}).limit(500);
+    // Traer los 500 mensajes MÁS RECIENTES (no los más antiguos): con ascending
+    // el limit recortaba la cola y las conversaciones nuevas no cargaban. Se pide
+    // descendente y se revierte a orden cronológico para agrupar/mostrar igual.
+    var{data,error}=await sb.from('messages').select('*,conversations!inner(contact_id,channel)').order('sent_at',{ascending:false}).limit(500);
     if(error||!data)return;
+    data.reverse();
     msgs={};
     data.forEach(function(m){
       var cid=m.conversations?.contact_id;
