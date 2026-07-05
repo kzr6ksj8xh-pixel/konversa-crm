@@ -1251,6 +1251,7 @@ async function loadMessagesFromDB(){
       if(!cid)return;
       if(!msgs[cid])msgs[cid]=[];
       msgs[cid].push({
+        id:m.id,
         t:(m.sender==='in'||m.sender==='customer')?'in':m.sender==='note'?'note':m.sender==='tpl'?'tpl':'out',
         txt:m.content,
         time:timeOnly(m.sent_at),
@@ -1486,6 +1487,7 @@ var realtimeChannel = null;
 var realtimeReconnectTimer = null;
 var realtimePollTimer = null;
 var realtimeResyncing = false;
+var realtimeHiddenAt = 0;
 
 function startRealtime(){
   if(!sb||demoMode)return;
@@ -1568,6 +1570,7 @@ async function handleRealtimeMessage(m){
   // Agregar mensaje al cache local
   if(!msgs[contactId])msgs[contactId]=[];
   var newMsg={
+    id: m.id,
     t: (m.sender==='in'||m.sender==='customer')?'in':m.sender==='note'?'note':m.sender==='tpl'?'tpl':'out',
     txt: m.content,
     time: timeOnly(m.sent_at),
@@ -1575,11 +1578,29 @@ async function handleRealtimeMessage(m){
     sentAt: m.sent_at
   };
 
-  // Evitar duplicados (si el mensaje ya fue agregado localmente)
-  var lastMsg = msgs[contactId][msgs[contactId].length-1];
-  if(lastMsg && lastMsg.txt===newMsg.txt && lastMsg.time===newMsg.time) return;
+  var list = msgs[contactId];
 
-  msgs[contactId].push(newMsg);
+  // Dedup por id real de la BD (no por texto+minuto): dos mensajes con el mismo
+  // texto en el mismo minuto ya no se descartan.
+  if(m.id && list.some(function(x){return x.id===m.id;})) return;
+
+  // Reconciliar el eco de mensajes propios: si ya empujamos este mensaje
+  // localmente (sin id, misma dirección y texto), le adjuntamos el id real en
+  // vez de duplicarlo.
+  if(m.id){
+    for(var i=list.length-1;i>=0;i--){
+      var prev=list[i];
+      if(!prev.id && prev.t===newMsg.t && prev.txt===newMsg.txt){
+        prev.id=m.id;
+        prev.sentAt=newMsg.sentAt;
+        prev.time=newMsg.time;
+        if(aC && (aC.id===contactId || aC.dbId===contactId)) renderMsgs();
+        return;
+      }
+    }
+  }
+
+  list.push(newMsg);
 
   // Si es el contacto actualmente abierto, renderizar y marcar como leído
   if(aC && (aC.id===contactId || aC.dbId===contactId)){
@@ -1754,7 +1775,17 @@ function stopRealtime(){
 // Cuando el sistema suspende la app, el WebSocket muere; al reabrir hay que
 // recuperar mensajes perdidos y reabrir el socket.
 document.addEventListener('visibilitychange',function(){
-  if(document.visibilityState==='visible' && !demoMode && sb) resyncRealtime();
+  if(demoMode || !sb) return;
+  if(document.visibilityState==='hidden'){
+    realtimeHiddenAt = Date.now();
+    return;
+  }
+  // visible: no destruir un socket sano en cada blur/focus corto de escritorio.
+  // Solo resincronizar si el canal cayó, o si estuvo oculto >10s (probable
+  // suspensión real del SO, típica en PWA móvil).
+  var hiddenFor = realtimeHiddenAt ? (Date.now()-realtimeHiddenAt) : 0;
+  realtimeHiddenAt = 0;
+  if(!realtimeChannel || hiddenFor>10000) resyncRealtime();
 });
 window.addEventListener('online',function(){
   if(!demoMode && sb) resyncRealtime();
