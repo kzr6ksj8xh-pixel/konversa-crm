@@ -264,6 +264,21 @@ async function getAgentSettings() {
     return _agentCfg;
 }
 
+// Silencio de IA por contacto: refleja el toggle "Respuesta automática IA" de
+// la bandeja. Por defecto ACTIVO — solo se apaga cuando ai_auto_reply === false
+// explícitamente. Ante cualquier error de lectura devolvemos true para no dejar
+// al cliente sin respuesta por un fallo transitorio.
+async function getContactAutoReply(sb, contactId) {
+    try {
+        const { data } = await sb.from('contacts')
+          .select('ai_auto_reply').eq('id', contactId).maybeSingle();
+        return !data || data.ai_auto_reply !== false;
+    } catch (e) {
+        console.error('[AGENT] getContactAutoReply:', e.message);
+        return true;
+    }
+}
+
 // Construye el system prompt combinando la base (catálogo, reglas) con la
 // personalidad e instrucciones que el usuario configura en el CRM.
 async function buildSystemPrompt() {
@@ -410,6 +425,8 @@ async function processIncoming(channel, handle, name, text) {
     }
 
   const history = await loadHistory(sb, convId);
+    // Silencio de IA por contacto (toggle "Respuesta automática IA" de la bandeja).
+    const autoReply = await getContactAutoReply(sb, contact.id);
     await persistMessage(sb, convId, channel, 'customer', text);
     await sb.from('contacts').update({updated_at:new Date().toISOString()}).eq('id',contact.id);
 
@@ -422,10 +439,13 @@ async function processIncoming(channel, handle, name, text) {
         contactId: contact.id
     }).catch(e => console.warn('[PUSH]', e?.message));
 
-  // Agente IA desactivado desde el CRM: guardamos el mensaje entrante y
-  // notificamos a los agentes humanos, pero NO respondemos automáticamente.
-    if (!agentActive) {
-        console.log('[AGENT] Desactivado desde el CRM — no se responde automáticamente.');
+  // Agente IA desactivado (globalmente desde el CRM, o silenciado en esta
+  // conversación con el toggle "Respuesta automática IA"): guardamos el mensaje
+  // entrante y notificamos a los agentes humanos, pero NO respondemos automáticamente.
+    if (!agentActive || !autoReply) {
+        console.log(!agentActive
+          ? '[AGENT] Desactivado desde el CRM — no se responde automáticamente.'
+          : '[AGENT] Conversación silenciada (ai_auto_reply=false) — no se responde automáticamente.');
         await pushPromise;
         return null;
     }
