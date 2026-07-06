@@ -1287,7 +1287,19 @@ async function loadMessagesFromDB(){
 function readStateKey(){return 'konversa_read_'+((currentUser&&currentUser.id)?currentUser.id:'anon');}
 function loadReadState(){try{return JSON.parse(localStorage.getItem(readStateKey())||'{}')||{};}catch(e){return {};}}
 function saveReadState(s){try{localStorage.setItem(readStateKey(),JSON.stringify(s));}catch(e){}}
-function markContactRead(cid){if(!cid)return;var s=loadReadState();s[cid]=Date.now();saveReadState(s);}
+// Hora (reloj del SERVIDOR) del último mensaje conocido de un contacto.
+function lastMsgTime(cid){
+  var list=msgs[cid]||[],t=0;
+  for(var i=0;i<list.length;i++){
+    if(list[i].sentAt){var x=new Date(list[i].sentAt).getTime();if(x>t)t=x;}
+  }
+  return t;
+}
+// La marca de lectura usa la hora del último mensaje (servidor), no solo
+// Date.now() del dispositivo: si el reloj local va atrasado, un chat ya leído
+// no debe volver a contar como no leído. Tomamos el mayor de ambos.
+function readWatermark(cid){return Math.max(Date.now(), lastMsgTime(cid)+1);}
+function markContactRead(cid){if(!cid)return;var s=loadReadState();s[cid]=readWatermark(cid);saveReadState(s);}
 
 // Recalcula c.unread: nº de mensajes entrantes posteriores a la última lectura.
 function recomputeUnread(){
@@ -1296,7 +1308,12 @@ function recomputeUnread(){
   contacts.forEach(function(c){
     var cid=c.dbId||c.id;
     // La conversación abierta se considera leída (y se persiste).
-    if(aC && (aC.id===cid||aC.dbId===cid)){c.unread=0;s[cid]=Date.now();changed=true;return;}
+    if(aC && (aC.id===cid||aC.dbId===cid)){c.unread=0;s[cid]=readWatermark(cid);changed=true;return;}
+    // Primera vez que vemos este contacto en este dispositivo: tomamos como YA
+    // LEÍDO todo el historial cargado (sin registro previo contaba TODA la
+    // conversación como no leída, inundando la bandeja). Solo los mensajes que
+    // lleguen DESPUÉS de este momento contarán como no leídos.
+    if(!(cid in s)){s[cid]=lastMsgTime(cid);changed=true;}
     var lr=s[cid]||0,list=msgs[cid]||[],n=0;
     for(var i=0;i<list.length;i++){
       var m=list[i];
