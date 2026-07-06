@@ -32,16 +32,19 @@ async function isValidSupabaseUser(token) {
   }
 }
 
-async function uploadImageToWhatsApp(imageUrl) {
+// Descarga el archivo desde su URL pública y lo sube a la media API de
+// WhatsApp, devolviendo el media id. Sirve tanto para imágenes como para
+// documentos (PDF, Office, etc.).
+async function uploadMediaToWhatsApp(mediaUrl, fileName) {
   try {
-    const imgRes = await fetch(imageUrl, { headers: { 'User-Agent': 'Mozilla/5.0' } });
-    if (!imgRes.ok) { console.log('WA-FETCH-ERR:', imgRes.status); return null; }
-    const buffer = await imgRes.arrayBuffer();
-    const contentType = imgRes.headers.get('content-type') || 'image/jpeg';
+    const mRes = await fetch(mediaUrl, { headers: { 'User-Agent': 'Mozilla/5.0' } });
+    if (!mRes.ok) { console.log('WA-FETCH-ERR:', mRes.status); return null; }
+    const buffer = await mRes.arrayBuffer();
+    const contentType = mRes.headers.get('content-type') || 'application/octet-stream';
     // FormData and Blob are available globally in Node 18+ (Vercel)
     const form = new FormData();
     form.append('messaging_product', 'whatsapp');
-    form.append('file', new Blob([buffer], { type: contentType }), 'product.jpg');
+    form.append('file', new Blob([buffer], { type: contentType }), fileName || 'archivo');
     const upRes = await fetch(`https://graph.facebook.com/v21.0/${PHONE_NUMBER_ID}/media`, {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${WHATSAPP_TOKEN}` },
@@ -55,18 +58,23 @@ async function uploadImageToWhatsApp(imageUrl) {
   } catch(e) { console.log('WA-UPLOAD-EX:', e.message); return null; }
 }
 
-async function sendWhatsApp(to, text, imageUrl) {
+async function sendWhatsApp(to, text, mediaUrl, mediaType, fileName) {
   const url = `https://graph.facebook.com/v21.0/${PHONE_NUMBER_ID}/messages`;
-  if (imageUrl) {
-    try { const u = new URL(imageUrl); u.searchParams.delete('width'); imageUrl = u.toString(); } catch(e) { imageUrl = imageUrl.split('?')[0]; }
+  if (mediaUrl && mediaType === 'image') {
+    // Para imágenes de producto quitamos el parámetro ?width= que sirve una
+    // miniatura; queremos la versión completa.
+    try { const u = new URL(mediaUrl); u.searchParams.delete('width'); mediaUrl = u.toString(); } catch(e) { mediaUrl = mediaUrl.split('?')[0]; }
   }
   let body;
-  if (imageUrl) {
-    const mediaId = await uploadImageToWhatsApp(imageUrl);
-    if (mediaId) {
-      body = { messaging_product: 'whatsapp', to, type: 'image', image: { id: mediaId, caption: text } };
+  if (mediaUrl && (mediaType === 'image' || mediaType === 'document')) {
+    const mediaId = await uploadMediaToWhatsApp(mediaUrl, fileName);
+    if (mediaId && mediaType === 'image') {
+      body = { messaging_product: 'whatsapp', to, type: 'image', image: { id: mediaId, caption: text || undefined } };
+    } else if (mediaId) {
+      body = { messaging_product: 'whatsapp', to, type: 'document', document: { id: mediaId, caption: text || undefined, filename: fileName || 'archivo' } };
     } else {
-      body = { messaging_product: 'whatsapp', to, type: 'text', text: { body: text } };
+      // Falló la subida: al menos mandamos el enlace en texto para no perder el envío.
+      body = { messaging_product: 'whatsapp', to, type: 'text', text: { body: (text ? text + '\n' : '') + mediaUrl } };
     }
   } else {
     body = { messaging_product: 'whatsapp', to, type: 'text', text: { body: text } };
@@ -83,20 +91,40 @@ async function sendWhatsApp(to, text, imageUrl) {
   return res.ok;
 }
 
-async function sendFBIG(recipientId, text) {
-  if (!META_PAGE_TOKEN) return false;
+async function sendMeta(recipientId, message) {
   const res = await fetch('https://graph.facebook.com/v21.0/me/messages', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       recipient: { id: recipientId },
-      message: { text },
+      message,
       messaging_type: 'RESPONSE',
       access_token: META_PAGE_TOKEN
     })
   });
   if (!res.ok) console.error('FB/IG send error:', res.status, await res.text());
   return res.ok;
+}
+
+async function sendFBIG(channel, recipientId, text, mediaUrl, mediaType) {
+  if (!META_PAGE_TOKEN) return false;
+  // Messenger admite adjuntos de imagen y archivo por URL. Instagram solo
+  // admite imagen; para documentos en IG mandamos el enlace en texto.
+  if (mediaUrl && mediaType === 'image') {
+    const okImg = await sendMeta(recipientId, { attachment: { type: 'image', payload: { url: mediaUrl, is_reusable: true } } });
+    if (text) await sendMeta(recipientId, { text });
+    return okImg;
+  }
+  if (mediaUrl && mediaType === 'document') {
+    if (channel === 'fb') {
+      const okFile = await sendMeta(recipientId, { attachment: { type: 'file', payload: { url: mediaUrl, is_reusable: true } } });
+      if (text) await sendMeta(recipientId, { text });
+      return okFile;
+    }
+    // Instagram: no soporta adjunto de archivo → enviar enlace.
+    return await sendMeta(recipientId, { text: (text ? text + '\n' : '') + mediaUrl });
+  }
+  return await sendMeta(recipientId, { text });
 }
 
 export default async function handler(req, res) {
@@ -117,12 +145,18 @@ export default async function handler(req, res) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
-  const { channel, to, text, imageUrl } = req.body || {};
-  if (!channel || !to || !text) return res.status(400).json({ error: 'channel, to, text required' });
+  const { channel, to, text, imageUrl, fileName } = req.body || {};
+  // Normalizamos: mediaUrl/mediaType son los nuevos campos; imageUrl se mantiene
+  // por compatibilidad (envío de imágenes de producto) y equivale a mediaType 'image'.
+  const mediaUrl = req.body?.mediaUrl || imageUrl || null;
+  const mediaType = req.body?.mediaType || (imageUrl ? 'image' : null);
+  const caption = text || '';
+  if (!channel || !to) return res.status(400).json({ error: 'channel, to required' });
+  if (!caption && !mediaUrl) return res.status(400).json({ error: 'text or media required' });
 
   let ok = false;
-  if (channel === 'wa') ok = await sendWhatsApp(to, text, imageUrl);
-  else if (channel === 'fb' || channel === 'ig') ok = await sendFBIG(to, text);
+  if (channel === 'wa') ok = await sendWhatsApp(to, caption, mediaUrl, mediaType, fileName);
+  else if (channel === 'fb' || channel === 'ig') ok = await sendFBIG(channel, to, caption, mediaUrl, mediaType);
   else return res.status(400).json({ error: 'Unknown channel' });
 
   return res.status(ok ? 200 : 502).json({ sent: ok });
