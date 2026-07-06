@@ -68,7 +68,7 @@ TU FUNCIÓN PRINCIPAL (en orden de prioridad):
 4. VENDER: Al recomendar SIEMPRE incluye: nombre del producto + precio en MXN + link directo
 5. ESCALAR: Si hay intención de compra, solicitud de factura o pregunta compleja → transferir a asesor humano
 
-CATÁLOGO DE PRODUCTOS:
+CATÁLOGO DE PRODUCTOS (RESPALDO — la BASE DE CONOCIMIENTO sincronizada desde Google Drive es la fuente de verdad y MANDA sobre este catálogo; usa estos datos solo cuando Drive no tenga el producto o el dato):
 1. Purificador de Aire P4 - $1,490 MXN - Espacios hasta 30 m² (dormitorios, oficinas, autos) - https://www.grupopingus.com/products/purificador-de-aire-p4
 2. Generador ULTRA 150 - $1,795 MXN - Espacios hasta 50 m² (salas, restaurantes, salones) - https://www.grupopingus.com/products/generador-de-ozono-ultra-150-mg-h
 3. Generador CIR 150 - $1,995 MXN - Espacios hasta 50 m² (casas, oficinas, consultorios) - https://www.grupopingus.com/products/generador-de-ozono-inteligente-cir-150-mgh
@@ -244,6 +244,27 @@ async function getSupabase() {
           auth: { persistSession: false, autoRefreshToken: false }
     });
     return _sb;
+}
+
+// ── Deduplicación de eventos entrantes (idempotencia) ─────────
+// Meta reintenta la entrega del webhook si no recibe el 200 a tiempo (y la
+// respuesta se demora porque la llamada a Claude es síncrona). Sin esto, un
+// reintento duplicaría el mensaje del cliente en la bandeja y dispararía una
+// segunda respuesta del bot. Reclamamos el ID del proveedor (wamid / mid) de
+// forma atómica: el primer INSERT gana; un duplicado choca contra la PK y se
+// descarta. Requiere la tabla public.webhook_events (ver supabase-webhook-dedup.sql).
+// Fail-open: si no hay DB o hay un error transitorio, se procesa igual para no
+// dejar al cliente sin respuesta.
+async function claimEvent(sb, eventId) {
+    if (!sb || !eventId) return true;
+    const { error } = await sb.from('webhook_events').insert({ event_id: eventId });
+    if (!error) return true;
+    if (error.code === '23505') {   // unique_violation → ya procesado
+          console.log('[DEDUP] Evento duplicado ignorado:', eventId);
+          return false;
+    }
+    console.error('[DEDUP] claimEvent:', error.message);
+    return true;   // error transitorio → no bloquear
 }
 
 // ── Configuración del Agente IA (editable desde el CRM) ───────
@@ -496,6 +517,12 @@ async function handleWhatsApp(body) {
     const from = message.from;
     const contactName = value.contacts?.[0]?.profile?.name || 'Cliente';
 
+  // Idempotencia: descartar reentregas del mismo wamid antes de procesar.
+  const sbDedup = await getSupabase();
+    if (!(await claimEvent(sbDedup, message.id))) {
+          return { status: 'duplicate', channel: 'whatsapp', id: message.id };
+    }
+
   console.log(`[WA] ${contactName} (${from}): ${message.type}`);
     await markAsRead(message.id);
 
@@ -555,6 +582,12 @@ async function handleMessenger(body) {
 
   console.log(`[FB] ${senderId}: "${text}"`);
 
+  // Idempotencia: descartar reentregas del mismo mensaje (mid) antes de procesar.
+  const sbDedupFB = await getSupabase();
+    if (!(await claimEvent(sbDedupFB, messaging.message?.mid))) {
+          return { status: 'duplicate', channel: 'messenger', from: senderId };
+    }
+
   await fetch(`https://graph.facebook.com/v21.0/${MSG_TARGET}/messages`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -611,6 +644,12 @@ async function handleInstagram(body) {
   }
 
   console.log(`[IG] ${senderId}: "${text}"`);
+
+  // Idempotencia: descartar reentregas del mismo mensaje (mid) antes de procesar.
+  const sbDedupIG = await getSupabase();
+    if (!(await claimEvent(sbDedupIG, messaging.message?.mid))) {
+          return { status: 'duplicate', channel: 'instagram', from: senderId };
+    }
 
   const aiResponse = await processIncoming('ig', senderId, 'Cliente Instagram', text);
     if (!aiResponse) return { status: 'agent_off', channel: 'instagram', from: senderId };
