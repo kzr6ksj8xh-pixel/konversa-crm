@@ -1541,9 +1541,8 @@ async function resyncRealtime(){
     await loadMessagesFromDB();
     // 2) Re-renderizar lo que esté a la vista
     if(aC){
+      // Preserva la posición de lectura del usuario tras reconectar.
       renderMsgs();
-      var area=document.getElementById('msgsArea');
-      if(area)area.scrollTop=area.scrollHeight;
     }
     renderContactList();
     // 3) Reabrir el canal de realtime
@@ -1609,10 +1608,9 @@ async function handleRealtimeMessage(m){
   // Si es el contacto actualmente abierto, renderizar y marcar como leído
   if(aC && (aC.id===contactId || aC.dbId===contactId)){
     markContactRead(contactId);
+    // renderMsgs baja al fondo solo si el usuario ya estaba viéndolo; si subió
+    // a leer mensajes anteriores, respeta su posición.
     renderMsgs();
-    // Scroll al fondo
-    var area=document.getElementById('msgsArea');
-    if(area)area.scrollTop=area.scrollHeight;
   }
 
   // Actualizar preview en lista de contactos
@@ -2607,8 +2605,13 @@ document.getElementById('backToInbox')?.addEventListener('click',()=>{
 /* ══════════════════════════════════════
    MESSAGES
 ══════════════════════════════════════ */
-function renderMsgs(){
+function renderMsgs(forceScroll){
   if(!aC)return;
+  // Solo bajamos al fondo si el usuario YA estaba viendo el fondo, o si se
+  // fuerza (al abrir un chat o enviar). Si subió a leer mensajes de arriba,
+  // respetamos su posición y NO lo arrastramos hacia el último mensaje.
+  var area0=document.getElementById('msgsArea');
+  var stick=forceScroll||!area0||(area0.scrollHeight-area0.scrollTop-area0.clientHeight)<80;
   var list=msgs[aC.id]||[];
   document.getElementById('msgsArea').innerHTML=`<div class="dsep">Hoy · ${CH[aCh]?.label}</div>`+list.map(m=>{
     if(m.t==='ai') return`<div class="mrow out"><div class="av" style="width:24px;height:24px;font-size:9px;background:var(--accent);color:#fff">K</div><div class="mb-out"><div class="mb ai">${escHtml(m.txt)}</div><div class="mtime" style="text-align:left">${m.time}</div></div></div>`;
@@ -2625,7 +2628,7 @@ function renderMsgs(){
       ${isClient?`<div class="av" style="width:24px;height:24px;font-size:9px;background:${aC.bg};color:${aC.tc}">${aC.ini}</div>`:''}
     </div>`;
   }).join('');
-  var a=document.getElementById('msgsArea');a.scrollTop=a.scrollHeight;
+  var a=document.getElementById('msgsArea');if(stick)a.scrollTop=a.scrollHeight;
   document.getElementById('chNm').textContent=aC.name;
   var av=document.getElementById('chAv');av.textContent=aC.ini;av.style.background=aC.bg;av.style.color=aC.tc;
   var dot=document.getElementById('chDot');dot.style.background=CH[aCh].color;dot.innerHTML=cI(aCh,7);
@@ -2910,7 +2913,7 @@ function useTpl(id){
     var content=`✅ ${t.name}\n${txt}`;
     msgs[aC.id].push({t:'tpl',txt:content,time:ts,ch:aCh});
     hist.push({name:t.name,type:t.type,time:ts,ch:aCh});
-    renderMsgs();renderRightPanel();
+    renderMsgs(true);renderRightPanel();
     if(aC.dbId)saveMessageToDB(aC.dbId,aCh,'tpl',content);
     sendToChannel(aCh,txt);
   }
@@ -2974,13 +2977,13 @@ function sendMsg(){
   var ts=now();
   if(aCh==='note'){
     if(aC){if(!msgs[aC.id])msgs[aC.id]=[];msgs[aC.id].push({t:'note',txt,time:ts,ch:null});}
-    inp.value='';renderMsgs();
+    inp.value='';renderMsgs(true);
     if(aC?.dbId)saveMessageToDB(aC.dbId,null,'note',txt);
     aCh=aC?.ch||'wa';setNoteMode(false);renderTools();
     return;
   }
   if(aC){if(!msgs[aC.id])msgs[aC.id]=[];msgs[aC.id].push({t:'out',txt,time:ts,ch:aCh});}
-  inp.value='';renderMsgs();
+  inp.value='';renderMsgs(true);
   if(aC?.dbId)saveMessageToDB(aC.dbId,aCh,'agent',txt);
   sendToChannel(aCh,txt);
   if(aiOn){
@@ -3089,7 +3092,7 @@ function renderProducts(){
       if(!handle){toast('Este contacto no tiene canal asignado');return;}
       if(!msgs[aC.id])msgs[aC.id]=[];
       msgs[aC.id].push({t:'out',txt:txt,time:now(),ch:ch,img:imgUrl||null});
-      renderMsgs();
+      renderMsgs(true);
       if(aC.dbId)saveMessageToDB(aC.dbId,ch,'agent',txt);
       sendToChannel(ch,txt,imgUrl);
       toast(`"${prod.name}" enviado a ${aC.name} por ${CH[ch]?.label||ch} ✓`);
@@ -3572,7 +3575,7 @@ function saveLeadChanges(){
   document.getElementById('ldComp').textContent=lead.company||'';
 }
 
-function renderChatAll(){renderContactList();renderMsgs();renderTools();renderRightPanel();renderTpl();}
+function renderChatAll(){renderContactList();renderMsgs(true);renderTools();renderRightPanel();renderTpl();}
 
 /* ══════════════════════════════════════
    PIPELINE
