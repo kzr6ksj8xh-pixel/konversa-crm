@@ -2611,6 +2611,9 @@ function renderMsgs(forceScroll){
   // fuerza (al abrir un chat o enviar). Si subió a leer mensajes de arriba,
   // respetamos su posición y NO lo arrastramos hacia el último mensaje.
   var area0=document.getElementById('msgsArea');
+  // Guardamos la posición de lectura ANTES de reconstruir el innerHTML (al
+  // reemplazar innerHTML el navegador resetea el scroll a 0/arriba).
+  var prevTop=area0?area0.scrollTop:0;
   var stick=forceScroll||!area0||(area0.scrollHeight-area0.scrollTop-area0.clientHeight)<80;
   var list=msgs[aC.id]||[];
   document.getElementById('msgsArea').innerHTML=`<div class="dsep">Hoy · ${CH[aCh]?.label}</div>`+list.map(m=>{
@@ -2628,7 +2631,9 @@ function renderMsgs(forceScroll){
       ${isClient?`<div class="av" style="width:24px;height:24px;font-size:9px;background:${aC.bg};color:${aC.tc}">${aC.ini}</div>`:''}
     </div>`;
   }).join('');
-  var a=document.getElementById('msgsArea');if(stick)a.scrollTop=a.scrollHeight;
+  // Si estaba al fondo (o se fuerza) bajamos al último; si estaba leyendo el
+  // historial, restauramos su posición exacta en vez de saltar arriba/abajo.
+  var a=document.getElementById('msgsArea');a.scrollTop=stick?a.scrollHeight:prevTop;
   document.getElementById('chNm').textContent=aC.name;
   var av=document.getElementById('chAv');av.textContent=aC.ini;av.style.background=aC.bg;av.style.color=aC.tc;
   var dot=document.getElementById('chDot');dot.style.background=CH[aCh].color;dot.innerHTML=cI(aCh,7);
