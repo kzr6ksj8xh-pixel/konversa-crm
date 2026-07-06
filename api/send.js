@@ -3,6 +3,35 @@ const PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID;
 const META_PAGE_TOKEN = process.env.META_PAGE_TOKEN;
 const INTERNAL_API_KEY = process.env.INTERNAL_API_KEY;
 
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+let _sb = null;
+async function getSupabase() {
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) return null;
+  if (_sb) return _sb;
+  const { createClient } = await import('@supabase/supabase-js');
+  _sb = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
+    auth: { persistSession: false, autoRefreshToken: false }
+  });
+  return _sb;
+}
+
+// Verifica que el Bearer token sea un JWT de usuario válido de Supabase.
+// Reemplaza la validación por Origin/Referer, que cualquier cliente que no
+// sea un navegador puede falsificar.
+async function isValidSupabaseUser(token) {
+  try {
+    const sb = await getSupabase();
+    if (!sb) return false;
+    const { data, error } = await sb.auth.getUser(token);
+    return !error && !!data?.user;
+  } catch (e) {
+    console.error('isValidSupabaseUser:', e.message);
+    return false;
+  }
+}
+
 async function uploadImageToWhatsApp(imageUrl) {
   try {
     const imgRes = await fetch(imageUrl, { headers: { 'User-Agent': 'Mozilla/5.0' } });
@@ -73,11 +102,18 @@ async function sendFBIG(recipientId, text) {
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'POST only' });
 
-  const origin = req.headers['origin'] || req.headers['referer'] || '';
+  // Autorización: (a) clave interna para llamadas servidor-a-servidor, o
+  // (b) un JWT de usuario de Supabase para el navegador. Ya NO se acepta la
+  // validación por Origin/Referer: este endpoint envía con los tokens de la
+  // empresa (WhatsApp/Meta), así que exige identidad real.
   const apiKey = req.headers['x-api-key'];
-  const isValidOrigin = origin.includes('konversa-crm.vercel.app') || origin.includes('localhost');
-  const isValidKey = INTERNAL_API_KEY && apiKey === INTERNAL_API_KEY;
-  if (!isValidOrigin && !isValidKey) {
+  let authorized = INTERNAL_API_KEY && apiKey === INTERNAL_API_KEY;
+  if (!authorized) {
+    const auth = req.headers['authorization'] || '';
+    const token = auth.startsWith('Bearer ') ? auth.slice(7) : '';
+    authorized = token ? await isValidSupabaseUser(token) : false;
+  }
+  if (!authorized) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 

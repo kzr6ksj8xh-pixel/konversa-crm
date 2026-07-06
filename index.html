@@ -1451,7 +1451,11 @@ async function sendToChannel(channel, text, imageUrl){
   try{
     var payload={channel,to:handle,text};
     if(imageUrl)payload.imageUrl=imageUrl;
-    var res=await fetch('/api/send',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    // Adjuntar el JWT de la sesión: /api/send ahora exige identidad real
+    // (JWT de Supabase o clave interna), ya no valida por Origin.
+    var headers={'Content-Type':'application/json'};
+    try{var sess=await sb.auth.getSession();var tok=sess&&sess.data&&sess.data.session&&sess.data.session.access_token;if(tok)headers['Authorization']='Bearer '+tok;}catch(e){}
+    var res=await fetch('/api/send',{method:'POST',headers:headers,body:JSON.stringify(payload)});
     var rj=await res.json().catch(()=>({}));
     if(!res.ok)console.warn('sendToChannel error:',res.status,rj);
     else console.log('sendToChannel OK:',channel,handle,'resp:',rj);
