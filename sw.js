@@ -1,4 +1,4 @@
-const VERSION = 'v14';
+const VERSION = 'v15';
 const CACHE = 'konversa-' + VERSION;
 
 self.addEventListener('install', e => {
