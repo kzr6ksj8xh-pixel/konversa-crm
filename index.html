@@ -3192,7 +3192,7 @@ function renderProducts(){
       if(!msgs[aC.id])msgs[aC.id]=[];
       msgs[aC.id].push({t:'out',txt:txt,time:now(),ch:ch,img:imgUrl||null});
       renderMsgs(true);
-      if(aC.dbId)saveMessageToDB(aC.dbId,ch,'agent',txt);
+      if(aC.dbId)saveMessageToDB(aC.dbId,ch,'agent',txt,imgUrl||null);
       sendToChannel(ch,txt,imgUrl);
       toast(`"${prod.name}" enviado a ${aC.name} por ${CH[ch]?.label||ch} ✓`);
       switchView('chat');
