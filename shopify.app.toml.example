@@ -1,0 +1,32 @@
+# ============================================================
+# Ctx:Whatsapp — configuración de app Shopify (plantilla)
+# ============================================================
+# Copia este archivo a `shopify.app.toml` y ejecuta:
+#   shopify app config link      # vincula con tu app de Partners
+#   shopify app deploy           # publica la Theme App Extension
+#
+# NO subas `shopify.app.toml` con el client_id real al repo público.
+# ============================================================
+
+# client_id de tu app en el Partner Dashboard (= SHOPIFY_API_KEY)
+client_id = "REEMPLAZA_CON_TU_CLIENT_ID"
+
+name = "Ctx:Whatsapp"
+handle = "ctx-whatsapp"
+application_url = "https://konversa-crm.vercel.app"
+embedded = false
+
+[access_scopes]
+# El botón flotante no necesita scopes extra; se mantienen los del CRM.
+scopes = "read_products,read_orders,read_inventory,read_customers"
+
+[auth]
+redirect_urls = [
+  "https://konversa-crm.vercel.app/api/shopify"
+]
+
+[webhooks]
+api_version = "2024-10"
+
+[build]
+include_config_on_deploy = true

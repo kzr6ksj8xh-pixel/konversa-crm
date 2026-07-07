@@ -1,0 +1,83 @@
+/* ============================================================
+ * Ctx:Whatsapp — estilos del botón flotante (Konversa CRM)
+ * ============================================================ */
+.ctx-wa {
+  position: fixed;
+  bottom: 20px;
+  z-index: 2147483000;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+  pointer-events: none;
+}
+.ctx-wa--right { right: 20px; align-items: flex-end; }
+.ctx-wa--left  { left: 20px;  align-items: flex-start; }
+
+.ctx-wa__btn {
+  --ctx-wa-color: #25D366;
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--ctx-wa-color);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  text-decoration: none;
+}
+.ctx-wa__btn:hover,
+.ctx-wa__btn:focus-visible {
+  transform: scale(1.06);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+  outline: none;
+}
+.ctx-wa__btn svg { display: block; }
+
+.ctx-wa__bubble {
+  pointer-events: auto;
+  position: relative;
+  max-width: 220px;
+  background: #fff;
+  color: #1a1a1a;
+  font-size: 14px;
+  line-height: 1.35;
+  padding: 10px 30px 10px 14px;
+  border-radius: 12px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+  animation: ctx-wa-in 0.25s ease;
+}
+@keyframes ctx-wa-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.ctx-wa__bubble-close {
+  position: absolute;
+  top: 4px;
+  right: 6px;
+  border: 0;
+  background: transparent;
+  color: #999;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 2px;
+}
+.ctx-wa__bubble-close:hover { color: #555; }
+
+.ctx-wa--no-bubble .ctx-wa__bubble { display: none; }
+
+@media (max-width: 600px) {
+  .ctx-wa { bottom: 16px; }
+  .ctx-wa--right { right: 16px; }
+  .ctx-wa--left  { left: 16px; }
+  .ctx-wa__bubble { max-width: 180px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ctx-wa__btn { transition: none; }
+  .ctx-wa__bubble { animation: none; }
+}

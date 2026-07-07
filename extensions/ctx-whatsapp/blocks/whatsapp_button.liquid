@@ -1,0 +1,85 @@
+{% comment %}
+  Ctx:Whatsapp — Botón flotante de WhatsApp (versión GRATIS)
+  App embed block: se activa desde el editor de temas → "Incrustaciones de apps".
+  El número sale del WhatsApp de Konversa CRM (vía la app instalada), no se
+  configura aquí. Solo se personaliza la apariencia y el mensaje.
+{% endcomment %}
+
+<div
+  id="ctx-wa-root"
+  data-app-host="{{ block.settings.app_host | default: 'https://konversa-crm.vercel.app' }}"
+  data-shop="{{ shop.permanent_domain }}"
+  data-position="{{ block.settings.position }}"
+  data-color="{{ block.settings.button_color }}"
+  data-label="{{ block.settings.label | escape }}"
+  data-greeting="{{ block.settings.greeting | escape }}"
+  data-show-greeting="{{ block.settings.show_greeting }}"
+  data-message="{{ block.settings.prefilled_message | escape }}"
+  hidden
+></div>
+
+{% schema %}
+{
+  "name": "Ctx:Whatsapp",
+  "target": "body",
+  "stylesheet": "ctx-whatsapp.css",
+  "javascript": "ctx-whatsapp.js",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Botón flotante de WhatsApp conectado al número de Konversa CRM. El número se toma automáticamente de tu cuenta; aquí solo ajustas la apariencia."
+    },
+    {
+      "type": "select",
+      "id": "position",
+      "label": "Posición",
+      "default": "right",
+      "options": [
+        { "value": "right", "label": "Abajo a la derecha" },
+        { "value": "left", "label": "Abajo a la izquierda" }
+      ]
+    },
+    {
+      "type": "color",
+      "id": "button_color",
+      "label": "Color del botón",
+      "default": "#25D366"
+    },
+    {
+      "type": "text",
+      "id": "label",
+      "label": "Texto accesible / tooltip",
+      "default": "Chatea con nosotros por WhatsApp"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_greeting",
+      "label": "Mostrar globo de saludo",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "greeting",
+      "label": "Texto del globo de saludo",
+      "default": "¿Necesitas ayuda? Escríbenos"
+    },
+    {
+      "type": "text",
+      "id": "prefilled_message",
+      "label": "Mensaje prellenado",
+      "info": "Se coloca automáticamente en el chat de WhatsApp del cliente.",
+      "default": "Hola, tengo una pregunta sobre su tienda."
+    },
+    {
+      "type": "header",
+      "content": "Avanzado"
+    },
+    {
+      "type": "text",
+      "id": "app_host",
+      "label": "Host de la app (no cambiar)",
+      "default": "https://konversa-crm.vercel.app"
+    }
+  ]
+}
+{% endschema %}

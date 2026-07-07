@@ -14,7 +14,7 @@ import crypto from 'crypto';
 
 const SHOPIFY_API_KEY = process.env.SHOPIFY_API_KEY;
 const SHOPIFY_API_SECRET = process.env.SHOPIFY_API_SECRET;
-const SHOPIFY_SCOPES = 'read_products,read_orders,read_inventory,read_customers';
+const SHOPIFY_SCOPES = 'read_products,read_orders,read_inventory,read_customers,write_script_tags';
 const APP_URL = process.env.APP_URL || 'https://konversa-crm.vercel.app';
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
@@ -178,8 +178,38 @@ async function handleCallback(query, res) {
     console.error('Sync inicial falló:', e.message);
   }
 
+  // Inyectar el botón flotante de WhatsApp en la tienda (ScriptTag)
+  try {
+    await ensureWhatsAppScriptTag(shop, accessToken);
+  } catch (e) {
+    console.error('ScriptTag de WhatsApp falló:', e.message);
+  }
+
   // Redirigir al CRM con éxito
   return res.redirect(302, `${APP_URL}?shopify=connected&shop=${encodeURIComponent(shop)}`);
+}
+
+// ══════════════════════════════════════════════════════════════
+// SCRIPT TAG — inyecta el botón flotante de WhatsApp en la tienda
+// ══════════════════════════════════════════════════════════════
+// Se registra al instalar la app. Idempotente: no duplica si ya existe.
+async function ensureWhatsAppScriptTag(shopDomain, accessToken) {
+  const src = `${APP_URL}/shopify-wa-widget.js`;
+
+  // ¿Ya está registrado? Evitar duplicados en reinstalaciones.
+  try {
+    const existing = await shopifyAPI(shopDomain, accessToken, 'script_tags.json?limit=250');
+    const tags = existing.script_tags || [];
+    if (tags.some(t => t.src === src)) return { status: 'exists' };
+  } catch (e) {
+    // Si falla el GET (p. ej. sin scope), seguimos e intentamos crear.
+    console.error('No se pudo listar script_tags:', e.message);
+  }
+
+  await shopifyAPI(shopDomain, accessToken, 'script_tags.json', 'POST', {
+    script_tag: { event: 'onload', src, display_scope: 'online_store' }
+  });
+  return { status: 'created' };
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -292,6 +322,99 @@ async function syncOrders(sb, shopDomain, accessToken) {
 }
 
 // ══════════════════════════════════════════════════════════════
+// NÚMERO DE WHATSAPP DE KONVERSA (para el botón wa.me de la tienda)
+// ══════════════════════════════════════════════════════════════
+// El botón flotante de Shopify debe abrir el WhatsApp de Konversa.
+// Resolvemos el número marcable (E.164, solo dígitos) desde:
+//   1. WHATSAPP_DISPLAY_NUMBER  (si está configurado explícitamente)
+//   2. Graph API: display_phone_number del phone_number_id conectado
+// El resultado se cachea en memoria (invocaciones "calientes").
+// Número de WhatsApp de Konversa por defecto: +52 981 751 1111
+// (se puede sobreescribir con WHATSAPP_DISPLAY_NUMBER)
+const DEFAULT_KONVERSA_WA = '529817511111';
+
+let _cachedWaNumber = null;
+async function getKonversaWhatsAppNumber() {
+  if (_cachedWaNumber) return _cachedWaNumber;
+
+  const explicit = process.env.WHATSAPP_DISPLAY_NUMBER;
+  if (explicit) {
+    _cachedWaNumber = String(explicit).replace(/\D/g, '');
+    return _cachedWaNumber || null;
+  }
+
+  const id = process.env.WHATSAPP_PHONE_NUMBER_ID;
+  const token = process.env.WHATSAPP_ACCESS_TOKEN;
+  if (id && token) {
+    try {
+      const r = await fetch(`https://graph.facebook.com/v21.0/${id}?fields=display_phone_number`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (r.ok) {
+        const d = await r.json();
+        if (d.display_phone_number) {
+          _cachedWaNumber = String(d.display_phone_number).replace(/\D/g, '');
+          return _cachedWaNumber || null;
+        }
+      } else {
+        console.error('Graph display_phone_number error:', r.status);
+      }
+    } catch (e) {
+      console.error('Error obteniendo número de WhatsApp:', e.message);
+    }
+  }
+
+  // Último recurso: número de Konversa por defecto.
+  _cachedWaNumber = DEFAULT_KONVERSA_WA;
+  return _cachedWaNumber;
+}
+
+// ── Config pública del botón flotante (llamada desde la tienda) ──
+// GET /api/shopify?action=widget-config&shop=mi-tienda.myshopify.com
+// Devuelve el número de WhatsApp SOLO si la tienda tiene la app instalada.
+// Respuesta siempre 200 con { enabled, number? } para no romper la tienda.
+async function handleWidgetConfig(req, res) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Cache-Control', 'public, max-age=300');
+  res.setHeader('Vary', 'Origin');
+
+  if (req.method === 'OPTIONS') return res.status(204).end();
+  if (req.method !== 'GET') return res.status(200).json({ enabled: false, reason: 'method' });
+
+  const shop = req.query.shop;
+  if (!shop || !isValidShopDomain(shop)) {
+    return res.status(200).json({ enabled: false, reason: 'shop-invalid' });
+  }
+
+  try {
+    const sb = await getSupabase();
+    const { data } = await sb.from('integrations')
+      .select('config')
+      .eq('provider', 'shopify')
+      .eq('shop_domain', shop)
+      .eq('is_active', true)
+      .single();
+
+    if (!data) return res.status(200).json({ enabled: false, reason: 'not-installed' });
+
+    // El comerciante puede desactivar el botón desde el CRM (config.whatsapp_widget = false)
+    if (data.config && data.config.whatsapp_widget === false) {
+      return res.status(200).json({ enabled: false, reason: 'disabled' });
+    }
+
+    const number = await getKonversaWhatsAppNumber();
+    if (!number) return res.status(200).json({ enabled: false, reason: 'no-number' });
+
+    return res.status(200).json({ enabled: true, number });
+  } catch (e) {
+    console.error('widget-config error:', e.message);
+    return res.status(200).json({ enabled: false, reason: 'error' });
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
 // BUSCAR PRODUCTO (para el agente IA)
 // ══════════════════════════════════════════════════════════════
 async function searchProduct(sb, query) {
@@ -327,6 +450,11 @@ async function orderStatus(sb, email, shopDomain) {
 // HANDLER
 // ══════════════════════════════════════════════════════════════
 export default async function handler(req, res) {
+  // ── Config pública del botón flotante (tienda) — GET/OPTIONS, sin auth ──
+  if (req.query.action === 'widget-config') {
+    return handleWidgetConfig(req, res);
+  }
+
   // ── GET: OAuth flow ──
   if (req.method === 'GET') {
     const { action, shop, code } = req.query;
