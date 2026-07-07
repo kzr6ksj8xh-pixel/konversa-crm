@@ -144,8 +144,46 @@
     }, 500);
   }
 
+  // Oculta OTROS botones flotantes de WhatsApp (p.ej. la app seedgrow) para
+  // dejar solo el de Konversa. Detecta por enlace a wa.me/whatsapp y excluye
+  // el nuestro (.ctx-wa). Sube al contenedor flotante y lo oculta.
+  function hideOtherWhatsAppWidgets() {
+    function floatingAncestor(el) {
+      var node = el;
+      while (node && node !== document.body) {
+        var pos = window.getComputedStyle(node).position;
+        if (pos === 'fixed' || pos === 'sticky') return node;
+        node = node.parentElement;
+      }
+      return null;
+    }
+    function run() {
+      try {
+        var anchors = document.querySelectorAll(
+          'a[href*="wa.me"],a[href*="whatsapp.com"],a[href*="api.whatsapp"]'
+        );
+        for (var i = 0; i < anchors.length; i++) {
+          var a = anchors[i];
+          if (a.closest && a.closest('.ctx-wa')) continue; // el de Konversa: no tocar
+          var target = floatingAncestor(a);
+          if (!target || target.dataset.ctxWaHidden === '1') continue;
+          target.style.setProperty('display', 'none', 'important');
+          target.dataset.ctxWaHidden = '1';
+        }
+      } catch (e) { /* nunca romper la tienda */ }
+    }
+    run();
+    var tries = 0;
+    var iv = setInterval(function () {
+      tries++;
+      run();
+      if (tries > 20) clearInterval(iv); // ~10s por si el otro widget carga tarde
+    }, 500);
+  }
+
   function start() {
     repositionPromo();
+    hideOtherWhatsAppWidgets();
     var shop = shopDomain();
     var url = HOST + '/api/shopify?action=widget-config&shop=' + encodeURIComponent(shop);
     fetch(url, { method: 'GET', credentials: 'omit' })
