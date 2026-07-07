@@ -1444,6 +1444,25 @@ async function deleteContactFromDB(contactId){
   }catch(e){console.warn('deleteContactFromDB error:',e);return {ok:false,error:e};}
 }
 
+// Borra todos los mensajes de un contacto (conserva el contacto y sus
+// conversaciones). Sin esto, "Eliminar chat" solo limpiaba la memoria local y
+// los mensajes reaparecían tras el siguiente resync/recarga.
+// Devuelve {ok, deleted} donde deleted es el número real de filas borradas; si
+// RLS bloquea el DELETE, Supabase no da error pero borra 0 filas, así que
+// verificamos el conteo para no fingir un éxito que el realtime revierte.
+async function deleteChatFromDB(contactId){
+  if(!sb||demoMode||!contactId)return {ok:true,deleted:0,demo:true};
+  try{
+    var {data:convs,error:cErr}=await sb.from('conversations').select('id').eq('contact_id',contactId);
+    if(cErr){console.warn('deleteChatFromDB error:',cErr);return {ok:false,error:cErr};}
+    var convIds=(convs||[]).map(function(c){return c.id;});
+    if(!convIds.length)return {ok:true,deleted:0};
+    var {data:del,error:mErr}=await sb.from('messages').delete().in('conversation_id',convIds).select('id');
+    if(mErr){console.warn('deleteChatFromDB error:',mErr);return {ok:false,error:mErr};}
+    return {ok:true,deleted:(del||[]).length};
+  }catch(e){console.warn('deleteChatFromDB error:',e);return {ok:false,error:e};}
+}
+
 // text: pie/caption (puede ir vacío si hay media). mediaUrl+mediaType para
 // enviar foto o documento; el 3er argumento acepta también una URL de imagen
 // suelta (compat con el envío de productos, que equivale a mediaType 'image').
@@ -2804,7 +2823,26 @@ function doDeleteChat(){
   guardAction('delete_chat',()=>confirmDialog(
     '¿Eliminar chat?',
     `Se eliminarán todos los mensajes con ${aC.name}. Esta acción no se puede deshacer.`,
-    ()=>{msgs[aC.id]=[];renderMsgs();toast(`Chat con ${aC.name} eliminado`);}
+    async ()=>{
+      var c=aC; if(!c)return;
+      var delId=c.dbId||c.id;
+      // ¿Había mensajes reales en la BD antes de borrar? (para detectar bloqueos RLS)
+      var hadMsgs=((msgs[c.id]||[]).length + (c.dbId?(msgs[c.dbId]||[]).length:0))>0;
+      var r=await deleteChatFromDB(delId);
+      if(!r.ok){toast('⚠️ No se pudo eliminar: '+(r.error?.message||'error'));return;}
+      // Si había mensajes pero la BD no borró ninguno, RLS lo bloqueó: no fue
+      // admin. Avisamos y NO limpiamos la UI (reaparecerían de todos modos).
+      if(!r.demo && hadMsgs && r.deleted===0){
+        toast('⛔ No se pudo eliminar: se requieren permisos de administrador');
+        return;
+      }
+      // Limpiar cache local (por si la clave es id o dbId) y refrescar UI.
+      msgs[c.id]=[]; if(c.dbId) msgs[c.dbId]=[];
+      c.pre=''; c.time='';
+      if(aC===c) renderMsgs();
+      renderContactList();
+      toast(`Chat con ${c.name} eliminado`);
+    }
   ));
 }
 function doDeleteContact(){
