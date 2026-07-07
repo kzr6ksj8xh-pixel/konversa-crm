@@ -98,7 +98,54 @@
     document.body.appendChild(wrap);
   }
 
+  // Reubica el badge promocional flotante (PageFly) para que no choque con
+  // el botón de WhatsApp (abajo-derecha). Lo movemos a abajo-izquierda:
+  // sigue siendo comercialmente visible pero no estorba.
+  function repositionPromo() {
+    var TOKEN = 'OZON30'; // código del badge; muy específico de este elemento
+    function findBadge() {
+      var els = document.body.getElementsByTagName('*');
+      for (var i = 0; i < els.length; i++) {
+        var el = els[i];
+        // el elemento más "hoja" que contiene el código (evita wrappers grandes)
+        if (el.children.length <= 6 && el.textContent && el.textContent.indexOf(TOKEN) !== -1) {
+          return el;
+        }
+      }
+      return null;
+    }
+    function floatingAncestor(el) {
+      var node = el;
+      while (node && node !== document.body) {
+        var pos = window.getComputedStyle(node).position;
+        if (pos === 'fixed' || pos === 'sticky') return node;
+        node = node.parentElement;
+      }
+      return el; // si no hay contenedor flotante, movemos el propio badge
+    }
+    function apply() {
+      try {
+        var badge = findBadge();
+        if (!badge) return false;
+        var target = floatingAncestor(badge);
+        if (target.dataset.ctxWaMoved === '1') return true;
+        target.style.setProperty('right', 'auto', 'important');
+        target.style.setProperty('left', '20px', 'important');
+        target.style.setProperty('bottom', '20px', 'important');
+        target.dataset.ctxWaMoved = '1';
+        return true;
+      } catch (e) { return true; } // si algo falla, no reintentar en bucle
+    }
+    if (apply()) return;
+    var tries = 0;
+    var iv = setInterval(function () {
+      tries++;
+      if (apply() || tries > 20) clearInterval(iv); // hasta ~10s
+    }, 500);
+  }
+
   function start() {
+    repositionPromo();
     var shop = shopDomain();
     var url = HOST + '/api/shopify?action=widget-config&shop=' + encodeURIComponent(shop);
     fetch(url, { method: 'GET', credentials: 'omit' })
