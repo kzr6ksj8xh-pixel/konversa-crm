@@ -6,9 +6,11 @@
   'use strict';
 
   function init() {
+    if (window.__ctxWaMounted) return; // evita botón duplicado (ScriptTag + extensión)
     var root = document.getElementById('ctx-wa-root');
     if (!root || root.dataset.ctxWaMounted === '1') return;
     root.dataset.ctxWaMounted = '1';
+    window.__ctxWaMounted = true;
 
     var host = (root.dataset.appHost || 'https://konversa-crm.vercel.app').replace(/\/+$/, '');
     var shop = root.dataset.shop || '';

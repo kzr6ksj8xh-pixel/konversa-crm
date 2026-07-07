@@ -44,15 +44,35 @@ WHATSAPP_DISPLAY_NUMBER=529817511111
 
 ## Instalación en la tienda (comerciante)
 
+Hay dos formas. La **automática (ScriptTag)** no requiere Partners ni Shopify CLI
+y es la recomendada para empezar.
+
+### A) Automática — ScriptTag (recomendada, sin pasos manuales)
+
 1. Instalar la app (OAuth): `https://konversa-crm.vercel.app/shopify/install?shop=<tienda>.myshopify.com`.
-2. En Shopify Admin → **Tienda online → Temas → Personalizar**.
+2. **Listo.** Al aceptar los permisos, la app registra un ScriptTag
+   (`/shopify-wa-widget.js`) y el botón flotante aparece solo en la tienda.
+
+- Requiere el scope `write_script_tags` (ya incluido). Las tiendas instaladas
+  **antes** de agregar ese scope deben **reinstalar la app** una vez para
+  concederlo.
+- El botón usa ajustes por defecto (verde, abajo a la derecha, saludo en
+  español). No es configurable por tienda en esta vía.
+- Al desinstalar la app, Shopify elimina el ScriptTag y el botón desaparece.
+
+### B) Theme App Extension — App embed block (personalizable)
+
+Requiere publicar la extensión con Shopify CLI (ver más abajo). Una vez publicada:
+
+1. Instalar la app (OAuth), igual que arriba.
+2. Shopify Admin → **Tienda online → Temas → Personalizar**.
 3. Panel izquierdo → **Incrustaciones de apps** (App embeds) → activar **Ctx:Whatsapp**.
 4. Ajustar posición, color, mensaje y saludo. **Guardar**.
 
-El botón solo aparece si la tienda tiene la app instalada (paso 1). Si se
-desinstala, el botón desaparece solo.
+> Un guardián global (`window.__ctxWaMounted`) evita que se muestre el botón dos
+> veces si por accidente están activas ambas vías a la vez.
 
-## Despliegue de la extensión (desarrollador)
+## Despliegue de la extensión (desarrollador, opcional — solo para la vía B)
 
 Requiere [Shopify CLI](https://shopify.dev/docs/api/shopify-cli):
 

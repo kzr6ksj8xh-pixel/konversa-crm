@@ -14,7 +14,7 @@ import crypto from 'crypto';
 
 const SHOPIFY_API_KEY = process.env.SHOPIFY_API_KEY;
 const SHOPIFY_API_SECRET = process.env.SHOPIFY_API_SECRET;
-const SHOPIFY_SCOPES = 'read_products,read_orders,read_inventory,read_customers';
+const SHOPIFY_SCOPES = 'read_products,read_orders,read_inventory,read_customers,write_script_tags';
 const APP_URL = process.env.APP_URL || 'https://konversa-crm.vercel.app';
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
@@ -178,8 +178,38 @@ async function handleCallback(query, res) {
     console.error('Sync inicial falló:', e.message);
   }
 
+  // Inyectar el botón flotante de WhatsApp en la tienda (ScriptTag)
+  try {
+    await ensureWhatsAppScriptTag(shop, accessToken);
+  } catch (e) {
+    console.error('ScriptTag de WhatsApp falló:', e.message);
+  }
+
   // Redirigir al CRM con éxito
   return res.redirect(302, `${APP_URL}?shopify=connected&shop=${encodeURIComponent(shop)}`);
+}
+
+// ══════════════════════════════════════════════════════════════
+// SCRIPT TAG — inyecta el botón flotante de WhatsApp en la tienda
+// ══════════════════════════════════════════════════════════════
+// Se registra al instalar la app. Idempotente: no duplica si ya existe.
+async function ensureWhatsAppScriptTag(shopDomain, accessToken) {
+  const src = `${APP_URL}/shopify-wa-widget.js`;
+
+  // ¿Ya está registrado? Evitar duplicados en reinstalaciones.
+  try {
+    const existing = await shopifyAPI(shopDomain, accessToken, 'script_tags.json?limit=250');
+    const tags = existing.script_tags || [];
+    if (tags.some(t => t.src === src)) return { status: 'exists' };
+  } catch (e) {
+    // Si falla el GET (p. ej. sin scope), seguimos e intentamos crear.
+    console.error('No se pudo listar script_tags:', e.message);
+  }
+
+  await shopifyAPI(shopDomain, accessToken, 'script_tags.json', 'POST', {
+    script_tag: { event: 'onload', src, display_scope: 'online_store' }
+  });
+  return { status: 'created' };
 }
 
 // ══════════════════════════════════════════════════════════════
