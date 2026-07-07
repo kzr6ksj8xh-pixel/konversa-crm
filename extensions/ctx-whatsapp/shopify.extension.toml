@@ -1,0 +1,10 @@
+# ============================================================
+# Ctx:Whatsapp — Theme App Extension (Konversa CRM)
+# Botón flotante de WhatsApp para la tienda Shopify (versión GRATIS)
+# ============================================================
+api_version = "2024-10"
+
+[[extensions]]
+name = "Ctx:Whatsapp"
+handle = "ctx-whatsapp"
+type = "theme"
