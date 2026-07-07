@@ -18,7 +18,7 @@
 
   // Ajustes por defecto (la versión gratis no se configura por tienda)
   var CFG = {
-    position: 'right',
+    position: 'left', // abajo-izquierda: no choca con el badge promo (abajo-derecha)
     color: '#25D366',
     label: 'Chatea con nosotros por WhatsApp',
     greeting: '¿Necesitas ayuda? Escríbenos',
@@ -98,61 +98,6 @@
     document.body.appendChild(wrap);
   }
 
-  // Reubica el badge promocional flotante (PageFly) para que no choque con
-  // el botón de WhatsApp. Lo sube por ENCIMA del botón (mismo lado derecho),
-  // forzándolo a posición fija. PageFly suele usar 'absolute', por eso antes
-  // no se movía: ahora aceptamos absolute/fixed/sticky y forzamos fixed.
-  function repositionPromo() {
-    var TOKEN = 'OZON30'; // código del badge; muy específico de este elemento
-    function findBadge() {
-      var els = document.body.getElementsByTagName('*');
-      for (var i = 0; i < els.length; i++) {
-        var el = els[i];
-        // el elemento hoja que contiene el código (evita wrappers de sección)
-        if (el.children.length <= 8 && el.textContent && el.textContent.indexOf(TOKEN) !== -1) {
-          return el;
-        }
-      }
-      return null;
-    }
-    // Sube al contenedor flotante del badge: el ancestro posicionado MÁS ALTO
-    // que siga siendo pequeño (tamaño de badge), no una sección completa.
-    function pickTarget(badge) {
-      var node = badge, chosen = null;
-      while (node && node !== document.body) {
-        var pos = window.getComputedStyle(node).position;
-        if (pos === 'fixed' || pos === 'absolute' || pos === 'sticky') {
-          var r = node.getBoundingClientRect();
-          if (r.width <= 420 && r.height <= 420) chosen = node;
-        }
-        node = node.parentElement;
-      }
-      return chosen || badge;
-    }
-    function apply() {
-      try {
-        var badge = findBadge();
-        if (!badge) return false;
-        var target = pickTarget(badge);
-        if (target.dataset.ctxWaMoved === '1') return true;
-        target.style.setProperty('position', 'fixed', 'important');
-        target.style.setProperty('left', 'auto', 'important');
-        target.style.setProperty('top', 'auto', 'important');
-        target.style.setProperty('right', '16px', 'important');
-        target.style.setProperty('bottom', '120px', 'important'); // por encima del botón
-        target.style.setProperty('z-index', '2147482000', 'important');
-        target.dataset.ctxWaMoved = '1';
-        return true;
-      } catch (e) { return true; } // si algo falla, no reintentar en bucle
-    }
-    if (apply()) return;
-    var tries = 0;
-    var iv = setInterval(function () {
-      tries++;
-      if (apply() || tries > 20) clearInterval(iv); // hasta ~10s
-    }, 500);
-  }
-
   // Oculta OTROS botones flotantes de WhatsApp (p.ej. la app seedgrow) para
   // dejar solo el de Konversa. Detecta por enlace a wa.me/whatsapp y excluye
   // el nuestro (.ctx-wa). Sube al contenedor flotante y lo oculta.
@@ -191,7 +136,6 @@
   }
 
   function start() {
-    repositionPromo();
     hideOtherWhatsAppWidgets();
     var shop = shopDomain();
     var url = HOST + '/api/shopify?action=widget-config&shop=' + encodeURIComponent(shop);
