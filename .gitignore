@@ -1,0 +1,4 @@
+.vercel
+graphify-out/.graphify_*
+.DS_Store
+.claude/settings.local.json
