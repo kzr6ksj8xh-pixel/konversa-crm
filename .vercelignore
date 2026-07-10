@@ -1,0 +1,11 @@
+graphify-out
+.claude
+.agents
+.clinerules
+.cursor
+.opencode
+.windsurf
+AGENTS.md
+CLAUDE.md
+skills-lock.json
+supabase-*.sql
