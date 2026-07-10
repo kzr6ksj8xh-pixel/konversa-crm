@@ -70,9 +70,9 @@
     "semantic_hash": "3bc35c0d15876b48fab9ffb5b9014d9c"
   },
   "api/send.js": {
-    "mtime": 1782141816.6090667,
-    "ast_hash": "8dbec28bd3b07187a1dda79ad3918332",
-    "semantic_hash": "8dbec28bd3b07187a1dda79ad3918332"
+    "mtime": 1783703398.1252704,
+    "ast_hash": "d0e2c90c15ca0e9bee68d396f581a20a",
+    "semantic_hash": "d0e2c90c15ca0e9bee68d396f581a20a"
   },
   "api/shopify-webhook.js": {
     "mtime": 1782141816.609354,
@@ -80,9 +80,9 @@
     "semantic_hash": "e22db363568def2d29db2707f01a4758"
   },
   "api/shopify.js": {
-    "mtime": 1782141816.6094732,
-    "ast_hash": "a934d4f8fb9ca0e0be28c45040540b03",
-    "semantic_hash": "a934d4f8fb9ca0e0be28c45040540b03"
+    "mtime": 1783703398.125657,
+    "ast_hash": "36c97cc3a86680e21793a6d23a84e70c",
+    "semantic_hash": "36c97cc3a86680e21793a6d23a84e70c"
   },
   "api/terms.js": {
     "mtime": 1781136349.1042106,
@@ -90,14 +90,14 @@
     "semantic_hash": "fe30e8d9a91e2732d1634bcbf809c24b"
   },
   "api/test-chat.js": {
-    "mtime": 1781136349.1140373,
-    "ast_hash": "4635479e0cb137efba5cdd948158259e",
-    "semantic_hash": "4635479e0cb137efba5cdd948158259e"
+    "mtime": 1783703398.1259842,
+    "ast_hash": "283d6b12a90ca1f1026b806905c4e32d",
+    "semantic_hash": "283d6b12a90ca1f1026b806905c4e32d"
   },
   "api/webhook.js": {
-    "mtime": 1782338850.6494944,
-    "ast_hash": "6f049dc4a0f9f3a376cc1bd25087dfe9",
-    "semantic_hash": "6f049dc4a0f9f3a376cc1bd25087dfe9"
+    "mtime": 1783703551.0694249,
+    "ast_hash": "aea8202d2cb6b4640dbe1f4f27e2346b",
+    "semantic_hash": "aea8202d2cb6b4640dbe1f4f27e2346b"
   },
   "lib/push.js": {
     "mtime": 1782141816.6100385,
@@ -135,9 +135,9 @@
     "semantic_hash": "34464c81eb79d2987cc70bb0c76700f0"
   },
   "supabase-rls.sql": {
-    "mtime": 1781136349.1156566,
-    "ast_hash": "8a049a87dde6b3896599cd5d6fa80853",
-    "semantic_hash": "8a049a87dde6b3896599cd5d6fa80853"
+    "mtime": 1783703398.134889,
+    "ast_hash": "6a7d9021a2c17ee4cf3d17f2af1c7ac4",
+    "semantic_hash": "6a7d9021a2c17ee4cf3d17f2af1c7ac4"
   },
   "supabase/functions/automation-cron/deno.json": {
     "mtime": 1782141816.6103747,
@@ -160,14 +160,14 @@
     "semantic_hash": "7c6159be167aefcb29f4ffe0b0a4bb44"
   },
   "sw.js": {
-    "mtime": 1782141816.6106758,
-    "ast_hash": "ad860660a3f5ac992873af15faed45c4",
-    "semantic_hash": "ad860660a3f5ac992873af15faed45c4"
+    "mtime": 1783703398.1351266,
+    "ast_hash": "db721e81c0e17938b9b85269a502f9cb",
+    "semantic_hash": "db721e81c0e17938b9b85269a502f9cb"
   },
   "vercel.json": {
-    "mtime": 1782141816.6107705,
-    "ast_hash": "0ddaeb31f4e95fff3a81a70ae38467c4",
-    "semantic_hash": "0ddaeb31f4e95fff3a81a70ae38467c4"
+    "mtime": 1783703398.135254,
+    "ast_hash": "303ec4897716e7d62219fcefaa8af5c5",
+    "semantic_hash": "303ec4897716e7d62219fcefaa8af5c5"
   },
   ".agents/skills/cavecrew/README.md": {
     "mtime": 1780538013.8047638,
@@ -325,9 +325,9 @@
     "semantic_hash": "82efb97a359f5c7290bf2513d14686be"
   },
   "index.html": {
-    "mtime": 1783035679.5445836,
-    "ast_hash": "e4454fb0c3a26a795ddfe042c19ff0de",
-    "semantic_hash": "e4454fb0c3a26a795ddfe042c19ff0de"
+    "mtime": 1783703398.133985,
+    "ast_hash": "567f0287fa58343b9a4d4a9eac505e6c",
+    "semantic_hash": "567f0287fa58343b9a4d4a9eac505e6c"
   },
   "privacy.html": {
     "mtime": 1780537989.3043342,
@@ -353,5 +353,45 @@
     "mtime": 1780537989.3041358,
     "ast_hash": "d99c8db284df0f00c6e53b9040a4b304",
     "semantic_hash": "d99c8db284df0f00c6e53b9040a4b304"
+  },
+  "api/drive-sync.js": {
+    "mtime": 1783703398.1249416,
+    "ast_hash": "54bab26b148c1283bab5efc6c45928ff",
+    "semantic_hash": "54bab26b148c1283bab5efc6c45928ff"
+  },
+  "extensions/ctx-whatsapp/assets/ctx-whatsapp.js": {
+    "mtime": 1783703398.1319947,
+    "ast_hash": "f9af2b9713139ae80d669b3d0d385520",
+    "semantic_hash": "f9af2b9713139ae80d669b3d0d385520"
+  },
+  "shopify-wa-widget.js": {
+    "mtime": 1783703398.1343107,
+    "ast_hash": "9db3a92cd307f8a0c4a10949166a7a07",
+    "semantic_hash": "9db3a92cd307f8a0c4a10949166a7a07"
+  },
+  "supabase-ai-auto-reply.sql": {
+    "mtime": 1783703398.1344895,
+    "ast_hash": "57dda447632659074657ff1e6c2dfe0a",
+    "semantic_hash": "57dda447632659074657ff1e6c2dfe0a"
+  },
+  "supabase-chat-media.sql": {
+    "mtime": 1783703398.134573,
+    "ast_hash": "bfc57c29b9be944e7d2229a4d49e4d17",
+    "semantic_hash": "bfc57c29b9be944e7d2229a4d49e4d17"
+  },
+  "supabase-webhook-dedup.sql": {
+    "mtime": 1783703398.134979,
+    "ast_hash": "8d6ee7a6bcb2960ce2c12ca35d4f1a35",
+    "semantic_hash": "8d6ee7a6bcb2960ce2c12ca35d4f1a35"
+  },
+  "docs/CTX-WHATSAPP.md": {
+    "mtime": 1783703398.1285884,
+    "ast_hash": "9353e5c4111df49f81b199d2e57df8b9",
+    "semantic_hash": "9353e5c4111df49f81b199d2e57df8b9"
+  },
+  "docs/PLAN-AGENTE-IA.md": {
+    "mtime": 1783703398.1290536,
+    "ast_hash": "8750f7a2c17e0210ecdb5071a00a6d97",
+    "semantic_hash": "8750f7a2c17e0210ecdb5071a00a6d97"
   }
 }
