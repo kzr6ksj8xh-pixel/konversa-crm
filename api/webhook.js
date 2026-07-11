@@ -102,6 +102,16 @@ TABLA DE RECOMENDACIÓN:
 - Restaurante/colegio (aire+agua): AQUA 1000
 - Cliente con minisplit de 1 a 3 toneladas (12,000–36,000 BTUs) que quiere desinfectar el aire con UV-C: Klair UV
 
+PROGRAMAS DE OPERACIÓN (ciclos on/off por programa):
+CIR 150:
+- P1: 15 min ON / 0.5 h OFF
+- P2: 20 min ON / 1 h OFF
+- P3: 25 min ON / 2 h OFF
+ULTRA 150:
+- P1: 10 min ON / 0.5 h OFF
+- P2: 15 min ON / 20 min OFF
+- P3: 20 min ON / 2 h OFF
+
 REGLAS CRÍTICAS SOBRE METROS CUADRADOS (m²):
 - Pregunta los m² UNA SOLA VEZ por conversación. Si ya los preguntaste antes, NO repitas la pregunta.
 - Si el cliente ya respondió con un número (ej: "36", "20"), ESE ES el área en m². Recomienda directamente.
@@ -345,15 +355,105 @@ async function resolveConversation(sb, contactId, channel) {
 }
 
 // ── Guardar mensaje. sender: 'in' | 'out' | 'ai' ──────────
-async function persistMessage(sb, conversationId, channel, sender, content) {
+async function persistMessage(sb, conversationId, channel, sender, content, mediaUrl = null) {
     const { error } = await sb.from('messages').insert({
           conversation_id: conversationId, sender, content, channel,
+          media_url: mediaUrl,
           sent_at: new Date().toISOString()
     });
     if (error) console.error('persistMessage:', error);
     await sb.from('conversations')
       .update({ last_message: content.substring(0, 200), updated_at: new Date().toISOString() })
       .eq('id', conversationId);
+}
+
+// ── Media entrante (fotos, PDFs, audio, video) ────────────────
+// El front ya renderiza media_url (mediaFromUrl); aquí solo hay que poblarla.
+// WhatsApp no manda el binario en el payload: manda un media id que hay que
+// resolver y descargar autenticado. Messenger/Instagram sí mandan una URL
+// directa del CDN, pero caduca, así que en ambos casos re-subimos el archivo
+// al bucket público 'chat-media' (el mismo que usa el front al enviar).
+
+const MIME_EXT = {
+    'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/gif': 'gif',
+    'application/pdf': 'pdf',
+    'audio/ogg': 'ogg', 'audio/mpeg': 'mp3', 'audio/mp4': 'm4a', 'audio/aac': 'aac', 'audio/amr': 'amr',
+    'video/mp4': 'mp4', 'video/3gpp': '3gp',
+    'application/msword': 'doc',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx',
+    'application/vnd.ms-excel': 'xls',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'xlsx',
+    'application/vnd.ms-powerpoint': 'ppt',
+    'application/vnd.openxmlformats-officedocument.presentationml.presentation': 'pptx',
+    'text/plain': 'txt'
+};
+function extFromMime(mime) {
+    if (!mime) return 'bin';
+    const clean = mime.split(';')[0].trim().toLowerCase();
+    return MIME_EXT[clean] || clean.split('/')[1]?.replace(/[^\w]/g, '') || 'bin';
+}
+
+// WhatsApp: media id → URL temporal (Graph API) → binario. Ambas llamadas
+// requieren el Bearer token. Devuelve { buffer, mime, mediaId } o null.
+async function fetchWhatsAppMedia(mediaId, mime) {
+    try {
+          if (!mediaId || !WHATSAPP_TOKEN) return null;
+          const metaRes = await fetch(`https://graph.facebook.com/v21.0/${mediaId}`, {
+                  headers: { 'Authorization': `Bearer ${WHATSAPP_TOKEN}` }
+          });
+          if (!metaRes.ok) { console.error('[WA media] resolver URL:', metaRes.status); return null; }
+          const meta = await metaRes.json();
+          if (!meta.url) return null;
+          const binRes = await fetch(meta.url, {
+                  headers: { 'Authorization': `Bearer ${WHATSAPP_TOKEN}` }
+          });
+          if (!binRes.ok) { console.error('[WA media] descarga:', binRes.status); return null; }
+          const buffer = Buffer.from(await binRes.arrayBuffer());
+          return { buffer, mime: meta.mime_type || mime || 'application/octet-stream', mediaId: String(mediaId) };
+    } catch (e) {
+          console.error('[WA media] fetch:', e.message);
+          return null;
+    }
+}
+
+// Tipos de adjunto de Messenger/Instagram que traen URL descargable, y el
+// MIME de respaldo por si el CDN no devuelve content-type.
+const META_ATTACHMENT_TYPES = ['image', 'video', 'audio', 'file'];
+const META_ATTACHMENT_MIME = {
+    image: 'image/jpeg', video: 'video/mp4', audio: 'audio/mpeg', file: 'application/octet-stream'
+};
+
+// Messenger/Instagram: el adjunto trae URL directa del CDN (sin auth).
+async function fetchAttachmentMedia(url, fallbackMime) {
+    try {
+          if (!url) return null;
+          const res = await fetch(url);
+          if (!res.ok) { console.error('[Meta media] descarga:', res.status); return null; }
+          const buffer = Buffer.from(await res.arrayBuffer());
+          const mime = res.headers.get('content-type')?.split(';')[0] || fallbackMime || 'application/octet-stream';
+          return { buffer, mime, mediaId: crypto.randomUUID().slice(0, 8) };
+    } catch (e) {
+          console.error('[Meta media] fetch:', e.message);
+          return null;
+    }
+}
+
+// Sube el binario al bucket 'chat-media' y devuelve la URL pública, o null
+// si falla (el mensaje se persiste igual, solo que sin media).
+async function storeIncomingMedia(sb, conversationId, media) {
+    if (!sb || !media) return null;
+    try {
+          const ext = extFromMime(media.mime);
+          const path = `${conversationId}/${Date.now()}_${media.mediaId}.${ext}`;
+          const { error } = await sb.storage.from('chat-media')
+            .upload(path, media.buffer, { contentType: media.mime });
+          if (error) { console.error('[media] upload:', error.message); return null; }
+          const { data } = sb.storage.from('chat-media').getPublicUrl(path);
+          return data?.publicUrl || null;
+    } catch (e) {
+          console.error('[media] upload:', e.message);
+          return null;
+    }
 }
 
 // ── Historial de contexto desde la DB (últimos 20) ────────
@@ -416,8 +516,22 @@ async function callClaude(history, userMessage) {
   }
 }
 
+// ── Detección de opt-out (BAJA) ────────────────────────────
+// Comparación robusta: sin acentos, sin signos, trim. Procesa también
+// variantes comunes: "BAJA", "STOP", "DAR DE BAJA", "NO MOLESTAR".
+const OPTOUT_KEYWORDS = ['baja', 'stop', 'dar de baja', 'no molestar', 'cancelar promociones', 'unsubscribe'];
+function isOptOutMessage(text) {
+    if (!text) return false;
+    const norm = String(text)
+      .normalize('NFD').replace(/[̀-ͯ]/g, '')
+      .toLowerCase().replace(/[^\w\s]/g, '').trim();
+    return OPTOUT_KEYWORDS.some(k => norm === k || norm.startsWith(k + ' '));
+}
+
 // ── Orquestador: persiste entrante, llama IA, persiste salida ──
-async function processIncoming(channel, handle, name, text) {
+// media (opcional): { buffer, mime, mediaId } ya descargado por el handler
+// del canal; aquí se sube a Storage y se guarda su URL pública en media_url.
+async function processIncoming(channel, handle, name, text, media = null) {
     const sb = await getSupabase();
     // Estado del agente configurado desde el CRM. Por defecto ACTIVO: solo se
     // apaga cuando active === false explícitamente en agent_settings.
@@ -438,6 +552,10 @@ async function processIncoming(channel, handle, name, text) {
         return aiReply || fallbackReply(text);
     }
 
+  // Captura: marcar canal de origen (sticky) + last_contact_at + tag canal
+  await sb.rpc('mark_contact_touch', { p_contact_id: contact.id, p_channel: channel })
+    .catch(e => console.warn('[mark_contact_touch]', e?.message));
+
   const convId = await resolveConversation(sb, contact.id, channel);
     if (!convId) {
         if (!agentActive) return null;
@@ -445,10 +563,24 @@ async function processIncoming(channel, handle, name, text) {
         return aiReply || fallbackReply(text);
     }
 
+  // Media entrante: subir al bucket y quedarnos con la URL pública. Si la
+  // subida falla, mediaUrl queda null y el mensaje se guarda igual.
+  const mediaUrl = media ? await storeIncomingMedia(sb, convId, media) : null;
+
+  // Opt-out: si el cliente escribe BAJA, cortar marketing y confirmar
+  if (isOptOutMessage(text)) {
+        await sb.rpc('set_marketing_opt_in', { p_contact_id: contact.id, p_opt_in: false })
+          .catch(e => console.warn('[opt-out]', e?.message));
+        await persistMessage(sb, convId, channel, 'customer', text, mediaUrl);
+        const reply = 'Listo, no recibirás más promociones de PINGUS. Si cambias de opinión, escríbenos "ALTA" cuando quieras. 🙌';
+        await persistMessage(sb, convId, channel, 'ai', reply);
+        return reply;
+  }
+
   const history = await loadHistory(sb, convId);
     // Silencio de IA por contacto (toggle "Respuesta automática IA" de la bandeja).
     const autoReply = await getContactAutoReply(sb, contact.id);
-    await persistMessage(sb, convId, channel, 'customer', text);
+    await persistMessage(sb, convId, channel, 'customer', text, mediaUrl);
     await sb.from('contacts').update({updated_at:new Date().toISOString()}).eq('id',contact.id);
 
   // Notificar a los agentes (push real, incluso con la app cerrada).
@@ -526,12 +658,24 @@ async function handleWhatsApp(body) {
   console.log(`[WA] ${contactName} (${from}): ${message.type}`);
     await markAsRead(message.id);
 
-  if (message.type !== 'text') {
+  // Media entrante: WhatsApp manda solo un media id; se resuelve y descarga
+  // aquí y processIncoming lo sube al bucket. Si la descarga falla, el
+  // mensaje se guarda igual (media_url null) para no perder la conversación.
+  const WA_MEDIA_TYPES = ['image', 'document', 'video', 'audio'];
+    let text = message.text?.body;
+    let media = null;
+
+  if (WA_MEDIA_TYPES.includes(message.type)) {
+        const att = message[message.type] || {};
+        text = att.caption || att.filename || '📎 Archivo recibido';
+        media = await fetchWhatsAppMedia(att.id, att.mime_type);
+        if (!media) console.error(`[WA media] no se pudo obtener ${message.type} — se guarda el mensaje sin media`);
+  } else if (message.type !== 'text') {
         await sendWhatsAppMessage(from, '¡Hola! Por el momento solo puedo leer mensajes de texto. ¿En qué te puedo ayudar? 😊');
         return { status: 'non_text_handled', channel: 'whatsapp' };
   }
 
-  const aiResponse = await processIncoming('wa', from, contactName, message.text.body);
+  const aiResponse = await processIncoming('wa', from, contactName, text, media);
     if (!aiResponse) return { status: 'agent_off', channel: 'whatsapp', from };
     const sent = await sendWhatsAppMessage(from, aiResponse);
     return { status: 'processed', channel: 'whatsapp', from, sent };
@@ -571,16 +715,19 @@ async function handleMessenger(body) {
 
   const senderId = messaging.sender?.id;
     const text = messaging.message?.text;
+    // A diferencia de WhatsApp, Messenger manda una URL directa del adjunto.
+    const attachment = (messaging.message?.attachments || [])
+      .find(a => META_ATTACHMENT_TYPES.includes(a.type) && a.payload?.url);
 
-  if (!senderId || !text) {
+  if (!senderId || (!text && !attachment)) {
         console.log('[FB skip] no text. keys=', Object.keys(messaging).join(','));
         if (senderId && messaging.message?.attachments) {
-                await sendFBMessage(senderId, '¡Hola! Por el momento solo puedo leer mensajes de texto. ¿En qué te puedo ayudar? 😊');
+                await sendFBMessage(senderId, '¡Hola! Por el momento solo puedo leer este tipo de mensaje. ¿En qué te puedo ayudar? 😊');
         }
         return { status: 'non_text', channel: 'messenger' };
   }
 
-  console.log(`[FB] ${senderId}: "${text}"`);
+  console.log(`[FB] ${senderId}: "${text || `[${attachment?.type}]`}"`);
 
   // Idempotencia: descartar reentregas del mismo mensaje (mid) antes de procesar.
   const sbDedupFB = await getSupabase();
@@ -598,7 +745,13 @@ async function handleMessenger(body) {
         })
   }).catch(() => {});
 
-  const aiResponse = await processIncoming('fb', senderId, 'Cliente Facebook', text);
+  let media = null;
+    if (attachment) {
+        media = await fetchAttachmentMedia(attachment.payload.url, META_ATTACHMENT_MIME[attachment.type]);
+        if (!media) console.error('[FB media] descarga fallida — se guarda el mensaje sin media');
+    }
+
+  const aiResponse = await processIncoming('fb', senderId, 'Cliente Facebook', text || '📎 Archivo recibido', media);
     if (!aiResponse) return { status: 'agent_off', channel: 'messenger', from: senderId };
     const sent = await sendFBMessage(senderId, aiResponse);
     return { status: 'processed', channel: 'messenger', from: senderId, sent };
@@ -635,15 +788,18 @@ async function handleInstagram(body) {
 
   const senderId = messaging.sender?.id;
     const text = messaging.message?.text;
+    // Igual que Messenger: Instagram manda una URL directa del adjunto.
+    const attachment = (messaging.message?.attachments || [])
+      .find(a => META_ATTACHMENT_TYPES.includes(a.type) && a.payload?.url);
 
-  if (!senderId || !text) {
+  if (!senderId || (!text && !attachment)) {
         if (senderId && messaging.message?.attachments) {
-                await sendIGMessage(senderId, '¡Hola! Por el momento solo puedo leer mensajes de texto. ¿En qué te puedo ayudar? 😊');
+                await sendIGMessage(senderId, '¡Hola! Por el momento solo puedo leer este tipo de mensaje. ¿En qué te puedo ayudar? 😊');
         }
         return { status: 'non_text', channel: 'instagram' };
   }
 
-  console.log(`[IG] ${senderId}: "${text}"`);
+  console.log(`[IG] ${senderId}: "${text || `[${attachment?.type}]`}"`);
 
   // Idempotencia: descartar reentregas del mismo mensaje (mid) antes de procesar.
   const sbDedupIG = await getSupabase();
@@ -651,7 +807,13 @@ async function handleInstagram(body) {
           return { status: 'duplicate', channel: 'instagram', from: senderId };
     }
 
-  const aiResponse = await processIncoming('ig', senderId, 'Cliente Instagram', text);
+  let media = null;
+    if (attachment) {
+        media = await fetchAttachmentMedia(attachment.payload.url, META_ATTACHMENT_MIME[attachment.type]);
+        if (!media) console.error('[IG media] descarga fallida — se guarda el mensaje sin media');
+    }
+
+  const aiResponse = await processIncoming('ig', senderId, 'Cliente Instagram', text || '📎 Archivo recibido', media);
     if (!aiResponse) return { status: 'agent_off', channel: 'instagram', from: senderId };
     const sent = await sendIGMessage(senderId, aiResponse);
     return { status: 'processed', channel: 'instagram', from: senderId, sent };
