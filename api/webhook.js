@@ -441,7 +441,7 @@ async function fetchAttachmentMedia(url, fallbackMime) {
 // Sube el binario al bucket 'chat-media' y devuelve la URL pública, o null
 // si falla (el mensaje se persiste igual, solo que sin media).
 async function storeIncomingMedia(sb, conversationId, media) {
-    if (!sb || !media) return null;
+    if (!sb || !media?.buffer) return null;
     try {
           const ext = extFromMime(media.mime);
           const path = `${conversationId}/${Date.now()}_${media.mediaId}.${ext}`;
@@ -604,6 +604,16 @@ async function processIncoming(channel, handle, name, text, media = null) {
         return null;
     }
 
+  // Archivo sin caption: no hay texto real del cliente que responder y la IA
+  // no ve el contenido del archivo, así que en vez de "no puedo ver archivos"
+  // se confirma la recepción y queda en bandeja para el asesor humano.
+  if (media?.noCaption) {
+        const ack = 'Recibí tu archivo 📎 Un asesor lo revisará en breve 🙌';
+        await persistMessage(sb, convId, channel, 'ai', ack);
+        await pushPromise;
+        return ack;
+  }
+
   const reply = await callClaude(history, text);
     const finalReply = reply || fallbackReply(text, history);
     await persistMessage(sb, convId, channel, 'ai', finalReply);
@@ -669,8 +679,11 @@ async function handleWhatsApp(body) {
   if (WA_MEDIA_TYPES.includes(message.type)) {
         const att = message[message.type] || {};
         text = att.caption || att.filename || '📎 Archivo recibido';
-        media = await fetchWhatsAppMedia(att.id, att.mime_type);
-        if (!media) console.error(`[WA media] no se pudo obtener ${message.type} — se guarda el mensaje sin media`);
+        const fetched = await fetchWhatsAppMedia(att.id, att.mime_type);
+        if (!fetched) console.error(`[WA media] no se pudo obtener ${message.type} — se guarda el mensaje sin media`);
+        // Sin caption no hay pregunta que responder: processIncoming confirma
+        // la recepción sin llamar a la IA (que no ve el contenido del archivo).
+        media = { ...(fetched || {}), noCaption: !att.caption };
   } else if (message.type !== 'text') {
         await sendWhatsAppMessage(from, '¡Hola! Por el momento solo puedo leer mensajes de texto. ¿En qué te puedo ayudar? 😊');
         return { status: 'non_text_handled', channel: 'whatsapp' };
@@ -748,8 +761,9 @@ async function handleMessenger(body) {
 
   let media = null;
     if (attachment) {
-        media = await fetchAttachmentMedia(attachment.payload.url, META_ATTACHMENT_MIME[attachment.type]);
-        if (!media) console.error('[FB media] descarga fallida — se guarda el mensaje sin media');
+        const fetched = await fetchAttachmentMedia(attachment.payload.url, META_ATTACHMENT_MIME[attachment.type]);
+        if (!fetched) console.error('[FB media] descarga fallida — se guarda el mensaje sin media');
+        media = { ...(fetched || {}), noCaption: !text };
     }
 
   const aiResponse = await processIncoming('fb', senderId, 'Cliente Facebook', text || '📎 Archivo recibido', media);
@@ -810,8 +824,9 @@ async function handleInstagram(body) {
 
   let media = null;
     if (attachment) {
-        media = await fetchAttachmentMedia(attachment.payload.url, META_ATTACHMENT_MIME[attachment.type]);
-        if (!media) console.error('[IG media] descarga fallida — se guarda el mensaje sin media');
+        const fetched = await fetchAttachmentMedia(attachment.payload.url, META_ATTACHMENT_MIME[attachment.type]);
+        if (!fetched) console.error('[IG media] descarga fallida — se guarda el mensaje sin media');
+        media = { ...(fetched || {}), noCaption: !text };
     }
 
   const aiResponse = await processIncoming('ig', senderId, 'Cliente Instagram', text || '📎 Archivo recibido', media);
