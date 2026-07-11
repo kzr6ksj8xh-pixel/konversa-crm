@@ -552,9 +552,10 @@ async function processIncoming(channel, handle, name, text, media = null) {
         return aiReply || fallbackReply(text);
     }
 
-  // Captura: marcar canal de origen (sticky) + last_contact_at + tag canal
-  await sb.rpc('mark_contact_touch', { p_contact_id: contact.id, p_channel: channel })
-    .catch(e => console.warn('[mark_contact_touch]', e?.message));
+  // Captura: marcar canal de origen (sticky) + last_contact_at + tag canal.
+  // Ojo: sb.rpc() devuelve un thenable SIN .catch(); hay que leer { error }.
+  const { error: touchErr } = await sb.rpc('mark_contact_touch', { p_contact_id: contact.id, p_channel: channel });
+    if (touchErr) console.warn('[mark_contact_touch]', touchErr.message);
 
   const convId = await resolveConversation(sb, contact.id, channel);
     if (!convId) {
@@ -569,8 +570,8 @@ async function processIncoming(channel, handle, name, text, media = null) {
 
   // Opt-out: si el cliente escribe BAJA, cortar marketing y confirmar
   if (isOptOutMessage(text)) {
-        await sb.rpc('set_marketing_opt_in', { p_contact_id: contact.id, p_opt_in: false })
-          .catch(e => console.warn('[opt-out]', e?.message));
+        const { error: optErr } = await sb.rpc('set_marketing_opt_in', { p_contact_id: contact.id, p_opt_in: false });
+        if (optErr) console.warn('[opt-out]', optErr.message);
         await persistMessage(sb, convId, channel, 'customer', text, mediaUrl);
         const reply = 'Listo, no recibirás más promociones de PINGUS. Si cambias de opinión, escríbenos "ALTA" cuando quieras. 🙌';
         await persistMessage(sb, convId, channel, 'ai', reply);
