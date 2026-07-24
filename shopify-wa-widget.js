@@ -121,6 +121,9 @@
           if (a.closest && a.closest('.ctx-wa')) continue; // el de Konversa: no tocar
           var target = floatingAncestor(a);
           if (!target || target.dataset.ctxWaHidden === '1') continue;
+          // NO tocar barras de compra: un tema puede meter un enlace de WhatsApp
+          // dentro de su sticky add-to-cart, y ocultarlo mata las ventas en movil.
+          if (target.querySelector('form[action*="/cart/add"],button[name="add"],[type="submit"]')) continue;
           target.style.setProperty('display', 'none', 'important');
           target.dataset.ctxWaHidden = '1';
         }
