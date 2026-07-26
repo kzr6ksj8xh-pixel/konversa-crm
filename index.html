@@ -143,6 +143,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .ubadge{background:var(--accent);color:#fff;border-radius:10px;font-size:9px;padding:1px 5px;}
 #swUpdateBanner{position:fixed;bottom:72px;left:50%;transform:translateX(-50%);z-index:9999;background:#1e1e2e;color:#fff;border-radius:14px;padding:10px 16px;display:flex;align-items:center;gap:10px;font-size:12px;box-shadow:0 4px 20px #0004;white-space:nowrap;animation:slideUp .3s ease;}
 #swUpdateBanner button{background:#E8622A;color:#fff;border:none;border-radius:8px;padding:5px 12px;font-size:11px;cursor:pointer;font-weight:600;}
+#pushBanner{position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:9998;background:linear-gradient(135deg,#E8622A 0%,#C94D1C 100%);color:#fff;border-radius:14px;padding:11px 14px;display:flex;align-items:center;gap:10px;font-size:13px;font-weight:500;box-shadow:0 8px 28px rgba(232,98,42,.45);max-width:calc(100% - 20px);animation:slideDown .3s ease;}
+#pushBanner i{font-size:19px;flex-shrink:0;}
+#pushBanner .pb-txt{line-height:1.3;}
+#pushBanner button{background:#fff;color:#C94D1C;border:none;border-radius:9px;padding:7px 15px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;}
+#pushBanner .pb-x{cursor:pointer;opacity:.9;font-size:16px;padding:0 2px;flex-shrink:0;}
+@keyframes slideDown{from{opacity:0;transform:translateX(-50%) translateY(-16px);}to{opacity:1;transform:translateX(-50%) translateY(0);}}
 @keyframes slideUp{from{opacity:0;transform:translateX(-50%) translateY(20px);}to{opacity:1;transform:translateX(-50%) translateY(0);}}
 .chat-main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
 .chat-hd{display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--bg);border-bottom:.5px solid var(--border);}
@@ -447,6 +453,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   :root{font-size:130%;}
   .tn-nav{display:none;}
   .tn-title{display:none;}
+  #pushBanner{top:60px;}
   .user-chip .uname,.user-chip .role-pill{display:none;}
   #bottomNav{display:flex;}
   .g2{grid-template-columns:1fr !important;}
@@ -527,6 +534,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <div id="swUpdateBanner" style="display:none">
   <span>🆕 Nueva versión disponible</span>
   <button onclick="window.location.reload()">Actualizar</button>
+</div>
+<div id="pushBanner" style="display:none">
+  <i class="ti ti-bell"></i>
+  <span class="pb-txt">Activa las notificaciones para no perder ningún mensaje</span>
+  <button id="pushEnableBtn">Activar</button>
+  <span id="pushBannerClose" class="pb-x" title="Ahora no">✕</span>
 </div>
 <!-- ══ AUTH SCREEN ══ -->
 <div id="authScreen">
@@ -1888,6 +1901,28 @@ async function subscribeToPush(){
 
 function requestPushPermission(){subscribeToPush();}
 
+// ── Banner "Activar notificaciones" (iOS exige un TOQUE del usuario) ──
+function pushSupported(){return ('Notification' in window)&&('serviceWorker' in navigator)&&('PushManager' in window);}
+function updatePushBanner(){
+  var b=document.getElementById('pushBanner'); if(!b) return;
+  var show = pushSupported() && Notification.permission==='default' && localStorage.getItem('pushBannerHide')!=='1';
+  b.style.display = show ? 'flex' : 'none';
+}
+document.getElementById('pushEnableBtn')?.addEventListener('click',function(){
+  if(!pushSupported()){toast('Este dispositivo no soporta notificaciones');return;}
+  if(Notification.permission==='granted'){subscribeToPush();updatePushBanner();return;}
+  // iOS: requestPermission() debe llamarse DENTRO del gesto, sin await previo.
+  Notification.requestPermission().then(function(perm){
+    if(perm==='granted'){subscribeToPush();toast('Notificaciones activadas ✓');}
+    else if(perm==='denied'){toast('Notificaciones bloqueadas. Actívalas en Ajustes del teléfono.');}
+    var b=document.getElementById('pushBanner'); if(b&&perm!=='default') b.style.display='none';
+  });
+});
+document.getElementById('pushBannerClose')?.addEventListener('click',function(){
+  localStorage.setItem('pushBannerHide','1');
+  var b=document.getElementById('pushBanner'); if(b) b.style.display='none';
+});
+
 function stopRealtime(){
   if(realtimeChannel){
     try{sb.removeChannel(realtimeChannel);}catch(e){}
@@ -2170,8 +2205,11 @@ async function bootApp(){
   renderProducts();
   switchView('chat');
 
-  // Pedir permiso de notificaciones
-  requestPushPermission();
+  // Notificaciones: si ya hay permiso, re-suscribir en silencio (refresca el
+  // endpoint en la BD). Si falta, mostrar el banner "Activar" — iOS exige un
+  // toque del usuario, así que NO se puede pedir el permiso automáticamente.
+  if(pushSupported() && Notification.permission==='granted'){ subscribeToPush(); }
+  updatePushBanner();
 
   // Iniciar realtime + polling de respaldo
   if(!demoMode && sb){ startRealtime(); startRealtimePoll(); }
