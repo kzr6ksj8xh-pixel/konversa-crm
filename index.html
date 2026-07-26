@@ -184,17 +184,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .iz{background:var(--bg);border-top:.5px solid var(--border);}
 .tr{display:flex;gap:3px;padding:6px 11px 0;flex-wrap:wrap;}
 .tc{display:flex;align-items:center;gap:3px;padding:3px 8px;border-radius:20px;font-size:10px;border:.5px solid var(--border);color:var(--txt2);cursor:pointer;background:var(--bg2);white-space:nowrap;}
-.ai-row{display:flex;align-items:center;gap:6px;padding:4px 11px;border-top:.5px solid var(--border);}
+.ai-row{display:flex;align-items:center;gap:6px;padding:6px 12px;border-top:.5px solid var(--border);}
+.ai-row>span{font-size:12.5px!important;}
 .tog{width:32px;height:18px;border-radius:20px;cursor:pointer;position:relative;transition:background .2s;flex-shrink:0;}
 .tog.off{background:var(--bg2);border:.5px solid var(--border);}
 .tog.on2{background:#c2410c;}
 .knob{width:14px;height:14px;border-radius:50%;background:#fff;position:absolute;top:1px;transition:left .2s;}
 .tog.off .knob{left:1px;}.tog.on2 .knob{left:16px;}
-.msg-row{display:flex;align-items:center;gap:5px;padding:6px 11px;}
-.minput{flex:1;border:.5px solid var(--border);border-radius:var(--r);padding:7px 11px;font-size:11px;background:var(--bg2);color:var(--txt);outline:none;}
-.minput:focus{border-color:var(--accent);}
-.sbtn{width:30px;height:30px;background:var(--accent);border-radius:7px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff;font-size:14px;border:none;flex-shrink:0;}
-.sbtn:hover{background:#4338ca;}
+.msg-row{display:flex;align-items:flex-end;gap:6px;padding:9px 12px;}
+.msg-row .ib{width:42px;height:42px;border:none;border-radius:12px;color:var(--txt2);font-size:20px;}
+.msg-row .ib:hover{background:var(--bg2);color:var(--accent);}
+.minput{flex:1;border:1px solid var(--border2);border-radius:22px;padding:12px 16px;font-size:16px;line-height:1.4;min-height:46px;max-height:140px;overflow-y:auto;resize:none;font-family:inherit;display:block;background:var(--bg2);color:var(--txt);outline:none;transition:border-color .15s,box-shadow .15s;}
+.minput:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(232,98,42,.15);}
+.minput::placeholder{color:var(--txt3);}
+.sbtn{width:46px;height:46px;background:var(--accent);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff;font-size:20px;border:none;flex-shrink:0;transition:filter .15s;}
+.sbtn:hover{filter:brightness(1.08);}
 .tpl-panel{width:0;background:var(--bg);border-left:.5px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden;transition:width .2s;}
 .tpl-panel.open{width:245px;}
 @media(max-width:800px){.tpl-panel.open{width:200px;}}
@@ -257,7 +261,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .af.on{background:var(--accent);color:#fff;border-color:var(--accent);}
 .stat-pill{font-size:11px;padding:4px 10px;border-radius:20px;border:.5px solid var(--border);color:var(--txt2);background:var(--bg2);display:flex;align-items:center;gap:5px;}
 .nlbtn{display:flex;align-items:center;gap:5px;font-size:11px;padding:6px 12px;border-radius:var(--r);border:none;background:var(--accent);color:#fff;cursor:pointer;font-weight:500;}
-.nlbtn:hover{background:#4338ca;}
+.nlbtn:hover{background:#C94D1C;}
 .board{flex:1;min-height:0;display:flex;gap:10px;padding:12px;overflow-x:auto;overflow-y:hidden;align-items:stretch;}
 .pipe-col{min-width:195px;max-width:195px;display:flex;flex-direction:column;flex-shrink:0;min-height:0;}
 .col-hd{display:flex;align-items:center;gap:5px;padding:7px 10px;border-radius:var(--r);margin-bottom:8px;border:none;}
@@ -313,7 +317,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .modal-ft{display:flex;gap:8px;justify-content:flex-end;padding:12px 16px;border-top:.5px solid var(--border);position:sticky;bottom:0;background:var(--bg);}
 .btn-c{padding:7px 14px;border-radius:var(--r);border:.5px solid var(--border);background:transparent;color:var(--txt2);font-size:12px;cursor:pointer;}
 .btn-s{padding:7px 14px;border-radius:var(--r);border:none;background:var(--accent);color:#fff;font-size:12px;font-weight:500;cursor:pointer;}
-.btn-s:hover{background:#4338ca;}
+.btn-s:hover{background:#C94D1C;}
 .btn-danger{padding:7px 14px;border-radius:var(--r);border:none;background:#dc2626;color:#fff;font-size:12px;font-weight:500;cursor:pointer;}
 
 /* ─── CONFIRM DIALOG ─── */
@@ -388,6 +392,56 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 #leftSidebar .ls-spacer{flex:1;}
 #leftSidebar .ls-user{width:34px;height:34px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:#fff;cursor:pointer;flex-shrink:0;margin-bottom:6px;}
 
+/* ─── DESKTOP: fuentes más grandes y legibles (adultos) ─── */
+@media(min-width:641px){
+  /* Bandeja de entrada / lista de chats */
+  .inbox-p{width:236px;}
+  .ci{padding:10px 12px;}
+  .ci-nm{font-size:14px;}
+  .ci-pre{font-size:12.5px;}
+  .ip-head h3{font-size:13px;}
+  .sbox input{font-size:13px;}
+  .itab{font-size:12px;}
+  .itab.on{font-size:13.5px;}
+  /* Cabecera del chat */
+  .ch-nm{font-size:16px;}
+  .ch-sub{font-size:12px;}
+  .ib{width:30px;height:30px;font-size:15px;}
+  /* Mensajes */
+  .mb{font-size:16px;}
+  .mtime,.mch{font-size:11.5px;}
+  .dsep{font-size:12px;}
+  /* Chips de herramientas rápidas */
+  .tc{font-size:12px;padding:4px 10px;}
+  /* Panel de contacto (derecha) */
+  .rps h5{font-size:11px;}
+  .rl{font-size:11.5px;}
+  .rv{font-size:13px;}
+  .stsel{font-size:12.5px;}
+  .sbadge{font-size:11.5px;}
+  /* Plantillas */
+  .tp-tab{font-size:11.5px;}
+  .tpi-nm{font-size:12.5px;}
+  .tpi-pv{font-size:11.5px;}
+  .tcp{font-size:11px;}
+  .usebtn{font-size:11.5px;}
+  /* Barra lateral izquierda */
+  #leftSidebar .ls-btn{font-size:23px;}
+  #leftSidebar .ls-lbl{font-size:9.5px;}
+  /* Pipeline / tablero */
+  .col-ttl{font-size:14px;}
+  .kcard-title{font-size:16px;}
+  .kcard-comp{font-size:11px;}
+  .kcard-amt{font-size:13px;}
+  .ktag{font-size:11px;}
+  .af{font-size:11px;}
+  .stat-pill{font-size:12px;}
+  .ps-lbl{font-size:10px;}
+  .ps-val{font-size:14px;}
+  /* Cabeceras de vistas */
+  .pipe-top h2,.an-top h2,.au-top h2{font-size:15px;}
+}
+
 /* ─── MOBILE BREAKPOINT ─── */
 @media(max-width:640px){
   :root{font-size:130%;}
@@ -460,6 +514,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   /* Botón "cerrar sesión" (flecha): +30% y más resaltado */
   #logoutBtnMobile{width:35px!important;height:35px!important;background:var(--accent)!important;border:1px solid var(--accent)!important;color:#fff!important;box-shadow:0 2px 10px rgba(232,98,42,.5)!important;}
   #logoutBtnMobile i{font-size:20px!important;}
+
+  /* ── Campo de mensaje más grande y cómodo (móvil) ── */
+  .msg-row{gap:6px!important;padding:10px 12px!important;}
+  .minput{font-size:17px!important;min-height:52px!important;padding:14px 18px!important;border-radius:26px!important;}
+  .msg-row .ib{width:46px!important;height:46px!important;font-size:23px!important;}
+  .sbtn{width:52px!important;height:52px!important;font-size:23px!important;}
 }
 </style>
 </head>
@@ -646,7 +706,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
         <div class="ib" id="attachBtn" title="Adjuntar foto o documento"><i class="ti ti-paperclip"></i></div>
         <input type="file" id="chatFileInput" style="display:none" accept="image/*,application/pdf,.pdf,.doc,.docx,.xls,.xlsx,.csv,.txt,.ppt,.pptx">
         <div class="ib"><i class="ti ti-mood-smile"></i></div>
-        <input class="minput" id="msgInput" placeholder="Escribe o usa / para respuestas rápidas...">
+        <textarea class="minput" id="msgInput" rows="1" placeholder="Escribe o usa / para respuestas rápidas..."></textarea>
         <button class="sbtn" id="sendBtn"><i class="ti ti-send"></i></button>
       </div>
       <div class="tr" id="toolsRow"></div>
@@ -3035,7 +3095,7 @@ function renderSlash(){
     </div></div>`;
   document.querySelectorAll('.spi[data-si]').forEach(el=>el.addEventListener('click',()=>{useTpl(el.dataset.si);closeSlash();}));
 }
-function closeSlash(){slashMode=false;slashQ='';slashIdx=0;document.getElementById('msgInput').value='';renderSlash();}
+function closeSlash(){slashMode=false;slashQ='';slashIdx=0;document.getElementById('msgInput').value='';agMsg();renderSlash();}
 
 document.getElementById('msgInput')?.addEventListener('input',function(){
   var v=this.value;slashMode=v.startsWith('/');slashQ=slashMode?v.slice(1):'';slashIdx=0;renderSlash();
@@ -3052,6 +3112,10 @@ document.getElementById('msgInput')?.addEventListener('keydown',function(e){
 /* SEND */
 document.getElementById('sendBtn')?.addEventListener('click',sendMsg);
 document.getElementById('msgInput')?.addEventListener('keydown',function(e){if(slashMode)return;if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();}});
+
+/* AUTO-GROW del campo (crece con mensajes largos, tipo WhatsApp; Shift+Enter = salto de línea) */
+function agMsg(){var el=document.getElementById('msgInput');if(!el)return;el.style.height='auto';el.style.height=Math.min(el.scrollHeight,140)+'px';}
+document.getElementById('msgInput')?.addEventListener('input',agMsg);
 
 /* ADJUNTAR (foto/documento) */
 document.getElementById('attachBtn')?.addEventListener('click',function(){
@@ -3091,7 +3155,7 @@ async function sendAttachment(file){
   // Si el usuario escribió algo en el input, va como pie de foto/caption.
   var inp=document.getElementById('msgInput');
   var caption=(inp&&inp.value.trim())?inp.value.trim():'';
-  if(inp)inp.value='';
+  if(inp){inp.value='';agMsg();}
   var content=caption||('📎 '+file.name);
   if(!msgs[aC.id])msgs[aC.id]=[];
   var msg={t:'out',txt:content,time:now(),ch:ch};
@@ -3114,13 +3178,13 @@ function sendMsg(){
   var ts=now();
   if(aCh==='note'){
     if(aC){if(!msgs[aC.id])msgs[aC.id]=[];msgs[aC.id].push({t:'note',txt,time:ts,ch:null});}
-    inp.value='';renderMsgs(true);
+    inp.value='';agMsg();renderMsgs(true);
     if(aC?.dbId)saveMessageToDB(aC.dbId,null,'note',txt);
     aCh=aC?.ch||'wa';setNoteMode(false);renderTools();
     return;
   }
   if(aC){if(!msgs[aC.id])msgs[aC.id]=[];msgs[aC.id].push({t:'out',txt,time:ts,ch:aCh});}
-  inp.value='';renderMsgs(true);
+  inp.value='';agMsg();renderMsgs(true);
   if(aC?.dbId)saveMessageToDB(aC.dbId,aCh,'agent',txt);
   sendToChannel(aCh,txt);
   if(aiOn){
