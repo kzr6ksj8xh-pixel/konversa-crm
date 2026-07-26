@@ -1903,10 +1903,24 @@ function requestPushPermission(){subscribeToPush();}
 
 // ── Banner "Activar notificaciones" (iOS exige un TOQUE del usuario) ──
 function pushSupported(){return ('Notification' in window)&&('serviceWorker' in navigator)&&('PushManager' in window);}
+function isIOS(){return /iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);}
+function isStandalone(){return window.navigator.standalone===true||window.matchMedia('(display-mode: standalone)').matches;}
 function updatePushBanner(){
   var b=document.getElementById('pushBanner'); if(!b) return;
-  var show = pushSupported() && Notification.permission==='default' && localStorage.getItem('pushBannerHide')!=='1';
-  b.style.display = show ? 'flex' : 'none';
+  var txt=b.querySelector('.pb-txt'); var btn=document.getElementById('pushEnableBtn');
+  if(localStorage.getItem('pushBannerHide')==='1'){ b.style.display='none'; return; }
+  // iOS abierto en Safari (no instalado): el push NO funciona; hay que abrir
+  // la app desde el ícono del inicio. Se lo explicamos en vez de ocultar mudo.
+  if(isIOS() && !isStandalone()){
+    if(txt) txt.textContent='Para recibir notificaciones, abre Konversa desde el ícono de tu pantalla de inicio (no desde Safari)';
+    if(btn) btn.style.display='none';
+    b.style.display='flex'; return;
+  }
+  if(btn) btn.style.display='';
+  if(txt) txt.textContent='Activa las notificaciones para no perder ningún mensaje';
+  // Navegador sin soporte, o permiso ya concedido/denegado → no mostrar banner.
+  if(!pushSupported() || Notification.permission!=='default'){ b.style.display='none'; return; }
+  b.style.display='flex';
 }
 document.getElementById('pushEnableBtn')?.addEventListener('click',function(){
   if(!pushSupported()){toast('Este dispositivo no soporta notificaciones');return;}
