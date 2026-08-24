@@ -71,7 +71,7 @@ CATÁLOGO DE PRODUCTOS (RESPALDO — la BASE DE CONOCIMIENTO sincronizada desde 
 3. Generador CIR 150 - $1,995 MXN - Espacios hasta 50 m² (casas, oficinas, consultorios) - https://www.grupopingus.com/products/generador-de-ozono-inteligente-cir-150-mgh
 4. Purificador AQUA 500 - $1,450 MXN - Aire (100 m²) + Agua, ideal cocinas, consultorios, hogares - https://www.grupopingus.com/products/purificador-de-agua-aire-aqua-500
 5. Purificador AQUA 1000 - $1,650 MXN - Aire (150 m²) + Agua + Iones, ideal restaurantes, colegios - https://www.grupopingus.com/products/purificador-de-agua-aire-aqua-1000
-6. Klair UV - $3,495 MXN - ÚNICO equipo con desinfección/esterilización UV-C. Es un módulo UV-C que se instala en el MINISPLIT (aire acondicionado) de 1 a 3 toneladas (12,000 a 36,000 BTUs) para purificar y desinfectar el aire - https://www.grupopingus.com/products/modulo-de-desinfeccion-air-ck30-uvc
+6. Klair UV - $3,495 MXN - ÚNICO equipo con desinfección/esterilización UV-C. Es un módulo UV-C que se instala en el MINISPLIT (aire acondicionado) de 1 a 3 toneladas (12,000 a 36,000 BTUs) para purificar y desinfectar el aire - https://www.grupopingus.com/products/modulo-de-desinfeccion-air-klair-uv
 
 ⚠️ TECNOLOGÍA POR PRODUCTO — REGLA CRÍTICA (NUNCA la inventes ni la mezcles):
 - El ÚNICO equipo que desinfecta y esteriliza con luz UV-C es el Klair UV. Es el único producto con tecnología UV-C de todo el catálogo.
@@ -108,6 +108,56 @@ ULTRA 150:
 - P1: 10 min ON / 0.5 h OFF
 - P2: 15 min ON / 20 min OFF
 - P3: 20 min ON / 2 h OFF
+
+FICHAS TÉCNICAS (envía la ficha cuando el cliente pida "más información", "especificaciones", "ficha técnica" o "detalles" de un modelo concreto):
+
+P4:
+- Ozono: 100 mg/h | Consumo: 5 W | Voltaje: 110 V | Peso: 270 g
+- Cobertura: hasta 30 m²
+- 4 modos: P1 (2 min ON / 58 min OFF, hasta 10 m²), P2 (3 min ON / 20 min OFF, hasta 10 m²), P3 (30 min ON / 12 h OFF, hasta 20 m²), P4 (30 min ON / 2 h OFF, hasta 30 m²)
+- Instalación: solo conectar y seleccionar modo. No requiere instalación profesional.
+- Precio: $1,490 MXN | Envío gratis | Garantía 6 meses
+- Link: https://www.grupopingus.com/products/purificador-de-aire-p4
+
+ULTRA 150:
+- Ozono: 150 mg/h | Consumo: 6 W | Voltaje: 110 V | Peso: 270 g
+- Cobertura: hasta 50 m²
+- 3 modos: P1 (10 min ON / 30 min OFF), P2 (15 min ON / 20 min OFF), P3 (20 min ON / 2 h OFF)
+- Instalación: solo conectar y seleccionar modo. No requiere instalación profesional.
+- Precio: $1,795 MXN | Envío gratis | Garantía 6 meses
+- Link: https://www.grupopingus.com/products/generador-de-ozono-ultra-150-mg-h
+
+CIR 150:
+- Ozono: 150 mg/h | Consumo: 6 W | Voltaje: 110 V | Peso: 270 g
+- Cobertura: hasta 50 m²
+- 3 modos: P1 (15 min ON / 30 min OFF), P2 (20 min ON / 1 h OFF), P3 (25 min ON / 2 h OFF)
+- Instalación: solo conectar y seleccionar modo. No requiere instalación profesional.
+- Precio: $1,995 MXN | Envío gratis | Garantía 6 meses
+- Link: https://www.grupopingus.com/products/generador-de-ozono-inteligente-cir-150-mgh
+
+AQUA 500:
+- Ozono: 500 mg/h | Consumo: 7–10 W | Voltaje: 110–120 V | Peso: 0.95 kg
+- Cobertura: hasta 50 m² (aire) + purificación de agua
+- Temporizador ajustable en intervalos de 5 minutos. Incluye manguera y difusores.
+- Instalación: solo conectar, programar tiempo y listo. No requiere instalación profesional.
+- Precio: $1,450 MXN | Envío gratis | Garantía 6 meses
+- Link: https://www.grupopingus.com/products/purificador-de-agua-aire-aqua-500
+
+AQUA 1000:
+- Ozono: 1000 mg/h | Iones: 18,000,000/m³ | Consumo: 7–10 W | Voltaje: 110–120 V | Peso: 0.95 kg
+- Cobertura: hasta 50 m² (aire) + purificación de agua
+- Temporizador ajustable. Incluye manguera y difusores. Función ionizadora integrada.
+- Instalación: solo conectar, programar tiempo y listo. No requiere instalación profesional.
+- Precio: $1,650 MXN | Envío gratis | Garantía 6 meses
+- Link: https://www.grupopingus.com/products/purificador-de-agua-aire-aqua-1000
+
+Klair UV:
+- Tecnología: Luz Ultravioleta Germicida (UV-C) | Voltaje: 90–264 V
+- Activación automática con sensor de flujo de aire
+- Se instala DENTRO del minisplit tipo cassette (1 a 3 toneladas / 12,000–36,000 BTUs)
+- Instalación: requiere técnico especializado.
+- Precio: $3,495 MXN | Envío gratis | Garantía 6 meses
+- Link: https://www.grupopingus.com/products/modulo-de-desinfeccion-air-klair-uv
 
 REGLAS CRÍTICAS SOBRE METROS CUADRADOS (m²):
 - Pregunta los m² UNA SOLA VEZ por conversación. Si ya los preguntaste antes, NO repitas la pregunta.
@@ -151,9 +201,9 @@ const FALLBACK_RESPONSES = {
   'precio': 'Nuestros equipos van de $1,450 a $3,495 MXN. ¿Quieres que te recomiende uno según tu espacio?',
   'catálogo': 'Tenemos: P4 ($1,490 / 30m²), ULTRA 150 ($1,795 / 50m²), CIR 150 ($1,995 / 50m²), AQUA 500 ($1,450 / 100m²), AQUA 1000 ($1,650 / 150m²) y Klair UV ($3,495 / módulo UV-C para minisplit). ¿Cuántos m² tiene tu espacio?',
   'catalogo': 'Tenemos: P4 ($1,490 / 30m²), ULTRA 150 ($1,795 / 50m²), CIR 150 ($1,995 / 50m²), AQUA 500 ($1,450 / 100m²), AQUA 1000 ($1,650 / 150m²) y Klair UV ($3,495 / módulo UV-C para minisplit). ¿Cuántos m² tiene tu espacio?',
-  'klair': 'El Klair UV cuesta $3,495 MXN. Es el módulo UV-C que se instala en tu minisplit (1 a 3 toneladas / 12,000–36,000 BTUs) para purificar y desinfectar el aire. ¿Tienes minisplit? Link: https://www.grupopingus.com/products/modulo-de-desinfeccion-air-ck30-uvc',
+  'klair': 'Klair UV — $3,495 MXN\nTecnología: UV-C germicida | 90–264 V\nSe instala dentro del minisplit (1–3 ton / 12,000–36,000 BTUs)\nActivación automática con sensor de flujo. Requiere técnico para instalación.\nEnvío gratis + garantía 6 meses.\nLink: https://www.grupopingus.com/products/modulo-de-desinfeccion-air-klair-uv',
   'uv': 'El Klair UV cuesta $3,495 MXN. Es el único equipo con desinfección UV-C: se instala en un minisplit de 1 a 3 toneladas (12,000–36,000 BTUs). ¿Tienes minisplit?',
-  'minisplit': 'El Klair UV ($3,495 MXN) es el módulo UV-C que se instala en tu minisplit (1 a 3 toneladas / 12,000–36,000 BTUs) para purificar y desinfectar el aire. Link: https://www.grupopingus.com/products/modulo-de-desinfeccion-air-ck30-uvc',
+  'minisplit': 'El Klair UV ($3,495 MXN) es el módulo UV-C que se instala en tu minisplit (1 a 3 toneladas / 12,000–36,000 BTUs) para purificar y desinfectar el aire. Link: https://www.grupopingus.com/products/modulo-de-desinfeccion-air-klair-uv',
   'dentista': 'Para purificar el aire de tu consultorio recomiendo según los m²: P4 ($1,490 / 30m²) o CIR 150 ($1,995 / 50m²). Si tienes minisplit, el Klair UV ($3,495 MXN) lo desinfecta con UV-C. ¿Cuántos m² tiene y tienes minisplit?',
   'clínica': 'Para purificar el aire recomiendo según los m²: P4 ($1,490 / 30m²) o CIR 150 ($1,995 / 50m²). Si tienes minisplit, el Klair UV ($3,495 MXN) lo desinfecta con UV-C. ¿Cuántos m² tiene y tienes minisplit?',
   'clinica': 'Para purificar el aire recomiendo según los m²: P4 ($1,490 / 30m²) o CIR 150 ($1,995 / 50m²). Si tienes minisplit, el Klair UV ($3,495 MXN) lo desinfecta con UV-C. ¿Cuántos m² tiene y tienes minisplit?',
@@ -168,11 +218,11 @@ const FALLBACK_RESPONSES = {
   'factura': 'Para facturación te conecto con un asesor que te apoya con tus datos fiscales. Un momento... 🔄',
   'comprar': '¡Perfecto! Te conecto con un asesor para finalizar tu compra. Un momento... 🔄',
   'quiero': '¡Perfecto! Te conecto con un asesor en un momento. ¿Me confirmas tu nombre?',
-  'p4': 'El P4 cuesta $1,490 MXN. Purificador de aire para espacios hasta 30 m². Link: https://www.grupopingus.com/products/purificador-de-aire-p4',
-  'ultra': 'El ULTRA 150 cuesta $1,795 MXN, cubre 50 m². Link: https://www.grupopingus.com/products/generador-de-ozono-ultra-150-mg-h',
-  'cir': 'El CIR 150 cuesta $1,995 MXN, cubre 50 m². Link: https://www.grupopingus.com/products/generador-de-ozono-inteligente-cir-150-mgh',
-  'aqua 500': 'El AQUA 500 cuesta $1,450 MXN. Purifica aire (100 m²) y agua. Link: https://www.grupopingus.com/products/purificador-de-agua-aire-aqua-500',
-  'aqua 1000': 'El AQUA 1000 cuesta $1,650 MXN, cubre 150 m² + iones. Link: https://www.grupopingus.com/products/purificador-de-agua-aire-aqua-1000',
+  'p4': 'P4 — $1,490 MXN\nOzono: 100 mg/h | 5 W | 110 V | 270 g | hasta 30 m²\n4 modos: P1 (2/58 min), P2 (3/20 min), P3 (30 min/12h), P4 (30 min/2h)\nSolo conéctalo y elige el modo. Envío gratis + garantía 6 meses.\nLink: https://www.grupopingus.com/products/purificador-de-aire-p4',
+  'ultra': 'ULTRA 150 — $1,795 MXN\nOzono: 150 mg/h | 6 W | 110 V | 270 g | hasta 50 m²\n3 modos: P1 (10/30 min), P2 (15/20 min), P3 (20 min/2h)\nSolo conéctalo y elige el modo. Envío gratis + garantía 6 meses.\nLink: https://www.grupopingus.com/products/generador-de-ozono-ultra-150-mg-h',
+  'cir': 'CIR 150 — $1,995 MXN\nOzono: 150 mg/h | 6 W | 110 V | 270 g | hasta 50 m²\n3 modos: P1 (15/30 min), P2 (20 min/1h), P3 (25 min/2h)\nSolo conéctalo y elige el modo. Envío gratis + garantía 6 meses.\nLink: https://www.grupopingus.com/products/generador-de-ozono-inteligente-cir-150-mgh',
+  'aqua 500': 'AQUA 500 — $1,450 MXN\nOzono: 500 mg/h | 7–10 W | 110 V | 0.95 kg | aire 50 m² + agua\nTemporizador en intervalos de 5 min. Incluye manguera y difusores.\nSolo conéctalo y programa el tiempo. Envío gratis + garantía 6 meses.\nLink: https://www.grupopingus.com/products/purificador-de-agua-aire-aqua-500',
+  'aqua 1000': 'AQUA 1000 — $1,650 MXN\nOzono: 1000 mg/h + 18M iones/m³ | 7–10 W | 110 V | 0.95 kg | aire 50 m² + agua\nTemporizador + ionizador. Incluye manguera y difusores.\nSolo conéctalo y programa el tiempo. Envío gratis + garantía 6 meses.\nLink: https://www.grupopingus.com/products/purificador-de-agua-aire-aqua-1000',
   'ozono': 'Nuestros equipos generan de 100 a 150 mg/h de ozono por periodos cortos. Puedes estar en el espacio mientras funciona. Elimina bacterias, virus, hongos y olores. ¿Te interesa para algún espacio en particular?',
   'seguro': 'Sí, nuestros equipos generan de 100 a 150 mg/h por periodos cortos, así que puedes estar en el espacio mientras funciona. Es completamente seguro.',
   'caro': 'Nuestros equipos incluyen garantía de 6 meses, soporte directo en México y envío gratis. ¿Quieres que comparemos con lo que necesitas?',
@@ -228,7 +278,7 @@ function fallbackReply(text, history = []) {
   const hasMinisplit = /(mini\s?split|minisplit|aire acondicionado|\d{1,3}\s?(ton|tonelada)|1[2-9][.,]?\d{3}\s?btu|[23][0-9][.,]?\d{3}\s?btu|\bbtus?\b)/.test(ctx);
 
   if (hasMinisplit) {
-    return `El Klair UV ($3,495 MXN) es el módulo UV-C que se instala en tu minisplit (1 a 3 toneladas / 12,000–36,000 BTUs) para desinfectar el aire. Link: https://www.grupopingus.com/products/modulo-de-desinfeccion-air-ck30-uvc`;
+    return `El Klair UV ($3,495 MXN) es el módulo UV-C que se instala en tu minisplit (1 a 3 toneladas / 12,000–36,000 BTUs) para desinfectar el aire. Link: https://www.grupopingus.com/products/modulo-de-desinfeccion-air-klair-uv`;
   }
 
   if (area && area > 0 && area < 2000) {
