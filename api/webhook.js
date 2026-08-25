@@ -233,14 +233,14 @@ const FALLBACK_RESPONSES = {
   'buenos': '¡Hola! 👋 Bienvenido a Grupo PINGUS – The Health Guardian. Queremos ayudarte a respirar mejor o tener agua más pura. Para recomendarte el equipo ideal, cuéntame:\n1. ¿Qué buscas purificar: aire o agua?\n2. ¿Qué espacio tienes en mente? (ej. dormitorio, consultorio, sala, cocina).\n3. ¿Cuántos metros cuadrados (m²) tiene el lugar?',
   'buenas': '¡Hola! 👋 Bienvenido a Grupo PINGUS – The Health Guardian. Queremos ayudarte a respirar mejor o tener agua más pura. Para recomendarte el equipo ideal, cuéntame:\n1. ¿Qué buscas purificar: aire o agua?\n2. ¿Qué espacio tienes en mente? (ej. dormitorio, consultorio, sala, cocina).\n3. ¿Cuántos metros cuadrados (m²) tiene el lugar?',
   'precio': 'Nuestros purificadores van de $1,450 a $3,495 MXN. El más vendido para casa es el CIR 150 a $1,995. ¿Cuántos m² tiene tu espacio? Así te confirmo el ideal para ti.',
-  'catálogo': 'Tenemos: P4 ($1,490 / 30m²), ULTRA 150 ($1,795 / 50m²), CIR 150 ($1,995 / 50m²), AQUA 500 ($1,450 / 100m²), AQUA 1000 ($1,650 / 150m²) y Klair UV ($3,495 / módulo UV-C para minisplit). ¿Cuántos m² tiene tu espacio?',
-  'catalogo': 'Tenemos: P4 ($1,490 / 30m²), ULTRA 150 ($1,795 / 50m²), CIR 150 ($1,995 / 50m²), AQUA 500 ($1,450 / 100m²), AQUA 1000 ($1,650 / 150m²) y Klair UV ($3,495 / módulo UV-C para minisplit). ¿Cuántos m² tiene tu espacio?',
-  'klair': 'Klair UV — $3,495 MXN\nTecnología: UV-C germicida\nVoltaje: 90–264 V\nCompatible: minisplit 1–3 ton (12,000–36,000 BTUs)\nActivación: automática con sensor de flujo\nInstalación: requiere técnico especializado\nEnvío gratis + garantía 6 meses\nLink: https://www.grupopingus.com/products/modulo-de-desinfeccion-air-klair-uv',
-  'uv': 'El Klair UV cuesta $3,495 MXN. Es el único equipo con desinfección UV-C: se instala en un minisplit de 1 a 3 toneladas (12,000–36,000 BTUs). ¿Tienes minisplit?',
-  'minisplit': 'El Klair UV ($3,495 MXN) es el módulo UV-C que se instala en tu minisplit (1 a 3 toneladas / 12,000–36,000 BTUs) para purificar y desinfectar el aire. Link: https://www.grupopingus.com/products/modulo-de-desinfeccion-air-klair-uv',
-  'dentista': 'Para purificar el aire de tu consultorio recomiendo según los m²: P4 ($1,490 / 30m²) o CIR 150 ($1,995 / 50m²). Si tienes minisplit, el Klair UV ($3,495 MXN) lo desinfecta con UV-C. ¿Cuántos m² tiene y tienes minisplit?',
-  'clínica': 'Para purificar el aire recomiendo según los m²: P4 ($1,490 / 30m²) o CIR 150 ($1,995 / 50m²). Si tienes minisplit, el Klair UV ($3,495 MXN) lo desinfecta con UV-C. ¿Cuántos m² tiene y tienes minisplit?',
-  'clinica': 'Para purificar el aire recomiendo según los m²: P4 ($1,490 / 30m²) o CIR 150 ($1,995 / 50m²). Si tienes minisplit, el Klair UV ($3,495 MXN) lo desinfecta con UV-C. ¿Cuántos m² tiene y tienes minisplit?',
+  'catálogo': 'Tenemos 6 equipos: P4 (hasta 30 m²), ULTRA 150 (hasta 50 m²), CIR 150 (hasta 50 m²), AQUA 500 (aire + agua, 100 m²), AQUA 1000 (aire + agua + iones, 150 m²) y Klair UV (módulo UV-C para minisplit). Todos eliminan 99.6% de patógenos. ¿Cuántos m² tiene tu espacio?',
+  'catalogo': 'Tenemos 6 equipos: P4 (hasta 30 m²), ULTRA 150 (hasta 50 m²), CIR 150 (hasta 50 m²), AQUA 500 (aire + agua, 100 m²), AQUA 1000 (aire + agua + iones, 150 m²) y Klair UV (módulo UV-C para minisplit). Todos eliminan 99.6% de patógenos. ¿Cuántos m² tiene tu espacio?',
+  'klair': 'Klair UV — Módulo de Desinfección UV-C\n✓ ÚNICO equipo con desinfección y esterilización UV-C germicida\n✓ Se instala en minisplit de 1 a 3 toneladas (12,000–36,000 BTUs)\n✓ Activación automática con sensor de flujo\n✓ Instalación: requiere técnico especializado\n✓ Envío gratis + garantía 6 meses\n¿Tienes minisplit? ¿De cuántas toneladas?',
+  'uv': 'El Klair UV es el ÚNICO equipo con desinfección UV-C germicida. Se instala en un minisplit de 1 a 3 toneladas (12,000–36,000 BTUs) para desinfectar y esterilizar el aire. ¿Tienes minisplit?',
+  'minisplit': 'El Klair UV es el módulo UV-C que se instala en tu minisplit (1 a 3 toneladas / 12,000–36,000 BTUs) para desinfectar y esterilizar el aire. Activación automática con sensor de flujo. ¿De cuántas toneladas es tu minisplit?',
+  'dentista': 'Para consultorios dentales tenemos equipos que eliminan 99.6% de bacterias y virus del aire. Si tienes minisplit, también tenemos un módulo UV-C que se instala dentro. ¿Cuántos m² tiene tu consultorio y tienes minisplit?',
+  'clínica': 'Para clínicas tenemos equipos que eliminan 99.6% de bacterias y virus del aire. Si tienes minisplit, también tenemos un módulo UV-C que se instala dentro. ¿Cuántos m² tiene y tienes minisplit?',
+  'clinica': 'Para clínicas tenemos equipos que eliminan 99.6% de bacterias y virus del aire. Si tienes minisplit, también tenemos un módulo UV-C que se instala dentro. ¿Cuántos m² tiene y tienes minisplit?',
   'envío': 'El envío es GRATIS a toda la República Mexicana. Llega en 2 días hábiles por DHL, Estafeta, FedEx o UPS con seguimiento incluido.',
   'envio': 'El envío es GRATIS a toda la República Mexicana. Llega en 2 días hábiles con seguimiento.',
   'garantía': 'Todos nuestros equipos tienen 6 meses de garantía contra defectos de fábrica y soporte directo en México.',
@@ -252,42 +252,42 @@ const FALLBACK_RESPONSES = {
   'factura': 'Para facturación te conecto con un asesor que te apoya con tus datos fiscales. Un momento... 🔄',
   'comprar': '¡Perfecto! Puedes comprarlo ahora en nuestra tienda: www.grupopingus.com. Aceptamos tarjeta, PayPal, transferencia y OXXO. Envío gratis en 2 días. Hasta 6 MSI con cualquier tarjeta de crédito.',
   'quiero': '¡Perfecto! Puedes comprarlo en nuestra tienda: www.grupopingus.com. Aceptamos tarjeta, PayPal, transferencia y OXXO. Envío gratis en 2 días.',
-  'p4': 'P4 — $1,490 MXN\nOzono: 100 mg/h\nConsumo: 5 W\nVoltaje: 110 V\nPeso: 270 g\nCobertura: hasta 30 m²\nModos: P1 (2/58 min), P2 (3/20 min), P3 (30 min/12h), P4 (30 min/2h)\nInstalación: solo conectar y elegir modo\nEnvío gratis + garantía 6 meses\nLink: https://www.grupopingus.com/products/purificador-de-aire-p4',
-  'ultra': 'ULTRA 150 — $1,795 MXN\nOzono: 150 mg/h\nConsumo: 6 W\nVoltaje: 110 V\nPeso: 270 g\nCobertura: hasta 50 m²\nModos: P1 (10/30 min), P2 (15/20 min), P3 (20 min/2h)\nInstalación: solo conectar y elegir modo\nEnvío gratis + garantía 6 meses\nLink: https://www.grupopingus.com/products/generador-de-ozono-ultra-150-mg-h',
-  'cir': 'CIR 150 — $1,995 MXN\nOzono: 150 mg/h\nConsumo: 6 W\nVoltaje: 110 V\nPeso: 270 g\nCobertura: hasta 50 m²\nModos: P1 (15/30 min), P2 (20 min/1h), P3 (25 min/2h)\nInstalación: solo conectar y elegir modo\nEnvío gratis + garantía 6 meses\nLink: https://www.grupopingus.com/products/generador-de-ozono-inteligente-cir-150-mgh',
-  'aqua 500': 'AQUA 500 — $1,450 MXN\nOzono: 500 mg/h\nConsumo: 7–10 W\nVoltaje: 110–120 V\nPeso: 0.95 kg\nCobertura: aire 50 m² + agua\nTemporizador en intervalos de 5 min\nIncluye manguera y difusores\nInstalación: solo conectar y programar\nEnvío gratis + garantía 6 meses\nLink: https://www.grupopingus.com/products/purificador-de-agua-aire-aqua-500',
-  'aqua 1000': 'AQUA 1000 — $1,650 MXN\nOzono: 1000 mg/h\nIones: 18,000,000/m³\nConsumo: 7–10 W\nVoltaje: 110–120 V\nPeso: 0.95 kg\nCobertura: aire 50 m² + agua\nTemporizador + ionizador\nIncluye manguera y difusores\nInstalación: solo conectar y programar\nEnvío gratis + garantía 6 meses\nLink: https://www.grupopingus.com/products/purificador-de-agua-aire-aqua-1000',
+  'p4': 'Purificador de Aire P4\n✓ Elimina 99.6% de bacterias, virus y patógenos\n✓ Compacto y ligero (270 g) | Cobertura: hasta 30 m²\n✓ 4 modos: P1 (2 min/58 min), P2 (3 min/20 min), P3 (30 min/12h), P4 (30 min/2h)\n✓ Instalación: solo conectar y elegir modo\n✓ Envío gratis + garantía 6 meses\n¿Cuántos m² tiene tu espacio?',
+  'ultra': 'Generador ULTRA 150\n✓ Elimina 99.6% de bacterias, virus y patógenos\n✓ Compacto y ligero (270 g) | Cobertura: hasta 50 m²\n✓ 3 modos: P1 (10 min/30 min), P2 (15 min/20 min), P3 (20 min/2h)\n✓ Instalación: solo conectar y elegir modo\n✓ Envío gratis + garantía 6 meses\n¿Cuántos m² tiene tu espacio?',
+  'cir': 'Generador CIR 150\n✓ Elimina 99.6% de bacterias, virus y patógenos\n✓ Compacto y ligero (270 g) | Cobertura: hasta 50 m²\n✓ 3 modos: P1 (15 min/30 min), P2 (20 min/1h), P3 (25 min/2h)\n✓ Instalación: solo conectar y elegir modo\n✓ Envío gratis + garantía 6 meses\n¿Cuántos m² tiene tu espacio?',
+  'aqua 500': 'Purificador AQUA 500 — Aire + Agua\n✓ Elimina 99.6% de bacterias, virus y patógenos del aire + purifica agua\n✓ Cobertura aire: hasta 50 m² | Ozono: 500 mg/h\n✓ Temporizador ajustable | Incluye manguera y difusores\n✓ Instalación: solo conectar y programar\n✓ Envío gratis + garantía 6 meses\n¿Cuántos m² tiene tu espacio?',
+  'aqua 1000': 'Purificador AQUA 1000 — Aire + Agua + Iones\n✓ Elimina 99.6% de bacterias, virus y patógenos + purifica agua\n✓ Cobertura aire: hasta 50 m² | Ozono: 1000 mg/h | Ionizador integrado\n✓ Temporizador ajustable | Incluye manguera y difusores\n✓ Instalación: solo conectar y programar\n✓ Envío gratis + garantía 6 meses\n¿Cuántos m² tiene tu espacio?',
   'ozono': 'Nuestros equipos generan de 100 a 150 mg/h de ozono por periodos cortos. Puedes estar en el espacio mientras funciona. Elimina bacterias, virus, hongos y olores. ¿Te interesa para algún espacio en particular?',
   'seguro': 'Totalmente seguro para ti, tu familia y mascotas. Los equipos trabajan en ciclos cortos (ej: 15 min encendido / 30 min apagado) con niveles muy bajos. Puedes estar en la habitación mientras funciona sin ningún problema.',
   'caro': 'Nuestros equipos incluyen garantía de 6 meses, soporte directo en México y envío gratis. ¿Quieres que comparemos con lo que necesitas?',
   'descuento': 'Te conecto con un asesor para darte la mejor opción. Un momento... 🔄',
   'aire': 'Para purificar aire necesito saber los m² de tu espacio. ¿Es pequeño (hasta 30 m²), mediano (50-100 m²) o grande (150+ m²)?',
-  'agua': 'Para purificar agua tenemos: AQUA 500 ($1,450 MXN / aire 100m² + agua) y AQUA 1000 ($1,650 MXN / aire 150m² + agua + iones). ¿Cuántos m² tiene tu espacio?',
-  'ambos': 'Para purificar aire y agua tenemos: AQUA 500 ($1,450 MXN / 100m²) y AQUA 1000 ($1,650 MXN / 150m²). ¿Cuántos m² tiene tu espacio?',
-  'casa': 'Para casa te recomiendo el CIR 150 ($1,995 MXN) si es hasta 50 m², o el AQUA 500 ($1,450 MXN) si también quieres purificar agua. ¿Cuántos m² tiene tu espacio?',
+  'agua': 'Para purificar agua tenemos el AQUA 500 (aire + agua) y el AQUA 1000 (aire + agua + ionizador). Ambos eliminan 99.6% de patógenos. ¿Cuántos m² tiene tu espacio? Así te recomiendo el ideal.',
+  'ambos': 'Para purificar aire y agua tenemos el AQUA 500 y el AQUA 1000 (con ionizador). Ambos eliminan 99.6% de patógenos del aire + purifican agua. ¿Cuántos m² tiene tu espacio?',
+  'casa': 'Para casa el equipo ideal depende de los m² y si quieres purificar solo aire o también agua. Todos eliminan 99.6% de bacterias y virus. ¿Cuántos m² tiene tu espacio?',
   'oficina': 'Para oficinas el modelo ideal depende de los m². ¿Cuántos metros cuadrados tiene tu oficina?',
-  'restaurante': 'Para restaurantes recomiendo el AQUA 1000 ($1,650 MXN) que cubre 150 m² y purifica aire + agua. ¿Cuántos m² tiene el local?',
-  'consultorio': 'Para consultorios recomiendo según los m²: P4 ($1,490 / 30m²) o CIR 150 ($1,995 / 50m²). Si tienes minisplit, el Klair UV ($3,495 MXN) lo desinfecta con UV-C. ¿Cuántos m² tiene y tienes minisplit?',
-  'hospital': 'Para purificar el aire recomiendo según los m²: P4 ($1,490 / 30m²) o CIR 150 ($1,995 / 50m²). Si tienes minisplit, el Klair UV ($3,495 MXN) lo desinfecta con UV-C. ¿Cuántos m² tiene y tienes minisplit?',
+  'restaurante': 'Para restaurantes tenemos equipos que eliminan 99.6% de patógenos del aire y purifican agua. ¿Cuántos m² tiene el local? Así te recomiendo el ideal.',
+  'consultorio': 'Para consultorios tenemos equipos que eliminan 99.6% de bacterias y virus del aire. Si tienes minisplit, también tenemos un módulo UV-C que se instala dentro. ¿Cuántos m² tiene tu consultorio y tienes minisplit?',
+  'hospital': 'Para hospitales y clínicas tenemos equipos que eliminan 99.6% de bacterias y virus. Si cuentas con minisplit, el módulo UV-C se instala directamente. ¿Cuántos m² necesitas cubrir y tienes minisplit?',
   'gracias': 'Con gusto. Si necesitas más información, aquí estoy. Equipo PINGUS – The Health Guardian.',
   'sí': 'Perfecto, cuéntame más sobre tu espacio y te recomiendo el equipo ideal.',
   'si': 'Perfecto, cuéntame más sobre tu espacio y te recomiendo el equipo ideal.',
   'no': 'Entendido. Si cambias de opinión o tienes alguna duda, aquí estoy para ayudarte.',
   'información': 'Con gusto te ayudo. ¿Qué espacio quieres purificar: aire o agua? ¿Cuántos m² tiene?',
   'info': 'Con gusto te ayudo. ¿Qué espacio quieres purificar: aire o agua? ¿Cuántos m² tiene?',
-  'purificador': 'Tenemos purificadores de aire desde $1,490 MXN y de agua+aire desde $1,450 MXN. ¿Qué espacio necesitas purificar?',
+  'purificador': 'Tenemos purificadores de aire y de agua+aire. Todos eliminan 99.6% de bacterias, virus y patógenos. ¿Qué espacio necesitas purificar y cuántos m² tiene?',
 };
 
 // Recomienda el equipo ideal según m² y si quiere purificar agua
 function recommendByArea(area, wantsWater) {
   if (wantsWater) {
-    if (area <= 100) return 'el AQUA 500 ($1,450 MXN), purifica aire (hasta 100 m²) + agua. Link: https://www.grupopingus.com/products/purificador-de-agua-aire-aqua-500';
-    return 'el AQUA 1000 ($1,650 MXN), cubre 150 m² + agua + iones. Link: https://www.grupopingus.com/products/purificador-de-agua-aire-aqua-1000';
+    if (area <= 100) return 'el AQUA 500, purifica aire (hasta 100 m²) + agua. Elimina 99.6% de patógenos. ¿Te gustaría saber el precio?';
+    return 'el AQUA 1000, cubre 150 m² + agua + ionizador. Elimina 99.6% de patógenos. ¿Te gustaría saber el precio?';
   }
-  if (area <= 30) return 'el P4 ($1,490 MXN), purificador de aire para espacios hasta 30 m². Link: https://www.grupopingus.com/products/purificador-de-aire-p4';
-  if (area <= 50) return 'el CIR 150 ($1,995 MXN) o el ULTRA 150 ($1,795 MXN), ideales hasta 50 m². Link: https://www.grupopingus.com/products/generador-de-ozono-inteligente-cir-150-mgh';
-  if (area <= 100) return 'el AQUA 500 ($1,450 MXN), cubre hasta 100 m² y purifica aire + agua. Link: https://www.grupopingus.com/products/purificador-de-agua-aire-aqua-500';
-  return 'el AQUA 1000 ($1,650 MXN), cubre hasta 150 m² + iones. Link: https://www.grupopingus.com/products/purificador-de-agua-aire-aqua-1000';
+  if (area <= 30) return 'el P4, purificador de aire ideal para espacios hasta 30 m². Elimina 99.6% de bacterias y virus. ¿Te gustaría saber el precio?';
+  if (area <= 50) return 'el CIR 150 o el ULTRA 150, ideales hasta 50 m². Eliminan 99.6% de bacterias y virus. ¿Te gustaría saber el precio?';
+  if (area <= 100) return 'el AQUA 500, cubre hasta 100 m² y purifica aire + agua. Elimina 99.6% de patógenos. ¿Te gustaría saber el precio?';
+  return 'el AQUA 1000, cubre hasta 150 m² + ionizador. Elimina 99.6% de patógenos. ¿Te gustaría saber el precio?';
 }
 
 // Fallback inteligente: usa el mensaje actual + historial para detectar
@@ -312,7 +312,7 @@ function fallbackReply(text, history = []) {
   const hasMinisplit = /(mini\s?split|minisplit|aire acondicionado|\d{1,3}\s?(ton|tonelada)|1[2-9][.,]?\d{3}\s?btu|[23][0-9][.,]?\d{3}\s?btu|\bbtus?\b)/.test(ctx);
 
   if (hasMinisplit) {
-    return `El Klair UV ($3,495 MXN) es el módulo UV-C que se instala en tu minisplit (1 a 3 toneladas / 12,000–36,000 BTUs) para desinfectar el aire. Link: https://www.grupopingus.com/products/modulo-de-desinfeccion-air-klair-uv`;
+    return `El Klair UV es el módulo UV-C que se instala en tu minisplit (1 a 3 toneladas / 12,000–36,000 BTUs) para desinfectar y esterilizar el aire. ¿Te gustaría saber el precio y más detalles?`;
   }
 
   if (area && area > 0 && area < 2000) {
