@@ -847,6 +847,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <i class="ti ti-package" style="font-size:15px;color:var(--accent)"></i>
     <h2>Catálogo Grupo Pingus</h2>
     <div style="font-size:11px;color:var(--txt3)">grupopingus.com · Purificadores de aire y agua con tecnología Ozono</div>
+    <button onclick="syncShopifyNow()" style="margin-left:auto;font-size:10px;padding:5px 12px;border:1px solid var(--border);background:var(--bg);color:var(--txt2);border-radius:6px;cursor:pointer;display:flex;align-items:center;gap:4px"><i class="ti ti-refresh" style="font-size:12px"></i> Sincronizar</button>
   </div>
   <div style="padding:14px;display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px" id="productsGrid"></div>
 </div><!-- end view-products -->
@@ -3105,7 +3106,7 @@ function useTpl(id){
   var txt='';
   if(t.type==='text')txt=t.content.replace(/\{\{nombre\}\}/g,aC?.name.split(' ')[0]||'').replace(/\{\{agente\}\}/g,'Juan M.').replace(/\{\{fecha\}\}/g,'hoy').replace(/\{\{hora\}\}/g,'3:00 PM');
   else if(t.type==='photo')txt=`📷 Imagen: ${t.content}`;
-  else txt=`🔗 ${t.linkTitle||t.content}`;
+  else txt=t.linkTitle?`${t.linkTitle}\n${t.content}`:t.content;
   if(aC){
     if(!msgs[aC.id])msgs[aC.id]=[];
     var content=`✅ ${t.name}\n${txt}`;
@@ -3281,29 +3282,54 @@ document.getElementById('aiTog')?.addEventListener('click',async function(){
    PRODUCTS CATALOG — GRUPO PINGUS
 ══════════════════════════════════════ */
 var PINGUS_PRODUCTS = [
-  {id:'cir', name:'Generador OZONO CIR 150', category:'150 mg/h · Inteligente', precio:'$1,995 MXN', tag:'Nuevo', tagColor:'#d1fae5', tagTc:'#065f46', desc:'Ozono: 150 mg/h · 6 W · 110 V · 270 g · Hasta 50 m² · 3 modos (P1/P2/P3) · Solo conectar y elegir modo.', img:'https://www.grupopingus.com/cdn/shop/files/CIR.png?v=1772811104&width=300', url:'https://www.grupopingus.com/products/generador-de-ozono-inteligente-cir-150-mgh'},
-  {id:'ultra150', name:'Generador ULTRA 150', category:'150 mg/h · Portátil', precio:'$1,795 MXN', tag:'Popular', tagColor:'#fff0e8', tagTc:'#7c2d12', desc:'Ozono: 150 mg/h · 6 W · 110 V · 270 g · Hasta 50 m² · 3 modos (P1/P2/P3) · Solo conectar y elegir modo.', img:'https://www.grupopingus.com/cdn/shop/files/ULTRA150F2.png?v=1772811044&width=300', url:'https://www.grupopingus.com/products/generador-de-ozono-ultra-150-mg-h'},
+  {id:'cir', name:'Generador OZONO CIR 150', category:'150 mg/h · Inteligente', precio:'$1,995 MXN', tag:'Nuevo', tagColor:'#d1fae5', tagTc:'#065f46', desc:'Ozono: 150 mg/h · 6 W · 110 V · 270 g · Hasta 50 m² · P1: 15 min ON / 30 min OFF · P2: 20 min ON / 1 h OFF · P3: 25 min ON / 2 h OFF · Solo conectar y elegir modo.', img:'https://www.grupopingus.com/cdn/shop/files/CIR.png?v=1772811104&width=300', url:'https://www.grupopingus.com/products/generador-de-ozono-inteligente-cir-150-mgh'},
+  {id:'ultra150', name:'Generador ULTRA 150', category:'150 mg/h · Portátil', precio:'$1,795 MXN', tag:'Popular', tagColor:'#fff0e8', tagTc:'#7c2d12', desc:'Ozono: 150 mg/h · 6 W · 110 V · 270 g · Hasta 50 m² · P1: 10 min ON / 30 min OFF · P2: 15 min ON / 20 min OFF · P3: 20 min ON / 2 h OFF · Solo conectar y elegir modo.', img:'https://www.grupopingus.com/cdn/shop/files/ULTRA150F2.png?v=1772811044&width=300', url:'https://www.grupopingus.com/products/generador-de-ozono-ultra-150-mg-h'},
   {id:'ck30', name:'Klair UV', category:'Desinfección UV-C', precio:'$3,495 MXN', tag:'Profesional', tagColor:'#fae8ff', tagTc:'#c2410c', desc:'UV-C germicida · 90–264 V · Minisplit 1–3 ton (12,000–36,000 BTUs) · Sensor de flujo automático · Requiere técnico.', img:'https://www.grupopingus.com/cdn/shop/files/imgi_2_product-1-309.152.3-2.jpg?v=1771959535&width=300', url:'https://www.grupopingus.com/products/modulo-de-desinfeccion-air-klair-uv'},
   {id:'aqua1000', name:'AQUA 1000', category:'Purificador Agua/Aire', precio:'$1,650 MXN', tag:'Dual', tagColor:'#d1fae5', tagTc:'#065f46', desc:'Ozono: 1000 mg/h · 18M iones/m³ · 7–10 W · 110–120 V · 0.95 kg · Aire 50 m² + agua · Incluye manguera y difusores.', img:'https://www.grupopingus.com/cdn/shop/files/AQUA1000.png?v=1771962150&width=300', url:'https://www.grupopingus.com/products/purificador-de-agua-aire-aqua-1000'},
   {id:'aqua500', name:'AQUA 500', category:'Purificador Agua/Aire', precio:'$1,450 MXN', tag:'Más vendido', tagColor:'#fef3c7', tagTc:'#92400e', desc:'Ozono: 500 mg/h · 7–10 W · 110–120 V · 0.95 kg · Aire 50 m² + agua · Temporizador 5 min · Incluye manguera y difusores.', img:'https://www.grupopingus.com/cdn/shop/files/ChatGPT_Image_4_mar_2026_03_51_31_p.m..png?v=1772735492&width=300', url:'https://www.grupopingus.com/products/purificador-de-agua-aire-aqua-500'},
-  {id:'p4', name:'Purificador P4', category:'Generador de Ozono', precio:'$1,490 MXN', tag:'Recomendado', tagColor:'#dbeafe', tagTc:'#1e3a8a', desc:'Ozono: 100 mg/h · 5 W · 110 V · 270 g · Hasta 30 m² · 4 modos (P1/P2/P3/P4) · Solo conectar y elegir modo.', img:'https://www.grupopingus.com/cdn/shop/files/P4.png?v=1771962640&width=300', url:'https://www.grupopingus.com/products/purificador-de-aire-p4'},
-  {id:'smart', name:'Purificador SMART', category:'Portátil · Compacto', precio:'$995 MXN', tag:'Económico', tagColor:'#d1fae5', tagTc:'#065f46', desc:'Purificador compacto y asequible. Ideal para autos, clósets y espacios pequeños.', img:'https://www.grupopingus.com/cdn/shop/files/SMART.png?v=1771962770&width=300', url:'https://www.grupopingus.com/products/purificador-de-aire-smart'},
-  {id:'smartplus', name:'Purificador SMART PLUS', category:'Portátil · Premium', precio:'$995 MXN', tag:'Oferta', tagColor:'#fee2e2', tagTc:'#991b1b', desc:'Versión mejorada del SMART. Mayor cobertura y duración de batería para uso prolongado.', img:'https://www.grupopingus.com/cdn/shop/files/6063a3a9d1163_smart-plus-1jpg.jpg?v=1771961393&width=300', url:'https://www.grupopingus.com/products/purificador-de-aire-smart-plus'},
-  {id:'utility-o3', name:'UTILITY O3', category:'Purificador de Aire', precio:'$1,495 MXN', tag:'Versátil', tagColor:'#f3e8ff', tagTc:'#c2410c', desc:'Purificador portátil de ozono. Elimina virus, bacterias y malos olores donde lo necesites.', img:'https://www.grupopingus.com/cdn/shop/files/6063a1727bd2a_utility-portadajpg.jpg?v=1771961761&width=300', url:'https://www.grupopingus.com/products/purificador-utility-o3'},
+  {id:'p4', name:'Purificador P4', category:'Generador de Ozono', precio:'$1,490 MXN', tag:'Recomendado', tagColor:'#dbeafe', tagTc:'#1e3a8a', desc:'Ozono: 100 mg/h · 5 W · 110 V · 270 g · Hasta 30 m² · P1: 2 min ON / 58 min OFF (hasta 10 m²) · P2: 3 min ON / 20 min OFF (hasta 10 m²) · P3: 30 min ON / 12 h OFF (hasta 20 m²) · P4: 30 min ON / 2 h OFF (hasta 30 m²) · Solo conectar y elegir modo.', img:'https://www.grupopingus.com/cdn/shop/files/P4.png?v=1771962640&width=300', url:'https://www.grupopingus.com/products/purificador-de-aire-p4'},
+  {id:'smart', name:'Purificador SMART', category:'Portátil · Compacto', precio:'$995 MXN', tag:'Económico', tagColor:'#d1fae5', tagTc:'#065f46', desc:'Ozono: 100 mg/h · 5 W · 5 V USB · 200 g · Batería 2000 mAh · Hasta 25 m² · P1: 5 min · P2: 30 min · P3: 5 min ON / 55 min OFF · P4: 30 min ON / 11.5 h OFF · Portátil y recargable.', img:'https://www.grupopingus.com/cdn/shop/files/SMART.png?v=1771962770&width=300', url:'https://www.grupopingus.com/products/purificador-de-aire-smart'},
+  {id:'smartplus', name:'Purificador SMART PLUS', category:'Portátil · Premium', precio:'$995 MXN', tag:'Oferta', tagColor:'#fee2e2', tagTc:'#991b1b', desc:'Ozono: 100 mg/h · 5 W · 5 V USB · 200 g · Batería 2000 mAh · Hasta 25 m² · P1: 5 min · P2: 30 min · P3: 5 min ON / 55 min OFF · P4: 30 min ON / 11.5 h OFF · Portátil y recargable.', img:'https://www.grupopingus.com/cdn/shop/files/6063a3a9d1163_smart-plus-1jpg.jpg?v=1771961393&width=300', url:'https://www.grupopingus.com/products/purificador-de-aire-smart-plus'},
+  {id:'utility-o3', name:'UTILITY O3', category:'Purificador de Aire', precio:'$1,495 MXN', tag:'Versátil', tagColor:'#f3e8ff', tagTc:'#c2410c', desc:'Ozono: 100 mg/h · 5 V USB-C · Batería 2500 mAh · 5–10 m³ · Verde: 35 min (90%) · Violeta: 45 min (95%) · Azul: 60 min (99%) · Portátil y recargable.', img:'https://www.grupopingus.com/cdn/shop/files/6063a1727bd2a_utility-portadajpg.jpg?v=1771961761&width=300', url:'https://www.grupopingus.com/products/purificador-utility-o3'},
 ];
 
+
+var FICHAS_TECNICAS = {
+  'cir': 'Ozono: 150 mg/h · 6 W · 110 V · 270 g · Hasta 50 m² · P1: 15 min ON / 30 min OFF · P2: 20 min ON / 1 h OFF · P3: 25 min ON / 2 h OFF · Solo conectar y elegir modo.',
+  'ultra': 'Ozono: 150 mg/h · 6 W · 110 V · 270 g · Hasta 50 m² · P1: 10 min ON / 30 min OFF · P2: 15 min ON / 20 min OFF · P3: 20 min ON / 2 h OFF · Solo conectar y elegir modo.',
+  'p4': 'Ozono: 100 mg/h · 5 W · 110 V · 270 g · Hasta 30 m² · P1: 2 min ON / 58 min OFF (hasta 10 m²) · P2: 3 min ON / 20 min OFF (hasta 10 m²) · P3: 30 min ON / 12 h OFF (hasta 20 m²) · P4: 30 min ON / 2 h OFF (hasta 30 m²) · Solo conectar y elegir modo.',
+  'aqua-500': 'Ozono: 500 mg/h · 7–10 W · 110–120 V · 0.95 kg · Aire 50 m² + agua · Temporizador 5 min · Incluye manguera y difusores.',
+  'aqua-1000': 'Ozono: 1000 mg/h · 18M iones/m³ · 7–10 W · 110–120 V · 0.95 kg · Aire 50 m² + agua · Incluye manguera y difusores.',
+  'klair': 'UV-C germicida · 90–264 V · Minisplit 1–3 ton (12,000–36,000 BTUs) · Sensor de flujo automático · Requiere técnico.',
+  'smart': 'Ozono: 100 mg/h · 5 W · 5 V USB · 200 g · Batería 2000 mAh · Hasta 25 m² · P1: 5 min · P2: 30 min · P3: 5 min ON / 55 min OFF · P4: 30 min ON / 11.5 h OFF · Portátil y recargable.',
+  'smart-plus': 'Ozono: 100 mg/h · 5 W · 5 V USB · 200 g · Batería 2000 mAh · Hasta 25 m² · P1: 5 min · P2: 30 min · P3: 5 min ON / 55 min OFF · P4: 30 min ON / 11.5 h OFF · Portátil y recargable.',
+  'utility': 'Ozono: 100 mg/h · 5 V USB-C · Batería 2500 mAh · 5–10 m³ · Verde: 35 min (90%) · Violeta: 45 min (95%) · Azul: 60 min (99%) · Portátil y recargable.'
+};
+function matchFicha(title,handle){
+  var t=(title||'').toLowerCase(),h=(handle||'').toLowerCase();
+  if(h.includes('cir-150')||t.includes('cir 150'))return FICHAS_TECNICAS['cir'];
+  if(h.includes('ultra-150')||t.includes('ultra 150'))return FICHAS_TECNICAS['ultra'];
+  if(h.includes('aqua-1000')||t.includes('aqua 1000'))return FICHAS_TECNICAS['aqua-1000'];
+  if(h.includes('aqua-500')||t.includes('aqua 500'))return FICHAS_TECNICAS['aqua-500'];
+  if(h.includes('klair')||h.includes('ck30')||t.includes('klair'))return FICHAS_TECNICAS['klair'];
+  if(h.includes('p4')||t.includes(' p4'))return FICHAS_TECNICAS['p4'];
+  if(h.includes('smart-plus')||t.includes('smart plus'))return FICHAS_TECNICAS['smart-plus'];
+  if(h.includes('smart')||t.includes('smart'))return FICHAS_TECNICAS['smart'];
+  if(h.includes('utility')||t.includes('utility'))return FICHAS_TECNICAS['utility'];
+  return '';
+}
 
 function renderProducts(){
   var grid = document.getElementById('productsGrid');
   if(!grid) return;
 
-  // Catálogo local solo como fallback: con Shopify sincronizado son los mismos productos (se duplicaban)
   var allProds;
   if(shopifyProducts.length){
     allProds = shopifyProducts.map(function(sp){
       var img = (sp.images&&sp.images[0])?sp.images[0].src:'';
       var price = sp.price_min?('$'+Number(sp.price_min).toLocaleString('es-MX')+' MXN'):'Consultar';
-      return{source:'shopify',id:'sp-'+sp.shopify_id,name:sp.title,category:sp.product_type||sp.vendor||'Shopify',precio:price,tag:'Shopify',tagColor:'#d1fae5',tagTc:'#065f46',desc:(sp.description||'').substring(0,120),img:img,url:'https://'+((sp.handle)?'www.grupopingus.com/products/'+sp.handle:'#'),inventory:sp.inventory_total};
+      var ficha = matchFicha(sp.title,sp.handle);
+      return{source:'shopify',id:'sp-'+sp.shopify_id,name:sp.title,category:sp.product_type||sp.vendor||'Shopify',precio:price,tag:'Shopify',tagColor:'#d1fae5',tagTc:'#065f46',desc:ficha||(sp.description||'').substring(0,120),img:img,url:'https://'+((sp.handle)?'www.grupopingus.com/products/'+sp.handle:'#'),inventory:sp.inventory_total};
     });
   } else {
     allProds = PINGUS_PRODUCTS.map(function(p){return{source:'local',id:p.id,name:p.name,category:p.category,precio:p.precio,tag:p.tag,tagColor:p.tagColor,tagTc:p.tagTc,desc:p.desc,img:p.img,url:p.url};});
@@ -3333,11 +3359,13 @@ function renderProducts(){
   grid.innerHTML = h;
   document.querySelectorAll('[data-prod]').forEach(btn=>{
     btn.addEventListener('click',()=>{
-      var allP = PINGUS_PRODUCTS.concat(shopifyProducts.map(function(sp){return{id:'sp-'+sp.shopify_id,name:sp.title,precio:sp.price?'$'+sp.price+' MXN':'',img:(sp.images&&sp.images[0])?sp.images[0].src:'',url:'https://www.grupopingus.com/products/'+sp.handle};}));
+      var allP = PINGUS_PRODUCTS.concat(shopifyProducts.map(function(sp){return{id:'sp-'+sp.shopify_id,name:sp.title,precio:sp.price?'$'+sp.price+' MXN':'',img:(sp.images&&sp.images[0])?sp.images[0].src:'',url:'https://www.grupopingus.com/products/'+sp.handle,desc:matchFicha(sp.title,sp.handle)};}));
       const prod=allP.find(p=>p.id===btn.dataset.prod);
       if(!prod)return;
       if(!aC){toast('Selecciona un contacto primero');return;}
-      var txt=`¡Hola ${aC.name.split(' ')[0]}! Te comparto info de este producto:\n\n*${prod.name}* — ${prod.precio}\n${prod.desc||''}\n\n🔗 ${prod.url}\n\n✅ Envío GRATIS · Garantía 6 meses\n¿Te interesa? Con gusto te ayudo.`;
+      var ficha=prod.desc||matchFicha(prod.name,'')||'';
+      var fichaLines=ficha?('\n'+ficha.split(' · ').join('\n')):'';
+      var txt=`¡Hola ${aC.name.split(' ')[0]}! Te comparto info de este producto:\n\n*${prod.name}* — ${prod.precio}${fichaLines}\n\n🔗 ${prod.url}\n\n✅ Envío GRATIS · Garantía 6 meses\n¿Te interesa? Con gusto te ayudo.`;
       var imgUrl=(prod.img||prod.image||'').split('?')[0];
       var ch=aC.ch||'wa';
       var handle=aC.phone||(aC.channels||[]).find(c=>c.ch===ch)?.handle;
