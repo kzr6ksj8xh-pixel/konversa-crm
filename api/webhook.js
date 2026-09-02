@@ -95,6 +95,15 @@ CATÁLOGO DE PRODUCTOS (RESPALDO — la BASE DE CONOCIMIENTO sincronizada desde 
 5. Purificador AQUA 1000 - $1,650 MXN - Aire (150 m²) + Agua + Iones, ideal restaurantes, colegios - https://www.grupopingus.com/products/purificador-de-agua-aire-aqua-1000
 6. Klair UV - $3,495 MXN - ÚNICO equipo con desinfección/esterilización UV-C. Es un módulo UV-C que se instala en el MINISPLIT (aire acondicionado) de 1 a 3 toneladas (12,000 a 36,000 BTUs) para purificar y desinfectar el aire - https://www.grupopingus.com/products/modulo-de-desinfeccion-air-klair-uv
 
+🛒 MERCADO LIBRE — LINKS ALTERNATIVOS:
+Si el cliente pregunta si puede comprar en Mercado Libre, o menciona "Mercado Libre", comparte el link del producto correspondiente con esta frase exacta: "También los puede adquirir en Mercado Libre sin el descuento de la tienda en línea"
+- P4: https://www.mercadolibre.com.mx/purificador-de-aire-p4-para-eliminar-virus-y-bacterias-color-blanco/p/MLM35289256
+- CIR 150: https://www.mercadolibre.com.mx/purificador-de-aire-pingus-cir-150-con-generador-de-ozono/up/MLMU3917226485
+- ULTRA 150: https://www.mercadolibre.com.mx/generador-de-ozono-inteligente-ultra-150mgh-uv-c-para-purificar-aire-y-eliminar-olores/p/MLM64646338
+- AQUA 500: https://www.mercadolibre.com.mx/pingus-aqua-500-generador-de-ozono-casa-para-aire-y-agua/up/MLMU1012393684
+- AQUA 1000: https://www.mercadolibre.com.mx/pingus-aqua-1000-generador-de-ozono-casa-para-aire-y-agua/up/MLMU1008857879
+IMPORTANTE: Siempre recomienda PRIMERO la tienda en línea (grupopingus.com) con el descuento. Solo menciona Mercado Libre si el cliente lo pide o lo pregunta expresamente.
+
 ⚠️ TECNOLOGÍA POR PRODUCTO — REGLA CRÍTICA (NUNCA la inventes ni la mezcles):
 - El ÚNICO equipo que desinfecta y esteriliza con luz UV-C es el Klair UV. Es el único producto con tecnología UV-C de todo el catálogo.
 - Los demás equipos NO tienen UV-C. P4, ULTRA 150, CIR 150 y UTILITY O3 funcionan con OZONO. AQUA 500 y AQUA 1000 purifican aire + agua (ozono/filtración/iones), tampoco con UV-C.
@@ -257,6 +266,8 @@ const FALLBACK_RESPONSES = {
   'cir': 'Generador CIR 150\n✓ Elimina 99.6% de bacterias, virus y patógenos\n✓ Compacto y ligero (270 g) | Cobertura: hasta 50 m²\n✓ 3 modos: P1 (15 min/30 min), P2 (20 min/1h), P3 (25 min/2h)\n✓ Instalación: solo conectar y elegir modo\n✓ Envío gratis + garantía 6 meses\n¿Cuántos m² tiene tu espacio?',
   'aqua 500': 'Purificador AQUA 500 — Aire + Agua\n✓ Elimina 99.6% de bacterias, virus y patógenos del aire + purifica agua\n✓ Cobertura aire: hasta 50 m² | Ozono: 500 mg/h\n✓ Temporizador ajustable | Incluye manguera y difusores\n✓ Instalación: solo conectar y programar\n✓ Envío gratis + garantía 6 meses\n¿Cuántos m² tiene tu espacio?',
   'aqua 1000': 'Purificador AQUA 1000 — Aire + Agua + Iones\n✓ Elimina 99.6% de bacterias, virus y patógenos + purifica agua\n✓ Cobertura aire: hasta 50 m² | Ozono: 1000 mg/h | Ionizador integrado\n✓ Temporizador ajustable | Incluye manguera y difusores\n✓ Instalación: solo conectar y programar\n✓ Envío gratis + garantía 6 meses\n¿Cuántos m² tiene tu espacio?',
+  'mercado libre': 'Sí, también estamos en Mercado Libre. Aunque en nuestra tienda en línea (grupopingus.com) manejamos mejores precios y el mismo envío gratis. ¿Qué equipo te interesa?',
+  'mercadolibre': 'Sí, también estamos en Mercado Libre. Aunque en nuestra tienda en línea (grupopingus.com) manejamos mejores precios y el mismo envío gratis. ¿Qué equipo te interesa?',
   'ozono': 'Nuestros equipos generan de 100 a 150 mg/h de ozono por periodos cortos. Puedes estar en el espacio mientras funciona. Elimina bacterias, virus, hongos y olores. ¿Te interesa para algún espacio en particular?',
   'seguro': 'Totalmente seguro para ti, tu familia y mascotas. Los equipos trabajan en ciclos cortos (ej: 15 min encendido / 30 min apagado) con niveles muy bajos. Puedes estar en la habitación mientras funciona sin ningún problema.',
   'caro': 'Nuestros equipos incluyen garantía de 6 meses, soporte directo en México y envío gratis. ¿Quieres que comparemos con lo que necesitas?',
